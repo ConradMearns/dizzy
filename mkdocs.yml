@@ -23,8 +23,10 @@ theme:
         icon: material/weather-sunny
         name: Switch to light mode
 plugins:
-  - pub-obsidian
   - search
+  - pub-obsidian:
+      backlinks:
+        enabled: false
   - mkdocstrings:
       default_handler: python
       handlers:
