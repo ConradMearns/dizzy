@@ -5,10 +5,9 @@ stdenv.mkDerivation {
   buildInputs = [
     python310
     poetry
-    rqlite
   ];
   shellHook = ''
-    # poetry shell
+    poetry shell
   '';
   LD_LIBRARY_PATH = lib.makeLibraryPath [ pkgs.stdenv.cc.cc ];
 }
