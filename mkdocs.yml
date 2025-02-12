@@ -22,3 +22,37 @@ theme:
       toggle:
         icon: material/weather-sunny
         name: Switch to light mode
+plugins:
+  - pub-obsidian
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_root_heading: false
+            show_source: true
+            annotations_path: full
+            show_signature_annotations: true
+            signature_crossrefs: true
+            show_if_no_docstring: true
+            # show_symbol_type_heading: true
+            # show_symbol_type_toc: true
+
+repo_url: https://github.com/ConradMearns/dizzy
+
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
