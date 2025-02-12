@@ -1,0 +1,24 @@
+site_name: dizzy
+theme: 
+  features:
+    - content.code.copy
+    - content.tabs.link
+  name: material
+  palette:
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: yellow
+      accent: pink
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: yellow
+      accent: pink
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
