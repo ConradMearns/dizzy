@@ -35,11 +35,11 @@ plugins:
             show_root_heading: false
             show_source: true
             annotations_path: full
-            show_signature_annotations: true
+            show_signature_annotations: false
             signature_crossrefs: true
-            show_if_no_docstring: true
-            # show_symbol_type_heading: true
-            # show_symbol_type_toc: true
+            show_if_no_docstring: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: false
 
 repo_url: https://github.com/ConradMearns/dizzy
 

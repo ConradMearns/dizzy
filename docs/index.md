@@ -1,14 +1,42 @@
-# everything all at once (index)
+# getting dizzy
 
-Possible Example Problems
+> “Start Where You Are. Use What You Have. Do What You Can.” - Arthur Ashe
 
-- Datalake / Database Normalization
-- AWS Lambda Deployment
-- UI Development
-- Game??
-- Tag-Oriented File Storage
+> "Write drunk, edit sober" -  some drunk who has never editted in their life
 
-Things to cover:
+We've ranted and rambled enough - let's get to work and test out some code.
+
+There isn't one particular goal wioth this project, this repository is meant to serve as a piece of living proof of failure and progress.
+We are engine building - bootstrapping a patradigm for processing that can survive shifting paradigms, requirements, domains, whim and fancy alike. It is the bastard child of many problems:
+
+- Contract work typically demands a new bespoke system be created every 1-3 years. This is fun - but not sustainable. What if we could carry over the largest least-interesting piece of technology every time to provide a backbone for developing and exploring new paradigms instead of re-inventing the wheel every time?
+
+- Questions of which database are best suited for the user, what UI JS frontend is coolest, what programming language is most likely to provide job stability are tired. _It should not matter_ what of these desicions we make now, because we are more likely to be wrong than right anyway. Therefor - we would be better equipped for these questions if we had an archuitecture that granted us the grace of making these mistakes and correcting them - rather than living with the pain of our ignorance forever.
+
+Besides these burning problems - we also have a general burning desire that we share. _Surely some things could be better_.
+
+The architecture we build here is intended not to be the best - but to be as flexible as possible to the point we know longer care about what's best.
+
+# What the heck is this for
+
+- Running interruptable pipelines that can be resumed later
+	- Let me write a quick script that will never be used for production workflows real quick...
+- Replacing Jupyter as a scientific processing tool to accelerate TRL
+	- DAG's are everywhere and in-memory objects are not to be trusted
+- Meta-programming without DSL's or Monkey-patching
+	- cool IaC bro, can I have a diagram?
+- The MO - Moving Objects
+	- hey can you send me those vacation photos of me? thx <3
+- ???
+	- do u got games on ur phone
+
+# How I'm Writing This Document
+
+There are two primary streams of _new content_ I'm using to quide my hand in writting. Ramblings I've recorded from various sources - transcribed, timestamping, summarized, bulletized, re-ingesticized, mentalized and finally written and this lil table of content below.
+
+> I'm not yet sure if I'll include source rambles - I don't think they matter all that much. I may include them for the hell of it later.
+
+# Content:
 
 - [[Command Query Responsability Seperation]]
 - DDD
@@ -17,7 +45,8 @@ Things to cover:
 - [[#Listeners and Callbacks]]
 - [[#Observer Pattern]]
 - [[#Event Loop]]
-- Event Loops Emitting Events to Event Loops
+- [[#Delaying Event Loop Effects]]
+- [[#Event Loops Emitting Events]]
 - Event Sourcing Command Ledger ID -> Entity ID
 - Provenance, Fault Tolerance, Queue Rebuilding
 - Automatic Magic with Python Types
@@ -99,9 +128,22 @@ class ObserverA:
 
 # Event Loop
 
-Instead of 'Subjects' that notify observers, we have an `EventSystem` that passes Events
+Instead of 'Subjects' that notify observers, we have an `EventSystem` that passes `Events` to `Listners`.
+
+The `EventQueue` is used as an abstration on top of a list. 
+Note that the the `EventSystem` only provides a method for processing the `next` event,
+if the EventQurur were instead built with a construct that is thread-safe,
+we could make an event system that is naively parallizable.
 
 ```python
+class Listener(ABC):
+	def run(self, queue: EventQueue, event: Event):
+		pass
+
+@dataclass
+class Event:
+	pass
+
 class EventQueue:
 	def __init__(self):
 		self.items = []
@@ -111,14 +153,6 @@ class EventQueue:
 	
 	def next(self):
 		return self.items.pop(0)
-
-class Listener(ABC):
-	def run(self, queue: EventQueue, event: Event):
-		pass
-
-@dataclass
-class ExampleEvent(Event):
-	value: str
 
 class EventSystem:
 	def __init__(self):
@@ -138,17 +172,59 @@ class EventSystem:
 
 		for listener in self.listeners[event_type]:
 			listener.run(self.queue, event)
-			# or... get into this later?
-			vq = EventQueue()
-			listener.run(vq, event)
-			for e in vq.items:
-				self.queue.emit(e)
 ```
 
 Criticisms:
 - Listeners shouldn't have full access to the queue - depending on the implementation a developer may cause damage via empty, or a sort, or a loop
 
-# Event Loops Emitting...
+# Delaying Event Loop Effects
+
+We may want Event Loops to emit events in a way that allows for more fine grained control.
+By ensuring that the `EventQueue` is a proper interface that can be passed into `Listener`,
+we can add pre and post processing code that has some knowledge about inputs and outputs. 
+
+```python
+
+class EventSystem:
+	def __init__(self):
+		self.queue = EventQueue()
+		
+	def register(self, event_type):
+		if event_type not in self.listeners
+			self.listeners[event_type] = []
+	
+	def subscribe(self, event_type, listener: Listener):
+		self.register(event_type)
+		self.listeners[event_type].append(listener)
+
+	def next(self):
+		event = self.queue.next()
+		event_type = type(event)
+
+		for listener in self.listeners[event_type]:
+			vq = EventQueue()
+			# pre processing code...
+			listener.run(vq, event)
+			# post processing code...
+			for e in vq.items:
+				self.queue.emit(e)
+```
+
+# Event Loops Emitting Events
+
+::: dizzy.event_loop_emitting.EventSystem
+
+The addition of `ActivityStarted` and `ActivityEnded` shows how even arbitray classes can have domain events encoded inside;
+signifiying that the events are dependendant on this specific implementation.
+Though, the implementation just prints the events back out for now
+
+```bash
+$ python dizzy/event_loop_emitting.py 
+ExampleEvent(value='Hello World!')
+EventSystem.MetaActivityStarted(value='started')
+Hello World!
+EventSystem.MetaActivityEnded(value='ended')
+```
 
 I imagined a pattern like this - but realized now that it's been coded that if `self._on` is something like
 
@@ -180,6 +256,18 @@ So what's the alternative here? We have to construct the Activity ID prior to em
 [[I ranted a little bit about why I didn't want to do this]] - but I am feeling now that this was the wrong direction to take.
 
 I suppose the true issue with Entity ID's being passed around manually is one of _permissions_. [[We don't want a user to just pick any arbitrary Entity ID and attach meaningless Events to it ]]- so this issue will need to be revisited.
+
+
+Pushing ahead,
+I went and created a basic command system that consume the raw events
+(without storing them into an Event Store)
+to explore how this would be problematic.
+
+::: dizzy.domain.event_system.ProvenanceDuckDBQueryModel
+::: dizzy.domain.event_system.ProvenanceDuckDBListener
+::: dizzy.domain.event_system.HandleStarted
+::: dizzy.domain.event_system.HandleEnded
+
 
 
 # Errata
