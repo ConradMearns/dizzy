@@ -6,7 +6,7 @@
 
 We've ranted and rambled enough - let's get to work and test out some code.
 
-There isn't one particular goal wioth this project, this repository is meant to serve as a piece of living proof of failure and progress.
+There isn't one particular goal with this project, this repository is meant to serve as a piece of living proof of failure and progress.
 We are engine building - bootstrapping a patradigm for processing that can survive shifting paradigms, requirements, domains, whim and fancy alike. It is the bastard child of many problems:
 
 - Contract work typically demands a new bespoke system be created every 1-3 years. This is fun - but not sustainable. What if we could carry over the largest least-interesting piece of technology every time to provide a backbone for developing and exploring new paradigms instead of re-inventing the wheel every time?
@@ -38,6 +38,7 @@ There are two primary streams of _new content_ I'm using to quide my hand in wri
 
 # Content:
 
+- [[#Event Sourcing]]
 - [[Command Query Responsability Seperation]]
 - DDD
 	- Entities and Value Objects
@@ -74,6 +75,22 @@ Links - less relevant
 - [Rust's trait system is a proof engine, let's make it prove us an ABI! - Pierre Avital](https://www.youtube.com/watch?v=g6mUtBVESb0)
 
 ---
+
+# Event Sourcing 
+
+<!-- 
+TODO add diagram showing axis of deltas vs state
+
+Event Sourcing
+Command Sourcing
+Selective (Partial) Event Sourcing / Dual Writes
+Event-Carried State Transfer (ECST)
+Log Compaction & Snapshotting Hybrids
+CDC with Outbox
+Traditional State (CRUD via CDC)
+
+-->
+
 
 # Listeners and Callbacks
 
@@ -268,7 +285,49 @@ to explore how this would be problematic.
 ::: dizzy.domain.event_system.HandleStarted
 ::: dizzy.domain.event_system.HandleEnded
 
+How would it look to have some Activity/Entity Manager thing that can delegate Activity ID's to us?
 
+After doing a bit more research - it appears this is just how things need to be with Event Sourcing.
+
+There are a few possible solutions to Entity ID's that are client-generated to avoid the problem of not being able to use sequential integers.
+
+- Snowflake IDs: timestamp, machine ID, sequence number
+- Hash Based ID: still needs something like a timestamp or some pseudorandom element
+- UUID / KSUID / ULID
+
+
+# On Entity IDs in Decentralized Systems
+
+This particular aside will need to be made significantly longer at some point.
+
+In a decentralized system where trust is minimal, it may be the case that some Agents are restricted in terms of what entities can be created or modified. Additionally, it is important to correctly attribute Entities with the Agents that created them so that such permisions can be managed in the first place.
+
+Cryptographic Keys and Signatures could be a solution.
+
+For entities - since the Entity ID must be generated prior to attaching a type or any other events, an Agent could create a new public/private keypair and use this to derive the Entity ID.
+
+
+# Unsorted
+
+It would be slick if we could define our Events and Entities together
+
+```python
+class Provenance:
+	# Entities that Exist
+	Entity: DomainEntity
+	Activity: DomainEntity
+
+	# Value objects?
+	...
+
+	# Entity Properties
+	Activity.Started
+	Activity.Ended
+
+	# Relationships
+	Activity used Entity
+	Entity was_derived_from Entity
+```
 
 # Errata
 ## Listener Liskov Substitution Mypy Problems
