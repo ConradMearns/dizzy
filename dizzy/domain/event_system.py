@@ -143,7 +143,6 @@ class HandleStarted(ProvenanceDuckDBListener):
 
 class HandleEnded(ProvenanceDuckDBListener):
     def run(self, queue, event: EventSystem.ActivityEnded):
-        print('ayyyyy')
         self.conn.sql('''
             UPDATE activities 
             SET end_time = ?
