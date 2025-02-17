@@ -8,6 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.11"
 duckdb = "^1.2.0"
+typer = {extras = ["all"], version = "^0.15.1"}
 
 
 [tool.poetry.group.docs.dependencies]
