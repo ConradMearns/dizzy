@@ -44,7 +44,7 @@ class JSONSerializable:
 
 @dataclass
 class Event(ABC, JSONSerializable):
-    id: UUID = field(default_factory=uuid.uuid4, init=False) # maybe should be a snowflake
+    # id: UUID = field(default_factory=uuid.uuid4, init=False) # maybe should be a snowflake
 
 class EventQueue:
 	def __init__(self):
