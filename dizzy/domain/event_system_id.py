@@ -4,11 +4,47 @@ from datetime import datetime
 import uuid
 from uuid import UUID
 
+#########
+
+
+import json
+from dataclasses import asdict, fields, is_dataclass
+from typing import TypeVar
+
+T = TypeVar("T") # Needed for type inference
+
+class JSONSerializable:
+    def to_json(self, include_null=False) -> str:
+        return json.dumps(self.to_dict(include_null=include_null))
+        
+    def to_dict(self, include_null=False):
+        return asdict(
+            self,
+            dict_factory=lambda fields: {
+                key: value
+                for (key, value) in fields
+                if (value is not None or include_null) and (not key.startswith('_'))
+            }
+        ) # type: ignore
+
+    @classmethod
+    def from_json(cls: Type[T], json_text: str): # -> T
+        json_dict = json.loads(json_text)
+        if not is_dataclass(cls):
+            raise ValueError(f"{cls.__name__} must be a dataclass")
+        field_names = {field.name for field in fields(cls)}
+        kwargs = {
+            key: value
+            for key, value in json_dict.items()
+            if key in field_names
+        }
+        return cls(**kwargs)
+
 #
 
 @dataclass
-class Event:
-	pass
+class Event(ABC, JSONSerializable):
+    # id: UUID = field(default_factory=uuid.uuid4, init=False) # maybe should be a snowflake
 
 class EventQueue:
 	def __init__(self):
@@ -28,10 +64,10 @@ class Listener(ABC):
 		raise NotImplemented()
 	
 class EventSystem:
-    def __init__(self, meta_instrumentation = None):
+    def __init__(self, instrumentation = None):
         self.queue = EventQueue()
         self.listeners = {}
-        self._meta_es: EventSystem = meta_instrumentation
+        self._instrumentation: EventSystem = instrumentation
 		
     def subscribe(self, event_type, listener: Listener):
         if event_type not in self.listeners:
@@ -40,27 +76,40 @@ class EventSystem:
         self.listeners[event_type].append(listener)
 
     def _on(self, event: Event):
-        if self._meta_es is not None:
-            self._meta_es.queue.emit(event)
+        if self._instrumentation is not None:
+            self._instrumentation.queue.emit(event)
 
     def next(self):
         event = self.queue.next()
         event_type = type(event)
 
+        entity_id = uuid.uuid4() # TODO what if the entity already exists
+        self._on(EventSystem.EntityHasJSON(entity_id, event.from_json()))
+
         for listener in self.listeners[event_type]:
             vq = EventQueue()
 
             activity_id = uuid.uuid4()
+                
+            self._on(EventSystem.ActivityStarted(activity_id, datetime.now()))
+            self._on(EventSystem.ActivityUsedEntity(activity_id, entity_id))
 
-            self._on(EventSystem.ActivityStarted(activity_id, 'started', datetime.now()))
-            listener.run(vq, event)
-            self._on(EventSystem.ActivityEnded(activity_id, 'ended', datetime.now()))
+            try:
+                listener.run(vq, event)
+            except Exception as err:
+                self._on(EventSystem.ActivityCrashed.from_exception(err))
+            finally:
+                self._on(EventSystem.ActivityEnded(activity_id, datetime.now()))  
 			
             for e in vq.items:
                 self.queue.emit(e)
+                self._on(EventSystem.EntityHasJSON(entity_id, event.from_json()))
+                self._on(EventSystem.EntityGeneratedFromActivity(entity_id, activity_id))
+                self._on(EventSystem.EntityDerivedFromEntity(entity_id, derived_entity_id))
+                
 
-        if self._meta_es is not None:
-            self._meta_es.run()
+        if self._instrumentation is not None:
+            self._instrumentation.run()
 
     def run(self):
         while not self.queue.empty():
@@ -70,16 +119,49 @@ class EventSystem:
     # domain events
 
     @dataclass
+    class EntityHasJSON(Event):
+        entity_id: UUID
+        json: str
+                
+    @dataclass
     class ActivityStarted(Event):
         activity_id: UUID
-        value: str
         start_time: datetime
 
     @dataclass
     class ActivityEnded(Event):
         activity_id: UUID
-        value: str
         end_time: datetime
+    
+    @dataclass
+    class ActivityCrashed(Event):
+        message: str
+        
+        @staticmethod
+        def from_exception(err: Exception):
+            return CommandQueueSystem.ActivityCrashed(
+                message = str(err)
+            )
+    
+    @dataclass
+    class ActivityUsedEntity(Event):
+        activity_id: UUID
+        entity_id: UUID
+        
+    @dataclass
+    class EntityGeneratedFromActivity(Event):
+        entity_id: UUID
+        activity_id: UUID
+    
+    @dataclass
+    class EntityDerivedFromEntity(Event):
+        originator_entity_id: UUID
+        derived_entity_id: UUID
+
+
+
+###########################
+    
 
 import duckdb
 
@@ -167,7 +249,7 @@ class ExampleListener(Listener):
 
 #
 
-es = EventSystem(meta_instrumentation=prov_es)
+es = EventSystem(instrumentation=prov_es)
 
 es.subscribe(ExampleEvent, ExampleListener())
 
