@@ -115,6 +115,14 @@ class CommandQueueSystem:
             self.listeners[event_type] = []
         self.listeners[event_type].append(listener)
 
+    def get_event_types_for_listener(self, listener_class: type):
+        registered_event_types = []
+        for event_type, listeners in self.listeners.items():
+            for listener in listeners:
+                if isinstance(listener, listener_class):
+                    registered_event_types.append(event_type)
+        return registered_event_types
+
     def policies(self, policies):
         self._policies = policies
 
@@ -150,7 +158,7 @@ class CommandQueueSystem:
                     listener.run(vq, event)
                 except Exception as err:
                     self._on(CommandQueueSystem.ActivityCrashed.from_exception(activity_id, err))
-                    print(f'ERROR {event_type}', err)
+                    # print(f'ERROR {event_type}', err)
                 finally:
                     self._on(CommandQueueSystem.ActivityEnded(activity_id, datetime.now().isoformat()))                    
 
@@ -159,7 +167,7 @@ class CommandQueueSystem:
                     
                     derived_id = hashlib.blake2s(str(type(derived).__name__ + derived.to_json()).encode()).hexdigest()
                     
-                    self._on(CommandQueueSystem.EntityHasJSON(derived_id, event_type.__name__, derived.to_json()))
+                    self._on(CommandQueueSystem.EntityHasJSON(derived_id, type(derived).__name__, derived.to_json()))
                     self._on(CommandQueueSystem.EntityGeneratedFromActivity(entity_id, activity_id))
                     self._on(CommandQueueSystem.EntityDerivedFromEntity(entity_id, derived_id))
 
@@ -180,6 +188,7 @@ class CommandQueueSystem:
     @dataclass
     class ActivityStarted(Event):
         activity_id: str#UUID
+        activity_type: str#UUID
         start_time: str#datetime
 
     @dataclass
@@ -191,12 +200,18 @@ class CommandQueueSystem:
     class ActivityCrashed(Event):
         activity_id: str#UUID
         message: str
+        trace_str: str
         
         @staticmethod
         def from_exception(activity_id, err: Exception):
+            tbe = traceback.TracebackException.from_exception(err)
+            # stack_frames = traceback.extract_stack()
+            # tbe.stack.extend(stack_frames)
+            trace = ''.join(tbe.format())
             return CommandQueueSystem.ActivityCrashed(
                 activity_id = activity_id,
-                message = str(err)
+                message = str(err),
+                trace_str=trace
             )
     
     @dataclass

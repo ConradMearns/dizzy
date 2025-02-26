@@ -1,6 +1,6 @@
 import duckdb
 
-# from ....command_queue import CommandQueue, CommandQueueSystem, Event, Listener
+from tdm.command_queue import CommandQueue, CommandQueueSystem, Event, Listener
 
 class HandleProvenance(Listener):
     '''Base class for provenance events'''
@@ -12,12 +12,14 @@ class HandleProvenance(Listener):
         self.conn.sql('''
             CREATE TABLE IF NOT EXISTS activities (
                 activity_id TEXT PRIMARY KEY,
+                activity_type TEXT,
                 start_time TIMESTAMP,
                 end_time TIMESTAMP
             );
             
             CREATE TABLE IF NOT EXISTS entities (
                 entity_id TEXT PRIMARY KEY,
+                entity_type TEXT,
                 data TEXT
             );
             
@@ -54,9 +56,9 @@ class HandleProvenance(Listener):
 class HandleActivityStarted(HandleProvenance):
     def run(self, queue: CommandQueue, event: CommandQueueSystem.ActivityStarted):
         self.conn.execute('''
-            INSERT INTO activities (activity_id, start_time)
-            VALUES (?, ?);
-        ''', (str(event.activity_id), event.start_time))
+            INSERT INTO activities (activity_id, activity_type, start_time)
+            VALUES (?, ?, ?);
+        ''', (str(event.activity_id), event.activity_type, event.start_time))
 
 
 class HandleActivityEnded(HandleProvenance):
@@ -70,9 +72,9 @@ class HandleActivityEnded(HandleProvenance):
 class HandleEntityHasJSON(HandleProvenance):
     def run(self, queue: CommandQueue, event: CommandQueueSystem.EntityHasJSON):
         self.conn.execute('''
-            INSERT INTO entities (entity_id, data)
-            VALUES (?, ?);
-        ''', (event.entity_id, event.json))
+            INSERT INTO entities (entity_id, entity_type, data)
+            VALUES (?, ?, ?);
+        ''', (event.entity_id, event.entity_type, event.json))
 
 class HandleActivityCrashed(HandleProvenance):
     def run(self, queue: CommandQueue, event: CommandQueueSystem.ActivityCrashed):

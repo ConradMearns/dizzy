@@ -189,4 +189,38 @@ es.run()
 
 
 prov_q = ProvenanceDuckDBQueryModel(conn)
-prov_q.all_activity()
+# prov_q.all_activity()
+
+
+
+# 
+
+
+# # TODO: parametrize type to string for use input
+# # TODO: rename method - reprocess? run-activity? 
+
+
+
+# service.cqs.listeners[AddedCSV] = [] # clear
+
+# service.cqs.subscribe(AddedCSV, ExampleSizeOf())
+# service.cqs.subscribe(SizeOf, PrintEvent()) # just for debug - not working?
+
+# events = service.cqs.get_event_types_for_listener(ExampleSizeOf)
+
+# import duckdb
+# prov = Provenance(duckdb.connect('prov.duckdb'))
+# for event in events:
+#     entities = prov.get_entities(event.__name__)
+#     for entity in entities:
+#         service.cqs.queue.emit(event.from_json(entity['data']))
+        
+# service.start()
+
+# import duckdb
+# prov = Provenance(duckdb.connect('prov.duckdb'))
+# entities = prov.all_entities()
+# for entity in entities:
+#     print(entity)
+
+# service.start()
