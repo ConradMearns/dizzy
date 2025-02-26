@@ -1,44 +1,39 @@
 
-from dataclasses import dataclass
+
 from datetime import datetime
 from pathlib import Path
 
-from dizzy.dedupe.event_system import Event, EventQueue, EventSystem, Listener
+from dizzy.command_queue import CommandQueueSystem
 
-import hashlib
+from dizzy.dedupe.events import ImageScanned, ItemDiscovered, ItemScanned
+from dizzy.dedupe.listeners import Print, HashItem, ItemIsImage, ItemIsZIP
 
+from dizzy.dedupe.instrument_prov import instrumentation
 
-@dataclass
-class ItemDiscovered(Event):
-    timestamp: str
-    path: str
+# TODO definitely broken...
+# system = CommandQueueSystem(instrumentation=instrumentation)
+# instrumentation.subscribe(CommandQueueSystem.ActivityStarted, Print())
 
-@dataclass
-class ItemScanned(Event):
-    path: str
-    blake2s_digest: str
+system = CommandQueueSystem()
 
-class ScanItem(Listener):
-    def run(self, queue: EventQueue, event: ItemDiscovered):
-        with open(event.path, "rb") as f:
-            digest = hashlib.file_digest(f, "blake2s")
-        queue.emit(ItemScanned(event.path, digest.hexdigest() ))
+# system.register(ItemDiscovered)
+# system.register(ItemScanned)
 
-class Print(Listener):
-    def run(self, queue: EventQueue, event: Event):
-        from rich import print
-        print(event)
-
-
-system = EventSystem()
-system.register(ItemDiscovered)
-system.register(ItemScanned)
-system.subscribe(ItemDiscovered, ScanItem())
+system.subscribe(ItemDiscovered, HashItem())
+system.subscribe(ItemDiscovered, ItemIsImage())
+system.subscribe(ItemDiscovered, ItemIsZIP())
 
 for event_type in system.listeners:
     system.subscribe(event_type, Print())
 
-# cli commands
+system.subscribe(ImageScanned, Print())
+
+
+
+def run():
+    while system.queue.has_items():
+        system.run_next()
+
 
 import typer
 
@@ -49,54 +44,14 @@ def scan(path: Path):
     path = str(path.absolute())
     event = ItemDiscovered(datetime.now().isoformat(), path)
     system.queue.emit(event)
-    system.run()
-
-### great - now need the data model
-
-import duckdb
-
-class DedupeWriterListener(Listener):
-    def __init__(self, conn):
-        self.conn = conn
-        self._create_tables()
-    
-    def _create_tables(self):
-        self.conn.execute('''
-            CREATE TABLE IF NOT EXISTS hashitems (
-                blake2s_digest TEXT PRIMARY KEY
-            );
-
-            CREATE TABLE IF NOT EXISTS itempath (
-                path TEXT PRIMARY KEY,
-                blake2s_digest TEXT REFERENCES hashitems(blake2s_digest)
-            );
-        ''')
+    run()
 
 
-class ItemScannedHandler(DedupeWriterListener):
-    def run(self, queue: EventQueue, event: ItemScanned):
-        self.conn.execute('''
-        INSERT INTO hashitems VALUES (?)
-        ON CONFLICT DO NOTHING
-        ''', (event.blake2s_digest,))
 
-        self.conn.execute('''
-        INSERT INTO itempath (path, blake2s_digest)
-        VALUES (?, ?)
-        ON CONFLICT DO NOTHING
-        ''', (event.path, event.blake2s_digest))
+# for item discovered
+# if item is an image... extract metadata
+# if item is a zip...
 
-
-db = duckdb.connect('test.db')
-system.subscribe(ItemScanned, ItemScannedHandler(db))
-
-# test that we wrote something to the db
-
-# python dizzy/dedupe/dedupe.py pyproject.toml 
-@app.command()
-def tables():
-    db.table('itempath').show()
-    db.table('hashitems').show()
 
 
 # first pass
@@ -105,6 +60,8 @@ def tables():
 # - file size (good opportunity to try a migration)
 # - file type
 # - dealing with zips...
+
+# saving data to CSV / parquet should be parallelizable and faster
 
 # always at end
 app()

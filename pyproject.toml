@@ -9,6 +9,11 @@ readme = "README.md"
 python = "^3.11"
 duckdb = "^1.2.0"
 typer = {extras = ["all"], version = "^0.15.1"}
+pydantic = "^2.10.6"
+fire = "^0.7.0"
+python-magic = "^0.4.27"
+fsspec = "^2025.2.0"
+mypy = "^1.15.0"
 
 
 [tool.poetry.group.docs.dependencies]
