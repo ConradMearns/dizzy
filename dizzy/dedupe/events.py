@@ -9,7 +9,7 @@ class ItemDiscovered(Event):
     path: str
 
 @dataclass
-class ItemScanned(Event):
+class ItemHashed(Event):
     path: str
     blake2s_digest: str
 

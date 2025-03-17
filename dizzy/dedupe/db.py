@@ -2,7 +2,7 @@
 import duckdb
 
 from dizzy.command_queue import CommandQueue, Listener
-from dizzy.dedupe.events import ItemScanned
+from dizzy.dedupe.events import ItemHashed
 
 class DedupeWriterListener(Listener):
     def __init__(self, conn):
@@ -23,7 +23,7 @@ class DedupeWriterListener(Listener):
 
 
 class ItemScannedHandler(DedupeWriterListener):
-    def run(self, queue: CommandQueue, event: ItemScanned):
+    def run(self, queue: CommandQueue, event: ItemHashed):
         self.conn.execute('''
         INSERT INTO hashitems VALUES (?)
         ON CONFLICT DO NOTHING

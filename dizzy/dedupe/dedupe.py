@@ -5,29 +5,31 @@ from pathlib import Path
 
 from dizzy.command_queue import CommandQueueSystem
 
-from dizzy.dedupe.events import ImageScanned, ItemDiscovered, ItemScanned
-from dizzy.dedupe.listeners import Print, HashItem, ItemIsImage, ItemIsZIP
+from dizzy.dedupe.events import ImageScanned, ItemDiscovered, ItemHashed
+from dizzy.dedupe.listeners import Print, HashItem, ItemIsImage, ItemIsZIP, StoreItemSize
 
 from dizzy.dedupe.instrument_prov import instrumentation
 
-# TODO definitely broken...
-# system = CommandQueueSystem(instrumentation=instrumentation)
-# instrumentation.subscribe(CommandQueueSystem.ActivityStarted, Print())
-
-system = CommandQueueSystem()
+# system = CommandQueueSystem()
+system = CommandQueueSystem(instrumentation=instrumentation)
 
 # system.register(ItemDiscovered)
 # system.register(ItemScanned)
 
-system.subscribe(ItemDiscovered, HashItem())
-system.subscribe(ItemDiscovered, ItemIsImage())
-system.subscribe(ItemDiscovered, ItemIsZIP())
+# system.subscribe(ItemDiscovered, HashItem())
+system.subscribe(ItemDiscovered, ItemIsZIP()) #> ItemDiscovered
+system.subscribe(ItemDiscovered, ItemIsImage()) #> ImageScanned
+system.subscribe(ImageScanned, HashItem()) #> ItemHashed
 
-for event_type in system.listeners:
-    system.subscribe(event_type, Print())
+# get it's size? 1 per hashed only pls
+system.subscribe(ItemHashed, StoreItemSize())
 
-system.subscribe(ImageScanned, Print())
 
+# for event_type in system.listeners:
+#     system.subscribe(event_type, Print())
+
+# system.subscribe(ImageScanned, Print())
+system.subscribe(ItemHashed, Print())
 
 
 def run():
@@ -41,7 +43,7 @@ app = typer.Typer()
 
 @app.command()
 def scan(path: Path):
-    path = str(path.absolute())
+    path = str(path.absolute()) 
     event = ItemDiscovered(datetime.now().isoformat(), path)
     system.queue.emit(event)
     run()
@@ -64,4 +66,12 @@ def scan(path: Path):
 # saving data to CSV / parquet should be parallelizable and faster
 
 # always at end
-app()
+# app()
+
+
+scan(Path("dizzy/dedupe/test_data/multiple.zip"))
+# scan(Path("dizzy/dedupe/test_data/zipped.zip"))
+
+# phase 1
+# - identify what we're dealing with
+# how much storage are duplicates taking up?

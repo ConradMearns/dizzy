@@ -73,12 +73,14 @@ class HandleEntityHasJSON(HandleProvenance):
     def run(self, queue: CommandQueue, event: CommandQueueSystem.EntityHasJSON):
         self.conn.execute('''
             INSERT INTO entities (entity_id, entity_type, data)
-            VALUES (?, ?, ?);
+            VALUES (?, ?, ?)
+            --ON CONFLICT DO NOTHING;
         ''', (event.entity_id, event.entity_type, event.json))
 
 class HandleActivityCrashed(HandleProvenance):
     def run(self, queue: CommandQueue, event: CommandQueueSystem.ActivityCrashed):
-        raise NotImplementedError()
+        pass
+        # raise NotImplementedError()
         # self.conn.execute('''  ''', () )
 
 class HandleActivityUsedEntity(HandleProvenance):

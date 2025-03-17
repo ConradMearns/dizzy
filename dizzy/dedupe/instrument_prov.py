@@ -5,8 +5,8 @@ import dizzy.command_handler as ch
 from dizzy.command_queue import CommandQueueSystem
 
 
-conn = duckdb.connect("prov.duckdb")
-# conn = duckdb.connect(":memory:")
+# conn = duckdb.connect("prov.duckdb")
+conn = duckdb.connect(":memory:")
 instrumentation = CommandQueueSystem()
 instrumentation.subscribe(CommandQueueSystem.ActivityStarted, ch.HandleActivityStarted(conn))
 instrumentation.subscribe(CommandQueueSystem.ActivityEnded, ch.HandleActivityEnded(conn))

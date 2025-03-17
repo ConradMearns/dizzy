@@ -13,6 +13,8 @@ from pydantic.json import pydantic_encoder
 import json
 from dataclasses import asdict
 
+from rich import print
+
 def dump_json(obj):
     return json.dumps(asdict(obj), default=pydantic_encoder)
 
@@ -48,10 +50,13 @@ class CommandQueue:
 class CommandQueueSystem:
     def __init__(
         self, 
-        queue = CommandQueue(),
+        queue = None,
         instrumentation: CommandQueueSystem | None = None,
     ):
         self.queue = queue
+        if self.queue is None:
+            self.queue = CommandQueue()
+
         self._instrumentation: CommandQueueSystem | None = instrumentation
         
         self.listeners: Dict[Type, List[Listener]] = {}
@@ -122,7 +127,9 @@ class CommandQueueSystem:
                     listener.run(vq, event)
                 except Exception as err:
                     self._on(CommandQueueSystem.ActivityCrashed.from_exception(activity_id, err))
-                    # print(f'ERROR {event_type}', err)
+                    # print(f'ERROR {event_type}-{listener}', err)
+                    # print(f'EVENT {event}')
+                    # traceback.print_exc()
                 finally:
                     self._on(CommandQueueSystem.ActivityEnded(activity_id, datetime.now().isoformat()))                    
 
