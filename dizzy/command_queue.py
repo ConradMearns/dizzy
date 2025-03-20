@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 import hashlib
 import traceback
-from typing import Callable, Dict, List, Type
+from typing import Callable, Dict, List, Type, get_type_hints
 import uuid
 
 from pydantic.dataclasses import dataclass
@@ -25,14 +25,17 @@ class Event(ABC):
     pass
 
 class Listener(ABC):
+    # Class variable to store output event types
+    output_type_hints = []  # Default to empty list
+    
     @abstractmethod
     def run(self, queue: CommandQueue, event: Event):
         pass
     
-    # def hint(self):
-    #     type_hints = get_type_hints(self.run)
-    #     input_type = type_hints.get('event')
-    #     print("Input type using get_type_hints:", input_type)
+    def input_type_hint(self):
+        type_hints = get_type_hints(self.run)
+        input_type = type_hints.get('event')
+        return input_type
     
 class CommandQueue:
     def __init__(self):
