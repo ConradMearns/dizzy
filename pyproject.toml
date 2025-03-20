@@ -15,6 +15,7 @@ python-magic = "^0.4.27"
 fsspec = "^2025.2.0"
 mypy = "^1.15.0"
 pytest = "^8.3.5"
+dagviz = "^0.4.0"
 
 
 [tool.poetry.group.docs.dependencies]

@@ -185,6 +185,21 @@ files = [
 ]
 
 [[package]]
+name = "dagviz"
+version = "0.4.0"
+description = "Visualization for DAGs"
+optional = false
+python-versions = ">=3.7,<4.0"
+files = [
+    {file = "dagviz-0.4.0-py3-none-any.whl", hash = "sha256:fb348d7432d6c1b632a16d90151886a71fc29f837825eefb3e32144ad5c63fd4"},
+    {file = "dagviz-0.4.0.tar.gz", hash = "sha256:26403c93c93fc1df277072d931e4e834c6237ef083f1058552b2392c036d6901"},
+]
+
+[package.dependencies]
+networkx = ">=2.5.1,<3.0.0"
+svgwrite = ">=1.4.1,<2.0.0"
+
+[[package]]
 name = "duckdb"
 version = "1.2.0"
 description = "DuckDB in-process database"
@@ -752,6 +767,24 @@ files = [
 ]
 
 [[package]]
+name = "networkx"
+version = "2.8.8"
+description = "Python package for creating and manipulating graphs and networks"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "networkx-2.8.8-py3-none-any.whl", hash = "sha256:e435dfa75b1d7195c7b8378c3859f0445cd88c6b0375c181ed66823a9ceb7524"},
+    {file = "networkx-2.8.8.tar.gz", hash = "sha256:230d388117af870fce5647a3c52401fcf753e94720e6ea6b4197a5355648885e"},
+]
+
+[package.extras]
+default = ["matplotlib (>=3.4)", "numpy (>=1.19)", "pandas (>=1.3)", "scipy (>=1.8)"]
+developer = ["mypy (>=0.982)", "pre-commit (>=2.20)"]
+doc = ["nb2plots (>=0.6)", "numpydoc (>=1.5)", "pillow (>=9.2)", "pydata-sphinx-theme (>=0.11)", "sphinx (>=5.2)", "sphinx-gallery (>=0.11)", "texext (>=0.6.6)"]
+extra = ["lxml (>=4.6)", "pydot (>=1.4.2)", "pygraphviz (>=1.9)", "sympy (>=1.10)"]
+test = ["codecov (>=2.1)", "pytest (>=7.2)", "pytest-cov (>=4.0)"]
+
+[[package]]
 name = "packaging"
 version = "24.2"
 description = "Core utilities for Python packages"
@@ -1280,6 +1313,17 @@ files = [
 ]
 
 [[package]]
+name = "svgwrite"
+version = "1.4.3"
+description = "A Python library to create SVG drawings."
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "svgwrite-1.4.3-py3-none-any.whl", hash = "sha256:bb6b2b5450f1edbfa597d924f9ac2dd099e625562e492021d7dd614f65f8a22d"},
+    {file = "svgwrite-1.4.3.zip", hash = "sha256:a8fbdfd4443302a6619a7f76bc937fc683daf2628d9b737c891ec08b8ce524c3"},
+]
+
+[[package]]
 name = "termcolor"
 version = "2.5.0"
 description = "ANSI color formatting for output in terminal"
@@ -1383,4 +1427,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "2efda9d0f544867924646d1cac771ef6ff49de97794de53ea309997847ad77c6"
+content-hash = "b8fabdc271f6eadd0c0c0f13bf3e14905e072bc913563bb389d2cf32e578890d"
