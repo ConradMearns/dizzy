@@ -11,9 +11,9 @@ from fuse import FUSE, FuseOSError, Operations
 from dizzy import datadir
 
 class TagFS(Operations):
-    def __init__(self, storage_dir=None, tag_db_path=None):
-        self.storage_dir = storage_dir or os.path.expanduser("~/tagfs_storage")
-        self.tag_db_path = tag_db_path or os.path.join(self.storage_dir, "tags.json")
+    def __init__(self, storage_dir, tag_db_path):
+        self.storage_dir = storage_dir
+        self.tag_db_path = tag_db_path
         
         # Create storage directory if it doesn't exist
         os.makedirs(self.storage_dir, exist_ok=True)
@@ -220,8 +220,6 @@ class TagFS(Operations):
         
         self._save_tags()
         return 0
-    
-    # Add other required FUSE methods as needed
 
 
 def main():
