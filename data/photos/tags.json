@@ -1,0 +1,13 @@
+{
+    "files": {
+      "adam-1.jpg": {"created": "2023-01-10"},
+      "bryce.jpg": {"created": "2023-02-15"},
+      "muffin-1.jpg": {"created": "2023-03-20"},
+      "sunset.jpg": {"created": "2023-05-30"}
+    },
+    "tags": {
+      "nature": ["bryce.jpg", "sunset.jpg"],
+      "cats": ["adam-1.jpg", "muffin-1.jpg"],
+      "favorites": ["sunset.jpg", "adam-1jpg"]
+    }
+  }
