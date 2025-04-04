@@ -80,7 +80,7 @@ class HandleEntityHasJSON(HandleProvenance):
 class HandleActivityCrashed(HandleProvenance):
     def run(self, queue: CommandQueue, event: CommandQueueSystem.ActivityCrashed):
         pass
-        # raise NotImplementedError()
+        raise NotImplementedError()
         # self.conn.execute('''  ''', () )
 
 class HandleActivityUsedEntity(HandleProvenance):
@@ -88,7 +88,7 @@ class HandleActivityUsedEntity(HandleProvenance):
         self.conn.execute('''
             INSERT INTO used (activity_id, entity_id) 
             VALUES (?, ?)
-            ON CONFLICT DO NOTHING;
+            --ON CONFLICT DO NOTHING;
         ''', (event.activity_id, event.entity_id) )
 
 class HandleEntityGeneratedFromActivity(HandleProvenance):
@@ -96,7 +96,7 @@ class HandleEntityGeneratedFromActivity(HandleProvenance):
         self.conn.execute('''
             INSERT INTO was_generated_by (entity_id, activity_id) 
             VALUES (?, ?)
-            ON CONFLICT DO NOTHING;
+            --ON CONFLICT DO NOTHING;
         ''', (event.entity_id, event.activity_id) )
 
 class HandleEntityDerivedFromEntity(HandleProvenance):
@@ -104,5 +104,5 @@ class HandleEntityDerivedFromEntity(HandleProvenance):
         self.conn.execute('''
             INSERT INTO was_derived_from (entity_id_a, entity_id_b)
             VALUES (?, ?)
-            ON CONFLICT DO NOTHING;;
+            --ON CONFLICT DO NOTHING;;
         ''', (event.originator_entity_id, event.derived_entity_id) )

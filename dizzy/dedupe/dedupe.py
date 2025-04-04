@@ -5,31 +5,33 @@ from pathlib import Path
 
 from dizzy.command_queue import CommandQueueSystem
 
-from dizzy.dedupe.events import ImageScanned, ItemDiscovered, ItemHashed
-from dizzy.dedupe.listeners import Print, HashItem, ItemIsImage, ItemIsZIP, StoreItemSize
+from dizzy.dedupe.events import ImageScanned, ItemDiscovered, ItemHashed, TagAdded
+from dizzy.dedupe.listeners import (
+    Print, HashItem, ItemIsImage, ItemIsZIP, 
+    StoreItemSize, StoreToCAS, ExtractMetadata
+)
 
 from dizzy.dedupe.instrument_prov import instrumentation
 
-# system = CommandQueueSystem()
 system = CommandQueueSystem(instrumentation=instrumentation)
 
-# system.register(ItemDiscovered)
-# system.register(ItemScanned)
-
-# system.subscribe(ItemDiscovered, HashItem())
-system.subscribe(ItemDiscovered, ItemIsZIP()) #> ItemDiscovered
+# Initial discovery and type detection
+system.subscribe(ItemDiscovered, ItemIsZIP())  #> ItemDiscovered
 system.subscribe(ItemDiscovered, ItemIsImage()) #> ImageScanned
-system.subscribe(ImageScanned, HashItem()) #> ItemHashed
 
-# get it's size? 1 per hashed only pls
-system.subscribe(ItemHashed, StoreItemSize())
+# Process images
+system.subscribe(ImageScanned, HashItem())      #> ItemHashed
 
+# Process hashed items
+system.subscribe(ItemHashed, StoreToCAS())      # Store in CAS
+system.subscribe(ItemHashed, StoreItemSize())   # Get size as tag
+system.subscribe(ItemHashed, ExtractMetadata()) # Extract EXIF as tags
 
-# for event_type in system.listeners:
-#     system.subscribe(event_type, Print())
+# Debug output
 
-# system.subscribe(ImageScanned, Print())
+system.subscribe(ImageScanned, Print())
 system.subscribe(ItemHashed, Print())
+system.subscribe(TagAdded, Print())
 
 
 def run():
@@ -48,13 +50,12 @@ def scan(path: Path):
     system.queue.emit(event)
     run()
 
-
+if __name__ == "__main__":
+    app()
 
 # for item discovered
 # if item is an image... extract metadata
 # if item is a zip...
-
-
 
 # first pass
 # - collect information about each file, EXIF, meta, date, paths
@@ -69,7 +70,7 @@ def scan(path: Path):
 # app()
 
 
-scan(Path("dizzy/dedupe/test_data/multiple.zip"))
+# scan(Path("dizzy/dedupe/test_data/multiple.zip"))
 # scan(Path("dizzy/dedupe/test_data/zipped.zip"))
 
 # phase 1

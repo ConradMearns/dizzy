@@ -4,6 +4,13 @@ from dizzy.command_queue import Event
 
 
 @dataclass
+class TagAdded(Event):
+    hash: str      # The file's hash
+    key: str       # Tag key (e.g. "creation_date", "exif_make", etc)
+    value: str     # Tag value
+
+
+@dataclass
 class ItemDiscovered(Event):
     timestamp: str
     path: str
