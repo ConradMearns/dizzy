@@ -6,17 +6,16 @@ import hashlib
 import fsspec
 import magic
 import zipfile
-import os
 from pathlib import Path
 from PIL import Image
 import shutil
 
-class HashItem(Listener):
-    def run(self, queue: CommandQueue, event: ItemDiscovered):
-        with fsspec.open(event.path, "rb") as f:
-            # buffer = f.read(2048)
-            digest = hashlib.file_digest(f, "blake2s")
-        queue.emit(ItemHashed(event.path, digest.hexdigest() ))
+# class HashItem(Listener):
+#     def run(self, queue: CommandQueue, event: ItemDiscovered):
+#         with fsspec.open(event.path, "rb") as f:
+#             # buffer = f.read(2048)
+#             digest = hashlib.file_digest(f, "blake2s")
+#         queue.emit(ItemHashed(event.path, digest.hexdigest() ))
 
 class ItemIsImage(Listener):
     def run(self, queue: CommandQueue, event: ItemDiscovered):
