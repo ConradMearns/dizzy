@@ -1,5 +1,7 @@
 # sup, as in, what's up
 
+https://diataxis.fr/
+
 # meta
 
 ```bash
