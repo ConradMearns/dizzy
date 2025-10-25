@@ -1,5 +1,5 @@
 # Auto generated from commands.yml by pythongen.py version: 0.0.1
-# Generation date: 2025-10-25T13:19:47
+# Generation date: 2025-10-25T15:01:52
 # Schema: dedupe-commands-schema
 #
 # id: https://example.org/dedupe/commands

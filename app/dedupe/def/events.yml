@@ -1,0 +1,44 @@
+id: https://example.org/dedupe/events
+name: dedupe-events-schema
+title: Dedupe Domain Events Data Model
+description: >-
+  LinkML schema for domain events that capture immutable facts about
+  what has happened in the system.
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dedupe: https://example.org/dedupe/
+
+default_prefix: dedupe
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  DomainEvent:
+    description: >-
+      Base class for all domain events - immutable facts about what happened
+    abstract: true
+
+  FileItemScanned:
+    description: >-
+      Event recording that a file item was scanned
+    is_a: DomainEvent
+    attributes:
+      partition_uuid:
+        description: UUID of the partition containing this file
+        required: true
+        range: string
+      path:
+        description: Full path to the file within the partition
+        required: true
+        range: string
+      size:
+        description: Size of the file in bytes
+        required: true
+        range: integer
+      content_hash:
+        description: Hash of the file contents
+        required: true
+        range: string
