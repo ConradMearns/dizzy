@@ -1,12 +1,28 @@
 #!/usr/bin/env python3
 
+"""
+Scan all hard drives and partitions on the system.
+
+HIDDEN DEPENDENCIES:
+- Platform: Linux only (uses lsblk)
+- Command: lsblk must be installed and available in PATH
+- lsblk version: Must support JSON output (-J flag) and the following columns:
+  NAME, UUID, LABEL, MOUNTPOINT, TYPE, PKNAME, SERIAL, SIZE
+- Permissions: May require elevated privileges to read all device information
+
+ASSUMPTIONS:
+- Only includes drives that have serial numbers
+- Only includes partitions that have UUIDs
+- Sizes are reported in bytes
+"""
+
 import json
 import subprocess
 from gen.models import HardDrive, Partition
 
 # Get all block devices with partitions using lsblk
 result = subprocess.run(
-    ['lsblk', '-J', '-o', 'NAME,UUID,LABEL,MOUNTPOINT,TYPE,PKNAME,SERIAL'],
+    ['lsblk', '-J', '-b', '-o', 'NAME,UUID,LABEL,MOUNTPOINT,TYPE,PKNAME,SERIAL,SIZE'],
     capture_output=True,
     text=True
 )
@@ -24,7 +40,8 @@ for device in data['blockdevices']:
         name_to_serial[device['name']] = serial
         drives[device['name']] = HardDrive(
             uuid=serial,
-            label=device.get('label')
+            label=device.get('label'),
+            size_bytes=int(device['size']) if device.get('size') else None
         )
 
         # Check for partitions on this drive
@@ -35,7 +52,8 @@ for device in data['blockdevices']:
                         uuid=child['uuid'],
                         drive_uuid=serial,
                         label=child.get('label'),
-                        mount_point=child.get('mountpoint')
+                        mount_point=child.get('mountpoint'),
+                        size_bytes=int(child['size']) if child.get('size') else None
                     )
                     partitions.append(partition)
 
@@ -45,6 +63,7 @@ for name, drive in drives.items():
     print(f"Drive: {name}")
     print(f"  Serial: {drive.uuid}")
     print(f"  Label: {drive.label}")
+    print(f"  Size: {drive.size_bytes} bytes")
     print()
 
 # Print all partitions
@@ -54,6 +73,7 @@ for partition in partitions:
     print(f"  Drive Serial: {partition.drive_uuid}")
     print(f"  Label: {partition.label}")
     print(f"  Mount Point: {partition.mount_point}")
+    print(f"  Size: {partition.size_bytes} bytes")
     print()
 
 print(f"Total drives found: {len(drives)}")

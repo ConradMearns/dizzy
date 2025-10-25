@@ -29,6 +29,10 @@ classes:
         description: Optional human-readable label for the drive
         required: false
         range: string
+      size_bytes:
+        description: Total size of the hard drive in bytes
+        required: false
+        range: integer
 
   Partition:
     description: >-
@@ -51,6 +55,10 @@ classes:
         description: Optional mount point where partition is mounted
         required: false
         range: string
+      size_bytes:
+        description: Total size of the partition in bytes
+        required: false
+        range: integer
 
   FileItem:
     description: >-

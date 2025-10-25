@@ -1,5 +1,5 @@
 # Auto generated from models.yml by pythongen.py version: 0.0.1
-# Generation date: 2025-10-25T11:27:43
+# Generation date: 2025-10-25T11:52:30
 # Schema: dedupe-schema
 #
 # id: https://example.org/dedupe
@@ -96,6 +96,7 @@ class HardDrive(YAMLRoot):
 
     uuid: Union[str, HardDriveUuid] = None
     label: Optional[str] = None
+    size_bytes: Optional[int] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
         if self._is_empty(self.uuid):
@@ -105,6 +106,9 @@ class HardDrive(YAMLRoot):
 
         if self.label is not None and not isinstance(self.label, str):
             self.label = str(self.label)
+
+        if self.size_bytes is not None and not isinstance(self.size_bytes, int):
+            self.size_bytes = int(self.size_bytes)
 
         super().__post_init__(**kwargs)
 
@@ -125,6 +129,7 @@ class Partition(YAMLRoot):
     drive_uuid: str = None
     label: Optional[str] = None
     mount_point: Optional[str] = None
+    size_bytes: Optional[int] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
         if self._is_empty(self.uuid):
@@ -142,6 +147,9 @@ class Partition(YAMLRoot):
 
         if self.mount_point is not None and not isinstance(self.mount_point, str):
             self.mount_point = str(self.mount_point)
+
+        if self.size_bytes is not None and not isinstance(self.size_bytes, int):
+            self.size_bytes = int(self.size_bytes)
 
         super().__post_init__(**kwargs)
 
@@ -216,6 +224,9 @@ slots.hardDrive__uuid = Slot(uri=DEDUPE.uuid, name="hardDrive__uuid", curie=DEDU
 slots.hardDrive__label = Slot(uri=DEDUPE.label, name="hardDrive__label", curie=DEDUPE.curie('label'),
                    model_uri=DEDUPE.hardDrive__label, domain=None, range=Optional[str])
 
+slots.hardDrive__size_bytes = Slot(uri=DEDUPE.size_bytes, name="hardDrive__size_bytes", curie=DEDUPE.curie('size_bytes'),
+                   model_uri=DEDUPE.hardDrive__size_bytes, domain=None, range=Optional[int])
+
 slots.partition__uuid = Slot(uri=DEDUPE.uuid, name="partition__uuid", curie=DEDUPE.curie('uuid'),
                    model_uri=DEDUPE.partition__uuid, domain=None, range=URIRef)
 
@@ -227,6 +238,9 @@ slots.partition__label = Slot(uri=DEDUPE.label, name="partition__label", curie=D
 
 slots.partition__mount_point = Slot(uri=DEDUPE.mount_point, name="partition__mount_point", curie=DEDUPE.curie('mount_point'),
                    model_uri=DEDUPE.partition__mount_point, domain=None, range=Optional[str])
+
+slots.partition__size_bytes = Slot(uri=DEDUPE.size_bytes, name="partition__size_bytes", curie=DEDUPE.curie('size_bytes'),
+                   model_uri=DEDUPE.partition__size_bytes, domain=None, range=Optional[int])
 
 slots.fileItem__id = Slot(uri=DEDUPE.id, name="fileItem__id", curie=DEDUPE.curie('id'),
                    model_uri=DEDUPE.fileItem__id, domain=None, range=URIRef)
