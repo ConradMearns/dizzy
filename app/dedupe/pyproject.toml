@@ -7,3 +7,8 @@ requires-python = ">=3.11"
 dependencies = [
     "linkml>=1.9.4",
 ]
+
+[dependency-groups]
+dev = [
+    "ty>=0.0.1a24",
+]

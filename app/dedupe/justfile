@@ -5,4 +5,10 @@ default:
 
 gen:
     gen-python def/models.yml > gen/models.py
+    gen-python def/commands.yml > gen/commands.py
+    gen-python def/queries.yml > gen/queries.py
+    python3 -m utils.generate_query_interfaces
+
+check:
+    uv run ty check queries/
 
