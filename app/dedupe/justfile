@@ -1,0 +1,8 @@
+# Dedupe project automation
+
+default:
+    @just --list
+
+gen:
+    gen-python def/models.yml > gen/models.py
+
