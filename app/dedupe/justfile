@@ -12,3 +12,6 @@ gen:
 check:
     uv run ty check queries/
 
+test:
+    uv run pytest tests/
+

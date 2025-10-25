@@ -201,6 +201,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "pytest" },
     { name = "ty" },
 ]
 
@@ -208,7 +209,10 @@ dev = [
 requires-dist = [{ name = "linkml", specifier = ">=1.9.4" }]
 
 [package.metadata.requires-dev]
-dev = [{ name = "ty", specifier = ">=0.0.1a24" }]
+dev = [
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "ty", specifier = ">=0.0.1a24" },
+]
 
 [[package]]
 name = "deprecated"
