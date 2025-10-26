@@ -21,6 +21,16 @@ classes:
       Base class for all domain events - immutable facts about what happened
     abstract: true
 
+  TestMessage:
+    description: >-
+      Simple test event with a single message string
+    is_a: DomainEvent
+    attributes:
+      message:
+        description: The test message content
+        required: true
+        range: string
+
   FileItemScanned:
     description: >-
       Event recording that a file item was scanned
