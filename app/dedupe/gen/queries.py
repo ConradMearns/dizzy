@@ -1,249 +1,161 @@
-# Auto generated from queries.yml by pythongen.py version: 0.0.1
-# Generation date: 2025-10-25T15:01:53
-# Schema: dedupe-queries-schema
-#
-# id: https://example.org/dedupe/queries
-# description: LinkML schema for query objects that define inputs and outputs for querying drives, partitions, and file items.
-# license: https://creativecommons.org/publicdomain/zero/1.0/
+from __future__ import annotations 
 
-import dataclasses
 import re
-from dataclasses import dataclass
+import sys
 from datetime import (
     date,
     datetime,
     time
 )
+from decimal import Decimal 
+from enum import Enum 
 from typing import (
     Any,
     ClassVar,
-    Dict,
-    List,
+    Literal,
     Optional,
     Union
 )
 
-from jsonasobj2 import (
-    JsonObj,
-    as_dict
-)
-from linkml_runtime.linkml_model.meta import (
-    EnumDefinition,
-    PermissibleValue,
-    PvFormulaOptions
-)
-from linkml_runtime.utils.curienamespace import CurieNamespace
-from linkml_runtime.utils.enumerations import EnumDefinitionImpl
-from linkml_runtime.utils.formatutils import (
-    camelcase,
-    sfx,
-    underscore
-)
-from linkml_runtime.utils.metamodelcore import (
-    bnode,
-    empty_dict,
-    empty_list
-)
-from linkml_runtime.utils.slot import Slot
-from linkml_runtime.utils.yamlutils import (
-    YAMLRoot,
-    extended_float,
-    extended_int,
-    extended_str
-)
-from rdflib import (
-    Namespace,
-    URIRef
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    RootModel,
+    field_validator
 )
 
-from linkml_runtime.linkml_model.types import String
 
-metamodel_version = "1.7.0"
-version = None
-
-# Namespaces
-DEDUPE = CurieNamespace('dedupe', 'https://example.org/dedupe/')
-LINKML = CurieNamespace('linkml', 'https://w3id.org/linkml/')
-DEFAULT_ = DEDUPE
+metamodel_version = "None"
+version = "None"
 
 
-# Types
+class ConfiguredBaseModel(BaseModel):
+    model_config = ConfigDict(
+        validate_assignment = True,
+        validate_default = True,
+        extra = "forbid",
+        arbitrary_types_allowed = True,
+        use_enum_values = True,
+        strict = False,
+    )
+    pass
 
-# Class references
 
 
 
-class QueryInput(YAMLRoot):
+class LinkMLMeta(RootModel):
+    root: dict[str, Any] = {}
+    model_config = ConfigDict(frozen=True)
+
+    def __getattr__(self, key:str):
+        return getattr(self.root, key)
+
+    def __getitem__(self, key:str):
+        return self.root[key]
+
+    def __setitem__(self, key:str, value):
+        self.root[key] = value
+
+    def __contains__(self, key:str) -> bool:
+        return key in self.root
+
+
+linkml_meta = LinkMLMeta({'default_prefix': 'dedupe',
+     'default_range': 'string',
+     'description': 'LinkML schema for query objects that define inputs and '
+                    'outputs for querying drives, partitions, and file items.',
+     'id': 'https://example.org/dedupe/queries',
+     'imports': ['linkml:types'],
+     'name': 'dedupe-queries-schema',
+     'prefixes': {'dedupe': {'prefix_prefix': 'dedupe',
+                             'prefix_reference': 'https://example.org/dedupe/'},
+                  'linkml': {'prefix_prefix': 'linkml',
+                             'prefix_reference': 'https://w3id.org/linkml/'}},
+     'source_file': 'def/queries.yaml',
+     'title': 'Dedupe Queries Data Model'} )
+
+
+class QueryInput(ConfiguredBaseModel):
     """
     Base class for all query input parameter objects
     """
-    _inherited_slots: ClassVar[list[str]] = []
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://example.org/dedupe/queries'})
 
-    class_class_uri: ClassVar[URIRef] = DEDUPE["QueryInput"]
-    class_class_curie: ClassVar[str] = "dedupe:QueryInput"
-    class_name: ClassVar[str] = "QueryInput"
-    class_model_uri: ClassVar[URIRef] = DEDUPE.QueryInput
+    pass
 
 
-class Query(YAMLRoot):
+class Query(ConfiguredBaseModel):
     """
     Base class for all query result objects
     """
-    _inherited_slots: ClassVar[list[str]] = []
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://example.org/dedupe/queries'})
 
-    class_class_uri: ClassVar[URIRef] = DEDUPE["Query"]
-    class_class_curie: ClassVar[str] = "dedupe:Query"
-    class_name: ClassVar[str] = "Query"
-    class_model_uri: ClassVar[URIRef] = DEDUPE.Query
+    pass
 
 
 class ListHardDrivesInput(QueryInput):
     """
     Input parameters for listing all hard drives
     """
-    _inherited_slots: ClassVar[list[str]] = []
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
 
-    class_class_uri: ClassVar[URIRef] = DEDUPE["ListHardDrivesInput"]
-    class_class_curie: ClassVar[str] = "dedupe:ListHardDrivesInput"
-    class_name: ClassVar[str] = "ListHardDrivesInput"
-    class_model_uri: ClassVar[URIRef] = DEDUPE.ListHardDrivesInput
+    pass
 
 
-@dataclass(repr=False)
 class ListHardDrives(Query):
     """
     Query result containing a list of hard drives
     """
-    _inherited_slots: ClassVar[list[str]] = []
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
 
-    class_class_uri: ClassVar[URIRef] = DEDUPE["ListHardDrives"]
-    class_class_curie: ClassVar[str] = "dedupe:ListHardDrives"
-    class_name: ClassVar[str] = "ListHardDrives"
-    class_model_uri: ClassVar[URIRef] = DEDUPE.ListHardDrives
-
-    drives: Union[str, list[str]] = None
-
-    def __post_init__(self, *_: str, **kwargs: Any):
-        if self._is_empty(self.drives):
-            self.MissingRequiredField("drives")
-        if not isinstance(self.drives, list):
-            self.drives = [self.drives] if self.drives is not None else []
-        self.drives = [v if isinstance(v, str) else str(v) for v in self.drives]
-
-        super().__post_init__(**kwargs)
+    drives: list[str] = Field(default=..., description="""List of hard drives found""", json_schema_extra = { "linkml_meta": {'alias': 'drives', 'domain_of': ['ListHardDrives']} })
 
 
-@dataclass(repr=False)
 class ListPartitionsInput(QueryInput):
     """
     Input parameters for listing partitions
     """
-    _inherited_slots: ClassVar[list[str]] = []
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
 
-    class_class_uri: ClassVar[URIRef] = DEDUPE["ListPartitionsInput"]
-    class_class_curie: ClassVar[str] = "dedupe:ListPartitionsInput"
-    class_name: ClassVar[str] = "ListPartitionsInput"
-    class_model_uri: ClassVar[URIRef] = DEDUPE.ListPartitionsInput
-
-    drive_uuid: Optional[str] = None
-
-    def __post_init__(self, *_: str, **kwargs: Any):
-        if self.drive_uuid is not None and not isinstance(self.drive_uuid, str):
-            self.drive_uuid = str(self.drive_uuid)
-
-        super().__post_init__(**kwargs)
+    drive_uuid: Optional[str] = Field(default=None, description="""UUID of the hard drive to filter by (optional - if not provided, lists all partitions)""", json_schema_extra = { "linkml_meta": {'alias': 'drive_uuid', 'domain_of': ['ListPartitionsInput']} })
 
 
-@dataclass(repr=False)
 class ListPartitions(Query):
     """
     Query result containing a list of partitions
     """
-    _inherited_slots: ClassVar[list[str]] = []
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
 
-    class_class_uri: ClassVar[URIRef] = DEDUPE["ListPartitions"]
-    class_class_curie: ClassVar[str] = "dedupe:ListPartitions"
-    class_name: ClassVar[str] = "ListPartitions"
-    class_model_uri: ClassVar[URIRef] = DEDUPE.ListPartitions
-
-    partitions: Union[str, list[str]] = None
-
-    def __post_init__(self, *_: str, **kwargs: Any):
-        if self._is_empty(self.partitions):
-            self.MissingRequiredField("partitions")
-        if not isinstance(self.partitions, list):
-            self.partitions = [self.partitions] if self.partitions is not None else []
-        self.partitions = [v if isinstance(v, str) else str(v) for v in self.partitions]
-
-        super().__post_init__(**kwargs)
+    partitions: list[str] = Field(default=..., description="""List of partitions found""", json_schema_extra = { "linkml_meta": {'alias': 'partitions', 'domain_of': ['ListPartitions']} })
 
 
-@dataclass(repr=False)
 class ListFileItemsInput(QueryInput):
     """
     Input parameters for listing file items in a partition
     """
-    _inherited_slots: ClassVar[list[str]] = []
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
 
-    class_class_uri: ClassVar[URIRef] = DEDUPE["ListFileItemsInput"]
-    class_class_curie: ClassVar[str] = "dedupe:ListFileItemsInput"
-    class_name: ClassVar[str] = "ListFileItemsInput"
-    class_model_uri: ClassVar[URIRef] = DEDUPE.ListFileItemsInput
-
-    partition_uuid: str = None
-
-    def __post_init__(self, *_: str, **kwargs: Any):
-        if self._is_empty(self.partition_uuid):
-            self.MissingRequiredField("partition_uuid")
-        if not isinstance(self.partition_uuid, str):
-            self.partition_uuid = str(self.partition_uuid)
-
-        super().__post_init__(**kwargs)
+    partition_uuid: str = Field(default=..., description="""UUID of the partition to list files from""", json_schema_extra = { "linkml_meta": {'alias': 'partition_uuid', 'domain_of': ['ListFileItemsInput']} })
 
 
-@dataclass(repr=False)
 class ListFileItems(Query):
     """
     Query result containing a list of file items
     """
-    _inherited_slots: ClassVar[list[str]] = []
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
 
-    class_class_uri: ClassVar[URIRef] = DEDUPE["ListFileItems"]
-    class_class_curie: ClassVar[str] = "dedupe:ListFileItems"
-    class_name: ClassVar[str] = "ListFileItems"
-    class_model_uri: ClassVar[URIRef] = DEDUPE.ListFileItems
-
-    file_items: Union[str, list[str]] = None
-
-    def __post_init__(self, *_: str, **kwargs: Any):
-        if self._is_empty(self.file_items):
-            self.MissingRequiredField("file_items")
-        if not isinstance(self.file_items, list):
-            self.file_items = [self.file_items] if self.file_items is not None else []
-        self.file_items = [v if isinstance(v, str) else str(v) for v in self.file_items]
-
-        super().__post_init__(**kwargs)
+    file_items: list[str] = Field(default=..., description="""List of file items found""", json_schema_extra = { "linkml_meta": {'alias': 'file_items', 'domain_of': ['ListFileItems']} })
 
 
-# Enumerations
-
-
-# Slots
-class slots:
-    pass
-
-slots.listHardDrives__drives = Slot(uri=DEDUPE.drives, name="listHardDrives__drives", curie=DEDUPE.curie('drives'),
-                   model_uri=DEDUPE.listHardDrives__drives, domain=None, range=Union[str, list[str]])
-
-slots.listPartitionsInput__drive_uuid = Slot(uri=DEDUPE.drive_uuid, name="listPartitionsInput__drive_uuid", curie=DEDUPE.curie('drive_uuid'),
-                   model_uri=DEDUPE.listPartitionsInput__drive_uuid, domain=None, range=Optional[str])
-
-slots.listPartitions__partitions = Slot(uri=DEDUPE.partitions, name="listPartitions__partitions", curie=DEDUPE.curie('partitions'),
-                   model_uri=DEDUPE.listPartitions__partitions, domain=None, range=Union[str, list[str]])
-
-slots.listFileItemsInput__partition_uuid = Slot(uri=DEDUPE.partition_uuid, name="listFileItemsInput__partition_uuid", curie=DEDUPE.curie('partition_uuid'),
-                   model_uri=DEDUPE.listFileItemsInput__partition_uuid, domain=None, range=str)
-
-slots.listFileItems__file_items = Slot(uri=DEDUPE.file_items, name="listFileItems__file_items", curie=DEDUPE.curie('file_items'),
-                   model_uri=DEDUPE.listFileItems__file_items, domain=None, range=Union[str, list[str]])
+# Model rebuild
+# see https://pydantic-docs.helpmanual.io/usage/models/#rebuilding-a-model
+QueryInput.model_rebuild()
+Query.model_rebuild()
+ListHardDrivesInput.model_rebuild()
+ListHardDrives.model_rebuild()
+ListPartitionsInput.model_rebuild()
+ListPartitions.model_rebuild()
+ListFileItemsInput.model_rebuild()
+ListFileItems.model_rebuild()
 

@@ -1,202 +1,154 @@
-# Auto generated from mutations.yml by pythongen.py version: 0.0.1
-# Generation date: 2025-10-25T15:01:55
-# Schema: dedupe-mutations-schema
-#
-# id: https://example.org/dedupe/mutations
-# description: LinkML schema for mutation objects that define inputs and outputs for storing events in the event sourcing system.
-# license: https://creativecommons.org/publicdomain/zero/1.0/
+from __future__ import annotations 
 
-import dataclasses
 import re
-from dataclasses import dataclass
+import sys
 from datetime import (
     date,
     datetime,
     time
 )
+from decimal import Decimal 
+from enum import Enum 
 from typing import (
     Any,
     ClassVar,
-    Dict,
-    List,
+    Literal,
     Optional,
     Union
 )
 
-from jsonasobj2 import (
-    JsonObj,
-    as_dict
-)
-from linkml_runtime.linkml_model.meta import (
-    EnumDefinition,
-    PermissibleValue,
-    PvFormulaOptions
-)
-from linkml_runtime.utils.curienamespace import CurieNamespace
-from linkml_runtime.utils.enumerations import EnumDefinitionImpl
-from linkml_runtime.utils.formatutils import (
-    camelcase,
-    sfx,
-    underscore
-)
-from linkml_runtime.utils.metamodelcore import (
-    bnode,
-    empty_dict,
-    empty_list
-)
-from linkml_runtime.utils.slot import Slot
-from linkml_runtime.utils.yamlutils import (
-    YAMLRoot,
-    extended_float,
-    extended_int,
-    extended_str
-)
-from rdflib import (
-    Namespace,
-    URIRef
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    RootModel,
+    field_validator
 )
 
-from linkml_runtime.linkml_model.types import Boolean, Datetime, String
-from linkml_runtime.utils.metamodelcore import Bool, XSDDateTime
 
-metamodel_version = "1.7.0"
-version = None
-
-# Namespaces
-DEDUPE = CurieNamespace('dedupe', 'https://example.org/dedupe/')
-LINKML = CurieNamespace('linkml', 'https://w3id.org/linkml/')
-DEFAULT_ = DEDUPE
+metamodel_version = "None"
+version = "None"
 
 
-# Types
+class ConfiguredBaseModel(BaseModel):
+    model_config = ConfigDict(
+        validate_assignment = True,
+        validate_default = True,
+        extra = "forbid",
+        arbitrary_types_allowed = True,
+        use_enum_values = True,
+        strict = False,
+    )
+    pass
 
-# Class references
 
 
 
-class MutationInput(YAMLRoot):
+class LinkMLMeta(RootModel):
+    root: dict[str, Any] = {}
+    model_config = ConfigDict(frozen=True)
+
+    def __getattr__(self, key:str):
+        return getattr(self.root, key)
+
+    def __getitem__(self, key:str):
+        return self.root[key]
+
+    def __setitem__(self, key:str, value):
+        self.root[key] = value
+
+    def __contains__(self, key:str) -> bool:
+        return key in self.root
+
+
+linkml_meta = LinkMLMeta({'default_prefix': 'dedupe',
+     'default_range': 'string',
+     'description': 'LinkML schema for mutation objects that define inputs and '
+                    'outputs for storing events in the event sourcing system.',
+     'id': 'https://example.org/dedupe/mutations',
+     'imports': ['linkml:types', 'events'],
+     'name': 'dedupe-mutations-schema',
+     'prefixes': {'dedupe': {'prefix_prefix': 'dedupe',
+                             'prefix_reference': 'https://example.org/dedupe/'},
+                  'linkml': {'prefix_prefix': 'linkml',
+                             'prefix_reference': 'https://w3id.org/linkml/'}},
+     'source_file': 'def/mutations.yaml',
+     'title': 'Dedupe Mutations Data Model'} )
+
+
+class DomainEvent(ConfiguredBaseModel):
+    """
+    Base class for all domain events - immutable facts about what happened
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://example.org/dedupe/events'})
+
+    pass
+
+
+class TestMessage(DomainEvent):
+    """
+    Simple test event with a single message string
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/events'})
+
+    message: str = Field(default=..., description="""The test message content""", json_schema_extra = { "linkml_meta": {'alias': 'message', 'domain_of': ['TestMessage']} })
+
+
+class FileItemScanned(DomainEvent):
+    """
+    Event recording that a file item was scanned
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/events'})
+
+    partition_uuid: str = Field(default=..., description="""UUID of the partition containing this file""", json_schema_extra = { "linkml_meta": {'alias': 'partition_uuid', 'domain_of': ['FileItemScanned']} })
+    path: str = Field(default=..., description="""Full path to the file within the partition""", json_schema_extra = { "linkml_meta": {'alias': 'path', 'domain_of': ['FileItemScanned']} })
+    size: int = Field(default=..., description="""Size of the file in bytes""", json_schema_extra = { "linkml_meta": {'alias': 'size', 'domain_of': ['FileItemScanned']} })
+    content_hash: str = Field(default=..., description="""Hash of the file contents""", json_schema_extra = { "linkml_meta": {'alias': 'content_hash', 'domain_of': ['FileItemScanned']} })
+
+
+class MutationInput(ConfiguredBaseModel):
     """
     Base class for all mutation input parameter objects
     """
-    _inherited_slots: ClassVar[list[str]] = []
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://example.org/dedupe/mutations'})
 
-    class_class_uri: ClassVar[URIRef] = DEDUPE["MutationInput"]
-    class_class_curie: ClassVar[str] = "dedupe:MutationInput"
-    class_name: ClassVar[str] = "MutationInput"
-    class_model_uri: ClassVar[URIRef] = DEDUPE.MutationInput
+    pass
 
 
-class Mutation(YAMLRoot):
+class Mutation(ConfiguredBaseModel):
     """
     Base class for all mutation result objects
     """
-    _inherited_slots: ClassVar[list[str]] = []
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://example.org/dedupe/mutations'})
 
-    class_class_uri: ClassVar[URIRef] = DEDUPE["Mutation"]
-    class_class_curie: ClassVar[str] = "dedupe:Mutation"
-    class_name: ClassVar[str] = "Mutation"
-    class_model_uri: ClassVar[URIRef] = DEDUPE.Mutation
+    pass
 
 
-@dataclass(repr=False)
 class EventRecordInput(MutationInput):
     """
     Input parameters for storing an event record
     """
-    _inherited_slots: ClassVar[list[str]] = []
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/mutations'})
 
-    class_class_uri: ClassVar[URIRef] = DEDUPE["EventRecordInput"]
-    class_class_curie: ClassVar[str] = "dedupe:EventRecordInput"
-    class_name: ClassVar[str] = "EventRecordInput"
-    class_model_uri: ClassVar[URIRef] = DEDUPE.EventRecordInput
-
-    event_type: str = None
-    event_data: str = None
-    source: Optional[str] = None
-
-    def __post_init__(self, *_: str, **kwargs: Any):
-        if self._is_empty(self.event_type):
-            self.MissingRequiredField("event_type")
-        if not isinstance(self.event_type, str):
-            self.event_type = str(self.event_type)
-
-        if self._is_empty(self.event_data):
-            self.MissingRequiredField("event_data")
-        if not isinstance(self.event_data, str):
-            self.event_data = str(self.event_data)
-
-        if self.source is not None and not isinstance(self.source, str):
-            self.source = str(self.source)
-
-        super().__post_init__(**kwargs)
+    event: DomainEvent = Field(default=..., description="""The domain event to store""", json_schema_extra = { "linkml_meta": {'alias': 'event', 'domain_of': ['EventRecordInput']} })
 
 
-@dataclass(repr=False)
 class EventRecord(Mutation):
     """
-    Result of storing an event record, containing the content hash and timestamp
+    Result of storing an event record, containing the content hash
     """
-    _inherited_slots: ClassVar[list[str]] = []
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/mutations'})
 
-    class_class_uri: ClassVar[URIRef] = DEDUPE["EventRecord"]
-    class_class_curie: ClassVar[str] = "dedupe:EventRecord"
-    class_name: ClassVar[str] = "EventRecord"
-    class_model_uri: ClassVar[URIRef] = DEDUPE.EventRecord
-
-    event_hash: str = None
-    event_type: str = None
-    timestamp: Union[str, XSDDateTime] = None
-    was_duplicate: Union[bool, Bool] = None
-
-    def __post_init__(self, *_: str, **kwargs: Any):
-        if self._is_empty(self.event_hash):
-            self.MissingRequiredField("event_hash")
-        if not isinstance(self.event_hash, str):
-            self.event_hash = str(self.event_hash)
-
-        if self._is_empty(self.event_type):
-            self.MissingRequiredField("event_type")
-        if not isinstance(self.event_type, str):
-            self.event_type = str(self.event_type)
-
-        if self._is_empty(self.timestamp):
-            self.MissingRequiredField("timestamp")
-        if not isinstance(self.timestamp, XSDDateTime):
-            self.timestamp = XSDDateTime(self.timestamp)
-
-        if self._is_empty(self.was_duplicate):
-            self.MissingRequiredField("was_duplicate")
-        if not isinstance(self.was_duplicate, Bool):
-            self.was_duplicate = Bool(self.was_duplicate)
-
-        super().__post_init__(**kwargs)
+    event_hash: str = Field(default=..., description="""SHA256 hash of the event (content-addressable primary key)""", json_schema_extra = { "linkml_meta": {'alias': 'event_hash', 'domain_of': ['EventRecord']} })
 
 
-# Enumerations
-
-
-# Slots
-class slots:
-    pass
-
-slots.eventRecordInput__event_type = Slot(uri=DEDUPE.event_type, name="eventRecordInput__event_type", curie=DEDUPE.curie('event_type'),
-                   model_uri=DEDUPE.eventRecordInput__event_type, domain=None, range=str)
-
-slots.eventRecordInput__event_data = Slot(uri=DEDUPE.event_data, name="eventRecordInput__event_data", curie=DEDUPE.curie('event_data'),
-                   model_uri=DEDUPE.eventRecordInput__event_data, domain=None, range=str)
-
-slots.eventRecordInput__source = Slot(uri=DEDUPE.source, name="eventRecordInput__source", curie=DEDUPE.curie('source'),
-                   model_uri=DEDUPE.eventRecordInput__source, domain=None, range=Optional[str])
-
-slots.eventRecord__event_hash = Slot(uri=DEDUPE.event_hash, name="eventRecord__event_hash", curie=DEDUPE.curie('event_hash'),
-                   model_uri=DEDUPE.eventRecord__event_hash, domain=None, range=str)
-
-slots.eventRecord__event_type = Slot(uri=DEDUPE.event_type, name="eventRecord__event_type", curie=DEDUPE.curie('event_type'),
-                   model_uri=DEDUPE.eventRecord__event_type, domain=None, range=str)
-
-slots.eventRecord__timestamp = Slot(uri=DEDUPE.timestamp, name="eventRecord__timestamp", curie=DEDUPE.curie('timestamp'),
-                   model_uri=DEDUPE.eventRecord__timestamp, domain=None, range=Union[str, XSDDateTime])
-
-slots.eventRecord__was_duplicate = Slot(uri=DEDUPE.was_duplicate, name="eventRecord__was_duplicate", curie=DEDUPE.curie('was_duplicate'),
-                   model_uri=DEDUPE.eventRecord__was_duplicate, domain=None, range=Union[bool, Bool])
+# Model rebuild
+# see https://pydantic-docs.helpmanual.io/usage/models/#rebuilding-a-model
+DomainEvent.model_rebuild()
+TestMessage.model_rebuild()
+FileItemScanned.model_rebuild()
+MutationInput.model_rebuild()
+Mutation.model_rebuild()
+EventRecordInput.model_rebuild()
+EventRecord.model_rebuild()
 
