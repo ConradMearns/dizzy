@@ -15,6 +15,10 @@ from gen.queries import (
     ListPartitions,
     ListFileItemsInput,
     ListFileItems,
+    GetAllEventsInput,
+    GetAllEvents,
+    GetEventsByTypesInput,
+    GetEventsByTypes,
 )
 
 
@@ -47,5 +51,21 @@ class ListFileItemsProtocol(Protocol):
     
     def execute(self, query_input: ListFileItemsInput) -> ListFileItems:
         """Execute the ListFileItems query."""
+        ...
+
+
+class GetAllEventsProtocol(Protocol):
+    """Protocol for GetAllEvents query implementations."""
+    
+    def execute(self, query_input: GetAllEventsInput) -> GetAllEvents:
+        """Execute the GetAllEvents query."""
+        ...
+
+
+class GetEventsByTypesProtocol(Protocol):
+    """Protocol for GetEventsByTypes query implementations."""
+    
+    def execute(self, query_input: GetEventsByTypesInput) -> GetEventsByTypes:
+        """Execute the GetEventsByTypes query."""
         ...
 

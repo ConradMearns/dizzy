@@ -39,10 +39,18 @@ classes:
 
   EventRecord:
     description: >-
-      Result of storing an event record, containing the content hash
+      Result of storing an event record
     is_a: Mutation
     attributes:
       event_hash:
         description: SHA256 hash of the event (content-addressable primary key)
         required: true
         range: string
+      event_type:
+        description: Class name of the event (e.g., "TestMessage", "FileItemScanned")
+        required: true
+        range: string
+      event:
+        description: The original event that was stored
+        required: true
+        range: DomainEvent

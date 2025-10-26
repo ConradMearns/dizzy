@@ -130,16 +130,18 @@ class EventRecordInput(MutationInput):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/mutations'})
 
-    event: DomainEvent = Field(default=..., description="""The domain event to store""", json_schema_extra = { "linkml_meta": {'alias': 'event', 'domain_of': ['EventRecordInput']} })
+    event: DomainEvent = Field(default=..., description="""The domain event to store""", json_schema_extra = { "linkml_meta": {'alias': 'event', 'domain_of': ['EventRecordInput', 'EventRecord']} })
 
 
 class EventRecord(Mutation):
     """
-    Result of storing an event record, containing the content hash
+    Result of storing an event record
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/mutations'})
 
     event_hash: str = Field(default=..., description="""SHA256 hash of the event (content-addressable primary key)""", json_schema_extra = { "linkml_meta": {'alias': 'event_hash', 'domain_of': ['EventRecord']} })
+    event_type: str = Field(default=..., description="""Class name of the event (e.g., \"TestMessage\", \"FileItemScanned\")""", json_schema_extra = { "linkml_meta": {'alias': 'event_type', 'domain_of': ['EventRecord']} })
+    event: DomainEvent = Field(default=..., description="""The original event that was stored""", json_schema_extra = { "linkml_meta": {'alias': 'event', 'domain_of': ['EventRecordInput', 'EventRecord']} })
 
 
 # Model rebuild

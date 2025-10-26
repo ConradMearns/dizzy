@@ -14,6 +14,7 @@ default_range: string
 
 imports:
   - linkml:types
+  - events
 
 classes:
   QueryInput:
@@ -83,3 +84,62 @@ classes:
         required: true
         multivalued: true
         range: string
+
+  ChainEntry:
+    description: >-
+      A single entry from the event chain with metadata
+    attributes:
+      event_hash:
+        description: SHA256 hash of the event
+        required: true
+        range: string
+      event_type:
+        description: Class name of the event
+        required: true
+        range: string
+      timestamp:
+        description: When this event was recorded to the chain
+        required: true
+        range: datetime
+      event:
+        description: The domain event data
+        required: true
+        range: DomainEvent
+
+  GetAllEventsInput:
+    description: >-
+      Input parameters for getting all events from the chain
+    is_a: QueryInput
+
+  GetAllEvents:
+    description: >-
+      Query result containing all events from the chain in order
+    is_a: Query
+    attributes:
+      events:
+        description: List of chain entries in sequence order
+        required: true
+        multivalued: true
+        range: ChainEntry
+
+  GetEventsByTypesInput:
+    description: >-
+      Input parameters for getting events filtered by type
+    is_a: QueryInput
+    attributes:
+      event_types:
+        description: List of event type names to filter by (e.g., ["TestMessage", "FileItemScanned"])
+        required: true
+        multivalued: true
+        range: string
+
+  GetEventsByTypes:
+    description: >-
+      Query result containing filtered events from the chain
+    is_a: Query
+    attributes:
+      events:
+        description: List of chain entries matching the requested types
+        required: true
+        multivalued: true
+        range: ChainEntry
