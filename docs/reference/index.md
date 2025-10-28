@@ -1,15 +1,15 @@
 # Reference
 
-![[events.md]]
+--8<-- "docs/reference/events.md"
 
-![[commands.md]]
+--8<-- "docs/reference/commands.md"
 
-![[procedures.md]]
+--8<-- "docs/reference/procedures.md"
 
-![[policies.md]]
+--8<-- "docs/reference/policies.md"
 
-![[models.md]]
+--8<-- "docs/reference/models.md"
 
-![[queriers.md]]
+--8<-- "docs/reference/queriers.md"
 
-![[mutators.md]]
+--8<-- "docs/reference/mutators.md"
