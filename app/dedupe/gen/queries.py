@@ -1,4 +1,4 @@
-from __future__ import annotations 
+from __future__ import annotations
 
 import re
 import sys
@@ -7,8 +7,8 @@ from datetime import (
     datetime,
     time
 )
-from decimal import Decimal 
-from enum import Enum 
+from decimal import Decimal
+from enum import Enum
 from typing import (
     Any,
     ClassVar,
@@ -22,7 +22,10 @@ from pydantic import (
     ConfigDict,
     Field,
     RootModel,
-    field_validator
+    SerializationInfo,
+    SerializerFunctionWrapHandler,
+    field_validator,
+    model_serializer
 )
 
 
@@ -32,6 +35,8 @@ version = "None"
 
 class ConfiguredBaseModel(BaseModel):
     model_config = ConfigDict(
+        serialize_by_alias = True,
+        validate_by_name = True,
         validate_assignment = True,
         validate_default = True,
         extra = "forbid",
@@ -39,8 +44,20 @@ class ConfiguredBaseModel(BaseModel):
         use_enum_values = True,
         strict = False,
     )
-    pass
 
+    @model_serializer(mode='wrap', when_used='unless-none')
+    def treat_empty_lists_as_none(
+            self, handler: SerializerFunctionWrapHandler,
+            info: SerializationInfo) -> dict[str, Any]:
+        if info.exclude_none:
+            _instance = self.model_copy()
+            for field, field_info in type(_instance).model_fields.items():
+                if getattr(_instance, field) == [] and not(
+                        field_info.is_required()):
+                    setattr(_instance, field, None)
+        else:
+            _instance = self
+        return handler(_instance, info)
 
 
 
@@ -66,7 +83,9 @@ linkml_meta = LinkMLMeta({'default_prefix': 'dedupe',
      'description': 'LinkML schema for query objects that define inputs and '
                     'outputs for querying drives, partitions, and file items.',
      'id': 'https://example.org/dedupe/queries',
-     'imports': ['linkml:types', 'events'],
+     'imports': ['linkml:types',
+                 'events',
+                 '../../../pkg/dizzy/src/dizzy/def/queries'],
      'name': 'dedupe-queries-schema',
      'prefixes': {'dedupe': {'prefix_prefix': 'dedupe',
                              'prefix_reference': 'https://example.org/dedupe/'},
@@ -78,9 +97,9 @@ linkml_meta = LinkMLMeta({'default_prefix': 'dedupe',
 
 class DomainEvent(ConfiguredBaseModel):
     """
-    Base class for all domain events - immutable facts about what happened
+    Base class for all domain events - immutable facts about what happened. This is an abstract class that should be extended by concrete event types.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://example.org/dedupe/events'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://example.org/dizzy/events'})
 
     pass
 
@@ -91,7 +110,7 @@ class TestMessage(DomainEvent):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/events'})
 
-    message: str = Field(default=..., description="""The test message content""", json_schema_extra = { "linkml_meta": {'alias': 'message', 'domain_of': ['TestMessage']} })
+    message: str = Field(default=..., description="""The test message content""", json_schema_extra = { "linkml_meta": {'domain_of': ['TestMessage']} })
 
 
 class FileItemScanned(DomainEvent):
@@ -100,27 +119,26 @@ class FileItemScanned(DomainEvent):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/events'})
 
-    partition_uuid: str = Field(default=..., description="""UUID of the partition containing this file""", json_schema_extra = { "linkml_meta": {'alias': 'partition_uuid',
-         'domain_of': ['FileItemScanned', 'ListFileItemsInput']} })
-    path: str = Field(default=..., description="""Full path to the file within the partition""", json_schema_extra = { "linkml_meta": {'alias': 'path', 'domain_of': ['FileItemScanned']} })
-    size: int = Field(default=..., description="""Size of the file in bytes""", json_schema_extra = { "linkml_meta": {'alias': 'size', 'domain_of': ['FileItemScanned']} })
-    content_hash: str = Field(default=..., description="""Hash of the file contents""", json_schema_extra = { "linkml_meta": {'alias': 'content_hash', 'domain_of': ['FileItemScanned']} })
+    partition_uuid: str = Field(default=..., description="""UUID of the partition containing this file""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned', 'ListFileItemsInput']} })
+    path: str = Field(default=..., description="""Full path to the file within the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
+    size: int = Field(default=..., description="""Size of the file in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
+    content_hash: str = Field(default=..., description="""Hash of the file contents""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
 
 
 class QueryInput(ConfiguredBaseModel):
     """
-    Base class for all query input parameter objects
+    Base class for all query input parameter objects. This is an abstract class that should be extended by concrete input types.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://example.org/dedupe/queries'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://example.org/dizzy/queries'})
 
     pass
 
 
 class Query(ConfiguredBaseModel):
     """
-    Base class for all query result objects
+    Base class for all query result objects. This is an abstract class that should be extended by concrete result types.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://example.org/dedupe/queries'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://example.org/dizzy/queries'})
 
     pass
 
@@ -140,7 +158,7 @@ class ListHardDrives(Query):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
 
-    drives: list[str] = Field(default=..., description="""List of hard drives found""", json_schema_extra = { "linkml_meta": {'alias': 'drives', 'domain_of': ['ListHardDrives']} })
+    drives: list[str] = Field(default=..., description="""List of hard drives found""", json_schema_extra = { "linkml_meta": {'domain_of': ['ListHardDrives']} })
 
 
 class ListPartitionsInput(QueryInput):
@@ -149,7 +167,7 @@ class ListPartitionsInput(QueryInput):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
 
-    drive_uuid: Optional[str] = Field(default=None, description="""UUID of the hard drive to filter by (optional - if not provided, lists all partitions)""", json_schema_extra = { "linkml_meta": {'alias': 'drive_uuid', 'domain_of': ['ListPartitionsInput']} })
+    drive_uuid: Optional[str] = Field(default=None, description="""UUID of the hard drive to filter by (optional - if not provided, lists all partitions)""", json_schema_extra = { "linkml_meta": {'domain_of': ['ListPartitionsInput']} })
 
 
 class ListPartitions(Query):
@@ -158,7 +176,7 @@ class ListPartitions(Query):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
 
-    partitions: list[str] = Field(default=..., description="""List of partitions found""", json_schema_extra = { "linkml_meta": {'alias': 'partitions', 'domain_of': ['ListPartitions']} })
+    partitions: list[str] = Field(default=..., description="""List of partitions found""", json_schema_extra = { "linkml_meta": {'domain_of': ['ListPartitions']} })
 
 
 class ListFileItemsInput(QueryInput):
@@ -167,8 +185,7 @@ class ListFileItemsInput(QueryInput):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
 
-    partition_uuid: str = Field(default=..., description="""UUID of the partition to list files from""", json_schema_extra = { "linkml_meta": {'alias': 'partition_uuid',
-         'domain_of': ['FileItemScanned', 'ListFileItemsInput']} })
+    partition_uuid: str = Field(default=..., description="""UUID of the partition to list files from""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned', 'ListFileItemsInput']} })
 
 
 class ListFileItems(Query):
@@ -177,7 +194,7 @@ class ListFileItems(Query):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
 
-    file_items: list[str] = Field(default=..., description="""List of file items found""", json_schema_extra = { "linkml_meta": {'alias': 'file_items', 'domain_of': ['ListFileItems']} })
+    file_items: list[str] = Field(default=..., description="""List of file items found""", json_schema_extra = { "linkml_meta": {'domain_of': ['ListFileItems']} })
 
 
 class ChainEntry(ConfiguredBaseModel):
@@ -186,10 +203,10 @@ class ChainEntry(ConfiguredBaseModel):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
 
-    event_hash: str = Field(default=..., description="""SHA256 hash of the event""", json_schema_extra = { "linkml_meta": {'alias': 'event_hash', 'domain_of': ['ChainEntry']} })
-    event_type: str = Field(default=..., description="""Class name of the event""", json_schema_extra = { "linkml_meta": {'alias': 'event_type', 'domain_of': ['ChainEntry']} })
-    timestamp: datetime  = Field(default=..., description="""When this event was recorded to the chain""", json_schema_extra = { "linkml_meta": {'alias': 'timestamp', 'domain_of': ['ChainEntry']} })
-    event: DomainEvent = Field(default=..., description="""The domain event data""", json_schema_extra = { "linkml_meta": {'alias': 'event', 'domain_of': ['ChainEntry']} })
+    event_hash: str = Field(default=..., description="""SHA256 hash of the event""", json_schema_extra = { "linkml_meta": {'domain_of': ['ChainEntry']} })
+    event_type: str = Field(default=..., description="""Class name of the event""", json_schema_extra = { "linkml_meta": {'domain_of': ['ChainEntry']} })
+    timestamp: datetime  = Field(default=..., description="""When this event was recorded to the chain""", json_schema_extra = { "linkml_meta": {'domain_of': ['ChainEntry']} })
+    event: DomainEvent = Field(default=..., description="""The domain event data""", json_schema_extra = { "linkml_meta": {'domain_of': ['ChainEntry']} })
 
 
 class GetAllEventsInput(QueryInput):
@@ -207,7 +224,7 @@ class GetAllEvents(Query):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
 
-    events: list[ChainEntry] = Field(default=..., description="""List of chain entries in sequence order""", json_schema_extra = { "linkml_meta": {'alias': 'events', 'domain_of': ['GetAllEvents', 'GetEventsByTypes']} })
+    events: list[ChainEntry] = Field(default=..., description="""List of chain entries in sequence order""", json_schema_extra = { "linkml_meta": {'domain_of': ['GetAllEvents', 'GetEventsByTypes']} })
 
 
 class GetEventsByTypesInput(QueryInput):
@@ -216,7 +233,7 @@ class GetEventsByTypesInput(QueryInput):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
 
-    event_types: list[str] = Field(default=..., description="""List of event type names to filter by (e.g., [\"TestMessage\", \"FileItemScanned\"])""", json_schema_extra = { "linkml_meta": {'alias': 'event_types', 'domain_of': ['GetEventsByTypesInput']} })
+    event_types: list[str] = Field(default=..., description="""List of event type names to filter by (e.g., [\"TestMessage\", \"FileItemScanned\"])""", json_schema_extra = { "linkml_meta": {'domain_of': ['GetEventsByTypesInput']} })
 
 
 class GetEventsByTypes(Query):
@@ -225,7 +242,7 @@ class GetEventsByTypes(Query):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
 
-    events: list[ChainEntry] = Field(default=..., description="""List of chain entries matching the requested types""", json_schema_extra = { "linkml_meta": {'alias': 'events', 'domain_of': ['GetAllEvents', 'GetEventsByTypes']} })
+    events: list[ChainEntry] = Field(default=..., description="""List of chain entries matching the requested types""", json_schema_extra = { "linkml_meta": {'domain_of': ['GetAllEvents', 'GetEventsByTypes']} })
 
 
 # Model rebuild
@@ -246,4 +263,3 @@ GetAllEventsInput.model_rebuild()
 GetAllEvents.model_rebuild()
 GetEventsByTypesInput.model_rebuild()
 GetEventsByTypes.model_rebuild()
-

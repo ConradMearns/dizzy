@@ -1,0 +1,23 @@
+id: https://example.org/dizzy/events
+name: dizzy-events-schema
+title: Dizzy Base Events Data Model
+description: >-
+  Base LinkML schema for domain events - immutable facts about what happened
+  in the system. Applications extend DomainEvent to create their own event types.
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dizzy: https://example.org/dizzy/
+
+default_prefix: dizzy
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  DomainEvent:
+    description: >-
+      Base class for all domain events - immutable facts about what happened.
+      This is an abstract class that should be extended by concrete event types.
+    abstract: true

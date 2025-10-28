@@ -14,11 +14,9 @@ default_range: string
 
 imports:
   - linkml:types
+  - ../../../pkg/dizzy/src/dizzy/def/commands
 
 classes:
-  Command:
-    description: >-
-      Base class for all commands that can be executed in the dedupe system
 
   ScanPartition:
     description: >-

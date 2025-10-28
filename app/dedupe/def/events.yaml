@@ -14,12 +14,9 @@ default_range: string
 
 imports:
   - linkml:types
+  - ../../../pkg/dizzy/src/dizzy/def/events
 
 classes:
-  DomainEvent:
-    description: >-
-      Base class for all domain events - immutable facts about what happened
-    abstract: true
 
   TestMessage:
     description: >-

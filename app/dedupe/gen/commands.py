@@ -1,4 +1,4 @@
-from __future__ import annotations 
+from __future__ import annotations
 
 import re
 import sys
@@ -7,8 +7,8 @@ from datetime import (
     datetime,
     time
 )
-from decimal import Decimal 
-from enum import Enum 
+from decimal import Decimal
+from enum import Enum
 from typing import (
     Any,
     ClassVar,
@@ -22,7 +22,10 @@ from pydantic import (
     ConfigDict,
     Field,
     RootModel,
-    field_validator
+    SerializationInfo,
+    SerializerFunctionWrapHandler,
+    field_validator,
+    model_serializer
 )
 
 
@@ -32,6 +35,8 @@ version = "None"
 
 class ConfiguredBaseModel(BaseModel):
     model_config = ConfigDict(
+        serialize_by_alias = True,
+        validate_by_name = True,
         validate_assignment = True,
         validate_default = True,
         extra = "forbid",
@@ -39,8 +44,20 @@ class ConfiguredBaseModel(BaseModel):
         use_enum_values = True,
         strict = False,
     )
-    pass
 
+    @model_serializer(mode='wrap', when_used='unless-none')
+    def treat_empty_lists_as_none(
+            self, handler: SerializerFunctionWrapHandler,
+            info: SerializationInfo) -> dict[str, Any]:
+        if info.exclude_none:
+            _instance = self.model_copy()
+            for field, field_info in type(_instance).model_fields.items():
+                if getattr(_instance, field) == [] and not(
+                        field_info.is_required()):
+                    setattr(_instance, field, None)
+        else:
+            _instance = self
+        return handler(_instance, info)
 
 
 
@@ -66,7 +83,7 @@ linkml_meta = LinkMLMeta({'default_prefix': 'dedupe',
      'description': 'LinkML schema for command objects that represent operations '
                     'to be performed on drives and partitions.',
      'id': 'https://example.org/dedupe/commands',
-     'imports': ['linkml:types'],
+     'imports': ['linkml:types', '../../../pkg/dizzy/src/dizzy/def/commands'],
      'name': 'dedupe-commands-schema',
      'prefixes': {'dedupe': {'prefix_prefix': 'dedupe',
                              'prefix_reference': 'https://example.org/dedupe/'},
@@ -78,9 +95,9 @@ linkml_meta = LinkMLMeta({'default_prefix': 'dedupe',
 
 class Command(ConfiguredBaseModel):
     """
-    Base class for all commands that can be executed in the dedupe system
+    Base class for all commands that can be executed. This is an abstract class that should be extended by concrete command types.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/commands'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://example.org/dizzy/commands'})
 
     pass
 
@@ -91,11 +108,10 @@ class ScanPartition(Command):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/commands'})
 
-    partition_uuid: str = Field(default=..., description="""UUID of the partition to scan""", json_schema_extra = { "linkml_meta": {'alias': 'partition_uuid', 'domain_of': ['ScanPartition']} })
+    partition_uuid: str = Field(default=..., description="""UUID of the partition to scan""", json_schema_extra = { "linkml_meta": {'domain_of': ['ScanPartition']} })
 
 
 # Model rebuild
 # see https://pydantic-docs.helpmanual.io/usage/models/#rebuilding-a-model
 Command.model_rebuild()
 ScanPartition.model_rebuild()
-

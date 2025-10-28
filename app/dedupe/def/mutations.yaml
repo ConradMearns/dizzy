@@ -15,17 +15,9 @@ default_range: string
 imports:
   - linkml:types
   - events
+  - ../../../pkg/dizzy/src/dizzy/def/mutations
 
 classes:
-  MutationInput:
-    description: >-
-      Base class for all mutation input parameter objects
-    abstract: true
-
-  Mutation:
-    description: >-
-      Base class for all mutation result objects
-    abstract: true
 
   EventRecordInput:
     description: >-

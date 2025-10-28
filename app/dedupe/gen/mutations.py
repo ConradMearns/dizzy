@@ -1,4 +1,4 @@
-from __future__ import annotations 
+from __future__ import annotations
 
 import re
 import sys
@@ -7,8 +7,8 @@ from datetime import (
     datetime,
     time
 )
-from decimal import Decimal 
-from enum import Enum 
+from decimal import Decimal
+from enum import Enum
 from typing import (
     Any,
     ClassVar,
@@ -22,7 +22,10 @@ from pydantic import (
     ConfigDict,
     Field,
     RootModel,
-    field_validator
+    SerializationInfo,
+    SerializerFunctionWrapHandler,
+    field_validator,
+    model_serializer
 )
 
 
@@ -32,6 +35,8 @@ version = "None"
 
 class ConfiguredBaseModel(BaseModel):
     model_config = ConfigDict(
+        serialize_by_alias = True,
+        validate_by_name = True,
         validate_assignment = True,
         validate_default = True,
         extra = "forbid",
@@ -39,8 +44,20 @@ class ConfiguredBaseModel(BaseModel):
         use_enum_values = True,
         strict = False,
     )
-    pass
 
+    @model_serializer(mode='wrap', when_used='unless-none')
+    def treat_empty_lists_as_none(
+            self, handler: SerializerFunctionWrapHandler,
+            info: SerializationInfo) -> dict[str, Any]:
+        if info.exclude_none:
+            _instance = self.model_copy()
+            for field, field_info in type(_instance).model_fields.items():
+                if getattr(_instance, field) == [] and not(
+                        field_info.is_required()):
+                    setattr(_instance, field, None)
+        else:
+            _instance = self
+        return handler(_instance, info)
 
 
 
@@ -66,7 +83,9 @@ linkml_meta = LinkMLMeta({'default_prefix': 'dedupe',
      'description': 'LinkML schema for mutation objects that define inputs and '
                     'outputs for storing events in the event sourcing system.',
      'id': 'https://example.org/dedupe/mutations',
-     'imports': ['linkml:types', 'events'],
+     'imports': ['linkml:types',
+                 'events',
+                 '../../../pkg/dizzy/src/dizzy/def/mutations'],
      'name': 'dedupe-mutations-schema',
      'prefixes': {'dedupe': {'prefix_prefix': 'dedupe',
                              'prefix_reference': 'https://example.org/dedupe/'},
@@ -78,9 +97,9 @@ linkml_meta = LinkMLMeta({'default_prefix': 'dedupe',
 
 class DomainEvent(ConfiguredBaseModel):
     """
-    Base class for all domain events - immutable facts about what happened
+    Base class for all domain events - immutable facts about what happened. This is an abstract class that should be extended by concrete event types.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://example.org/dedupe/events'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://example.org/dizzy/events'})
 
     pass
 
@@ -91,7 +110,7 @@ class TestMessage(DomainEvent):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/events'})
 
-    message: str = Field(default=..., description="""The test message content""", json_schema_extra = { "linkml_meta": {'alias': 'message', 'domain_of': ['TestMessage']} })
+    message: str = Field(default=..., description="""The test message content""", json_schema_extra = { "linkml_meta": {'domain_of': ['TestMessage']} })
 
 
 class FileItemScanned(DomainEvent):
@@ -100,26 +119,26 @@ class FileItemScanned(DomainEvent):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/events'})
 
-    partition_uuid: str = Field(default=..., description="""UUID of the partition containing this file""", json_schema_extra = { "linkml_meta": {'alias': 'partition_uuid', 'domain_of': ['FileItemScanned']} })
-    path: str = Field(default=..., description="""Full path to the file within the partition""", json_schema_extra = { "linkml_meta": {'alias': 'path', 'domain_of': ['FileItemScanned']} })
-    size: int = Field(default=..., description="""Size of the file in bytes""", json_schema_extra = { "linkml_meta": {'alias': 'size', 'domain_of': ['FileItemScanned']} })
-    content_hash: str = Field(default=..., description="""Hash of the file contents""", json_schema_extra = { "linkml_meta": {'alias': 'content_hash', 'domain_of': ['FileItemScanned']} })
+    partition_uuid: str = Field(default=..., description="""UUID of the partition containing this file""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
+    path: str = Field(default=..., description="""Full path to the file within the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
+    size: int = Field(default=..., description="""Size of the file in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
+    content_hash: str = Field(default=..., description="""Hash of the file contents""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
 
 
 class MutationInput(ConfiguredBaseModel):
     """
-    Base class for all mutation input parameter objects
+    Base class for all mutation input parameter objects. This is an abstract class that should be extended by concrete input types.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://example.org/dedupe/mutations'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://example.org/dizzy/mutations'})
 
     pass
 
 
 class Mutation(ConfiguredBaseModel):
     """
-    Base class for all mutation result objects
+    Base class for all mutation result objects. This is an abstract class that should be extended by concrete result types.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://example.org/dedupe/mutations'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://example.org/dizzy/mutations'})
 
     pass
 
@@ -130,7 +149,7 @@ class EventRecordInput(MutationInput):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/mutations'})
 
-    event: DomainEvent = Field(default=..., description="""The domain event to store""", json_schema_extra = { "linkml_meta": {'alias': 'event', 'domain_of': ['EventRecordInput', 'EventRecord']} })
+    event: DomainEvent = Field(default=..., description="""The domain event to store""", json_schema_extra = { "linkml_meta": {'domain_of': ['EventRecordInput', 'EventRecord']} })
 
 
 class EventRecord(Mutation):
@@ -139,9 +158,9 @@ class EventRecord(Mutation):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/mutations'})
 
-    event_hash: str = Field(default=..., description="""SHA256 hash of the event (content-addressable primary key)""", json_schema_extra = { "linkml_meta": {'alias': 'event_hash', 'domain_of': ['EventRecord']} })
-    event_type: str = Field(default=..., description="""Class name of the event (e.g., \"TestMessage\", \"FileItemScanned\")""", json_schema_extra = { "linkml_meta": {'alias': 'event_type', 'domain_of': ['EventRecord']} })
-    event: DomainEvent = Field(default=..., description="""The original event that was stored""", json_schema_extra = { "linkml_meta": {'alias': 'event', 'domain_of': ['EventRecordInput', 'EventRecord']} })
+    event_hash: str = Field(default=..., description="""SHA256 hash of the event (content-addressable primary key)""", json_schema_extra = { "linkml_meta": {'domain_of': ['EventRecord']} })
+    event_type: str = Field(default=..., description="""Class name of the event (e.g., \"TestMessage\", \"FileItemScanned\")""", json_schema_extra = { "linkml_meta": {'domain_of': ['EventRecord']} })
+    event: DomainEvent = Field(default=..., description="""The original event that was stored""", json_schema_extra = { "linkml_meta": {'domain_of': ['EventRecordInput', 'EventRecord']} })
 
 
 # Model rebuild
@@ -153,4 +172,3 @@ MutationInput.model_rebuild()
 Mutation.model_rebuild()
 EventRecordInput.model_rebuild()
 EventRecord.model_rebuild()
-

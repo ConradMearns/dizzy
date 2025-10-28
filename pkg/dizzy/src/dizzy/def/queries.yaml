@@ -1,0 +1,30 @@
+id: https://example.org/dizzy/queries
+name: dizzy-queries-schema
+title: Dizzy Base Queries Data Model
+description: >-
+  Base LinkML schema for query objects that define inputs and outputs for
+  read operations. Applications extend these base classes to create their
+  own query types.
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dizzy: https://example.org/dizzy/
+
+default_prefix: dizzy
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  QueryInput:
+    description: >-
+      Base class for all query input parameter objects.
+      This is an abstract class that should be extended by concrete input types.
+    abstract: true
+
+  Query:
+    description: >-
+      Base class for all query result objects.
+      This is an abstract class that should be extended by concrete result types.
+    abstract: true

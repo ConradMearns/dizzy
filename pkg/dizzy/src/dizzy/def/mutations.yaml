@@ -1,0 +1,30 @@
+id: https://example.org/dizzy/mutations
+name: dizzy-mutations-schema
+title: Dizzy Base Mutations Data Model
+description: >-
+  Base LinkML schema for mutation objects that define inputs and outputs for
+  operations that modify system state. Applications extend these base classes
+  to create their own mutation types.
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dizzy: https://example.org/dizzy/
+
+default_prefix: dizzy
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  MutationInput:
+    description: >-
+      Base class for all mutation input parameter objects.
+      This is an abstract class that should be extended by concrete input types.
+    abstract: true
+
+  Mutation:
+    description: >-
+      Base class for all mutation result objects.
+      This is an abstract class that should be extended by concrete result types.
+    abstract: true

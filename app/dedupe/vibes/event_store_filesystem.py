@@ -9,8 +9,8 @@ Tests the EventRecordMutation with actual file and CSV storage.
 from pathlib import Path
 import shutil
 
-from gen.mutations import EventRecordInput, TestMessage
-from mutations.event_record import EventRecordMutation
+from gen.mutations import EventRecordInput, EventRecord, TestMessage
+from dizzy.event_store import EventRecordMutation
 
 
 # Clean up any previous test data
@@ -29,17 +29,17 @@ msg2 = TestMessage(message="Testing persistence")
 msg3 = TestMessage(message="Hello, filesystem!")  # Duplicate
 
 print("Storing event 1...")
-result1 = mutation.execute(EventRecordInput(event=msg1))
+result1 = mutation.execute(EventRecordInput(event=msg1), EventRecord)
 print(f"  Hash: {result1.event_hash[:16]}...")
 print(f"  Type: {result1.event_type}\n")
 
 print("Storing event 2...")
-result2 = mutation.execute(EventRecordInput(event=msg2))
+result2 = mutation.execute(EventRecordInput(event=msg2), EventRecord)
 print(f"  Hash: {result2.event_hash[:16]}...")
 print(f"  Type: {result2.event_type}\n")
 
 print("Storing event 3 (duplicate of event 1)...")
-result3 = mutation.execute(EventRecordInput(event=msg3))
+result3 = mutation.execute(EventRecordInput(event=msg3), EventRecord)
 print(f"  Hash: {result3.event_hash[:16]}...")
 print(f"  Type: {result3.event_type}\n")
 
@@ -63,11 +63,18 @@ print("✅ 3 entries in chain.csv (captures all observations)")
 
 # Now test querying
 print("\n=== QUERYING EVENTS ===")
-from gen.queries import GetAllEventsInput
-from queries.event_queries import GetAllEventsQuery
+from gen.queries import GetAllEventsInput, GetAllEvents, ChainEntry
+from gen.events import TestMessage, FileItemScanned
+from dizzy.event_store import GetAllEventsQuery
 
-query = GetAllEventsQuery(base_path=test_data_path)
-all_events_result = query.execute(GetAllEventsInput())
+# Create event type registry
+EVENT_TYPE_MAP = {
+    "TestMessage": TestMessage,
+    "FileItemScanned": FileItemScanned,
+}
+
+query = GetAllEventsQuery(base_path=test_data_path, event_type_map=EVENT_TYPE_MAP)
+all_events_result = query.execute(GetAllEventsInput(), ChainEntry, GetAllEvents)
 
 print(f"Retrieved {len(all_events_result.events)} events from chain:")
 for i, entry in enumerate(all_events_result.events, 1):
@@ -80,11 +87,11 @@ print(f"✅ All 3 events retrieved in order")
 
 # Test filtered query
 print("\n=== QUERYING BY TYPE ===")
-from gen.queries import GetEventsByTypesInput
-from queries.event_queries import GetEventsByTypesQuery
+from gen.queries import GetEventsByTypesInput, GetEventsByTypes
+from dizzy.event_store import GetEventsByTypesQuery
 
-filtered_query = GetEventsByTypesQuery(base_path=test_data_path)
-filtered_result = filtered_query.execute(GetEventsByTypesInput(event_types=["TestMessage"]))
+filtered_query = GetEventsByTypesQuery(base_path=test_data_path, event_type_map=EVENT_TYPE_MAP)
+filtered_result = filtered_query.execute(GetEventsByTypesInput(event_types=["TestMessage"]), ChainEntry, GetEventsByTypes)
 
 print(f"Retrieved {len(filtered_result.events)} TestMessage events:")
 for i, entry in enumerate(filtered_result.events, 1):

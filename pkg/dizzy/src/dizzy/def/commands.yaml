@@ -1,0 +1,23 @@
+id: https://example.org/dizzy/commands
+name: dizzy-commands-schema
+title: Dizzy Base Commands Data Model
+description: >-
+  Base LinkML schema for command objects that represent operations to be performed.
+  Applications extend Command to create their own command types.
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dizzy: https://example.org/dizzy/
+
+default_prefix: dizzy
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  Command:
+    description: >-
+      Base class for all commands that can be executed.
+      This is an abstract class that should be extended by concrete command types.
+    abstract: true

@@ -15,17 +15,9 @@ default_range: string
 imports:
   - linkml:types
   - events
+  - ../../../pkg/dizzy/src/dizzy/def/queries
 
 classes:
-  QueryInput:
-    description: >-
-      Base class for all query input parameter objects
-    abstract: true
-
-  Query:
-    description: >-
-      Base class for all query result objects
-    abstract: true
 
   ListHardDrivesInput:
     description: >-

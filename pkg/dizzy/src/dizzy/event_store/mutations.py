@@ -1,5 +1,5 @@
 """
-Filesystem-based event storage mutation.
+Generic filesystem-based event storage mutation.
 
 Implements content-addressable storage with ordered chain:
 - Events stored in: events/{hash[:2]}/{hash}.json
@@ -12,15 +12,38 @@ import hashlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import Any, Protocol
 
-from gen.mutations import EventRecordInput, EventRecord, DomainEvent
+
+class DomainEvent(Protocol):
+    """Protocol for domain events that can be stored."""
+
+    def model_dump(self, **kwargs: Any) -> dict[str, Any]:
+        """Serialize event to dictionary."""
+        ...
+
+    @property
+    def __class__(self) -> type:
+        """Get the event class."""
+        ...
+
+
+class EventRecordInput(Protocol):
+    """Protocol for event record input."""
+    event: DomainEvent
+
+
+class EventRecord(Protocol):
+    """Protocol for event record result."""
+    event_hash: str
+    event_type: str
+    event: DomainEvent
 
 
 class EventRecordMutation:
     """Store events using content-addressable filesystem storage."""
 
-    def __init__(self, base_path: Optional[Path] = None):
+    def __init__(self, base_path: Path | None = None):
         """
         Initialize the event store.
 
@@ -40,8 +63,17 @@ class EventRecordMutation:
                 writer = csv.writer(f)
                 writer.writerow(['timestamp', 'event_hash', 'event_type'])
 
-    def execute(self, mutation_input: EventRecordInput) -> EventRecord:
-        """Store an event and return the record."""
+    def execute(self, mutation_input: EventRecordInput, event_record_class: type) -> EventRecord:
+        """
+        Store an event and return the record.
+
+        Args:
+            mutation_input: The input containing the event to store
+            event_record_class: The EventRecord class to instantiate
+
+        Returns:
+            EventRecord instance with hash, type, and original event
+        """
         event = mutation_input.event
         event_type = event.__class__.__name__
 
@@ -71,7 +103,7 @@ class EventRecordMutation:
             writer.writerow([timestamp, event_hash, event_type])
 
         # Return the event record
-        return EventRecord(
+        return event_record_class(
             event_hash=event_hash,
             event_type=event_type,
             event=event
