@@ -1,0 +1,11 @@
+[project]
+name = "dizzy-workspace"
+version = "0.1.0"
+description = "Dizzy monorepo workspace"
+requires-python = ">=3.11"
+
+[tool.uv.workspace]
+members = ["pkg/dizzy", "app/*"]
+
+[tool.uv.sources]
+dizzy = { workspace = true }

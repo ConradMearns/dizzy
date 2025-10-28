@@ -43,6 +43,12 @@ plugins:
 
 repo_url: https://github.com/ConradMearns/dizzy
 
+nav:
+  - Home: index.md
+  - Reference: reference/index.md
+  - How-to: how-to/index.md
+  - Tutorials: tutorials/index.md
+  - Explanation: explanation/index.md
 
 markdown_extensions:
   - pymdownx.highlight:
