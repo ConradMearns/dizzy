@@ -1,0 +1,145 @@
+id: https://example.org/dedupe/queries
+name: dedupe-queries-schema
+title: Dedupe Queries Data Model
+description: >-
+  LinkML schema for query objects that define inputs and outputs for
+  querying drives, partitions, and file items.
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dedupe: https://example.org/dedupe/
+
+default_prefix: dedupe
+default_range: string
+
+imports:
+  - linkml:types
+  - events
+
+classes:
+  QueryInput:
+    description: >-
+      Base class for all query input parameter objects
+    abstract: true
+
+  Query:
+    description: >-
+      Base class for all query result objects
+    abstract: true
+
+  ListHardDrivesInput:
+    description: >-
+      Input parameters for listing all hard drives
+    is_a: QueryInput
+
+  ListHardDrives:
+    description: >-
+      Query result containing a list of hard drives
+    is_a: Query
+    attributes:
+      drives:
+        description: List of hard drives found
+        required: true
+        multivalued: true
+        range: string
+
+  ListPartitionsInput:
+    description: >-
+      Input parameters for listing partitions
+    is_a: QueryInput
+    attributes:
+      drive_uuid:
+        description: UUID of the hard drive to filter by (optional - if not provided, lists all partitions)
+        required: false
+        range: string
+
+  ListPartitions:
+    description: >-
+      Query result containing a list of partitions
+    is_a: Query
+    attributes:
+      partitions:
+        description: List of partitions found
+        required: true
+        multivalued: true
+        range: string
+
+  ListFileItemsInput:
+    description: >-
+      Input parameters for listing file items in a partition
+    is_a: QueryInput
+    attributes:
+      partition_uuid:
+        description: UUID of the partition to list files from
+        required: true
+        range: string
+
+  ListFileItems:
+    description: >-
+      Query result containing a list of file items
+    is_a: Query
+    attributes:
+      file_items:
+        description: List of file items found
+        required: true
+        multivalued: true
+        range: string
+
+  ChainEntry:
+    description: >-
+      A single entry from the event chain with metadata
+    attributes:
+      event_hash:
+        description: SHA256 hash of the event
+        required: true
+        range: string
+      event_type:
+        description: Class name of the event
+        required: true
+        range: string
+      timestamp:
+        description: When this event was recorded to the chain
+        required: true
+        range: datetime
+      event:
+        description: The domain event data
+        required: true
+        range: DomainEvent
+
+  GetAllEventsInput:
+    description: >-
+      Input parameters for getting all events from the chain
+    is_a: QueryInput
+
+  GetAllEvents:
+    description: >-
+      Query result containing all events from the chain in order
+    is_a: Query
+    attributes:
+      events:
+        description: List of chain entries in sequence order
+        required: true
+        multivalued: true
+        range: ChainEntry
+
+  GetEventsByTypesInput:
+    description: >-
+      Input parameters for getting events filtered by type
+    is_a: QueryInput
+    attributes:
+      event_types:
+        description: List of event type names to filter by (e.g., ["TestMessage", "FileItemScanned"])
+        required: true
+        multivalued: true
+        range: string
+
+  GetEventsByTypes:
+    description: >-
+      Query result containing filtered events from the chain
+    is_a: Query
+    attributes:
+      events:
+        description: List of chain entries matching the requested types
+        required: true
+        multivalued: true
+        range: ChainEntry

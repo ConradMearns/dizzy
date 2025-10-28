@@ -1,0 +1,11 @@
+# Procedure dependency definitions
+# Maps procedures to their required emitters and queries
+
+procedures:
+  ScanPartition:
+    emitters:
+      emit_scanned: FileItemScanned
+    queries:
+      list_hard_drives: ListHardDrives
+      list_partitions: ListPartitions
+      list_file_items: ListFileItems

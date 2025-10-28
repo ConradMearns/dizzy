@@ -1,0 +1,18 @@
+[project]
+name = "dedupe"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "linkml>=1.9.4",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+    "ty>=0.0.1a24",
+]
+
+[tool.pytest.ini_options]
+pythonpath = "."

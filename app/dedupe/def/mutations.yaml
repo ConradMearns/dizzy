@@ -1,0 +1,56 @@
+id: https://example.org/dedupe/mutations
+name: dedupe-mutations-schema
+title: Dedupe Mutations Data Model
+description: >-
+  LinkML schema for mutation objects that define inputs and outputs for
+  storing events in the event sourcing system.
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dedupe: https://example.org/dedupe/
+
+default_prefix: dedupe
+default_range: string
+
+imports:
+  - linkml:types
+  - events
+
+classes:
+  MutationInput:
+    description: >-
+      Base class for all mutation input parameter objects
+    abstract: true
+
+  Mutation:
+    description: >-
+      Base class for all mutation result objects
+    abstract: true
+
+  EventRecordInput:
+    description: >-
+      Input parameters for storing an event record
+    is_a: MutationInput
+    attributes:
+      event:
+        description: The domain event to store
+        required: true
+        range: DomainEvent
+
+  EventRecord:
+    description: >-
+      Result of storing an event record
+    is_a: Mutation
+    attributes:
+      event_hash:
+        description: SHA256 hash of the event (content-addressable primary key)
+        required: true
+        range: string
+      event_type:
+        description: Class name of the event (e.g., "TestMessage", "FileItemScanned")
+        required: true
+        range: string
+      event:
+        description: The original event that was stored
+        required: true
+        range: DomainEvent

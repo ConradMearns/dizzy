@@ -1,0 +1,31 @@
+id: https://example.org/dedupe/commands
+name: dedupe-commands-schema
+title: Dedupe Commands Data Model
+description: >-
+  LinkML schema for command objects that represent operations to be performed
+  on drives and partitions.
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dedupe: https://example.org/dedupe/
+
+default_prefix: dedupe
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  Command:
+    description: >-
+      Base class for all commands that can be executed in the dedupe system
+
+  ScanPartition:
+    description: >-
+      Command to scan a specific partition and catalog all files
+    is_a: Command
+    attributes:
+      partition_uuid:
+        description: UUID of the partition to scan
+        required: true
+        range: string
