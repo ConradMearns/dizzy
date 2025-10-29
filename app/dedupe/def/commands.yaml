@@ -15,6 +15,7 @@ default_range: string
 imports:
   - linkml:types
   - ../../../pkg/dizzy/src/dizzy/def/commands
+  - models
 
 classes:
 
@@ -31,5 +32,20 @@ classes:
     attributes:
       partition_uuid:
         description: UUID of the partition to scan
+        required: true
+        range: string
+
+  AssignPartitionMount:
+    description: >-
+      Command to assign a partition to a mount point, expressing the desired
+      state for where a partition should be mounted
+    is_a: Command
+    attributes:
+      partition:
+        description: The partition to be mounted
+        required: true
+        range: Partition
+      mount_point:
+        description: The desired mount point path
         required: true
         range: string

@@ -70,3 +70,19 @@ classes:
         description: Hash of the file contents
         required: true
         range: string
+
+  PartitionMountAssigned:
+    description: >-
+      Event recording that a partition has been assigned to a mount point,
+      representing the desired state. This does not guarantee the partition
+      is actually mounted - reconciliation is needed for that.
+    is_a: DomainEvent
+    attributes:
+      partition:
+        description: The partition assigned to be mounted
+        required: true
+        range: Partition
+      mount_point:
+        description: The desired mount point path
+        required: true
+        range: string

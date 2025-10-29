@@ -9,11 +9,13 @@ from typing import Protocol
 from gen.procedures import (
     InspectStorageContext,
     ScanPartitionContext,
+    AssignPartitionMountContext,
 )
 
 from gen.commands import (
     InspectStorage,
     ScanPartition,
+    AssignPartitionMount,
 )
 
 
@@ -30,5 +32,13 @@ class ScanPartitionProcedureProtocol(Protocol):
     
     def __call__(self, context: ScanPartitionContext, command: ScanPartition) -> None:
         """Execute the ScanPartition procedure."""
+        ...
+
+
+class AssignPartitionMountProcedureProtocol(Protocol):
+    """Protocol for AssignPartitionMount procedure implementations."""
+    
+    def __call__(self, context: AssignPartitionMountContext, command: AssignPartitionMount) -> None:
+        """Execute the AssignPartitionMount procedure."""
         ...
 

@@ -124,7 +124,7 @@ class Partition(ConfiguredBaseModel):
     uuid: str = Field(default=..., description="""Unique identifier for the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['HardDrive', 'Partition']} })
     drive_uuid: str = Field(default=..., description="""UUID of the hard drive containing this partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition', 'FileItem', 'ListPartitionsInput']} })
     label: Optional[str] = Field(default=None, description="""Optional human-readable label for the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['HardDrive', 'Partition']} })
-    mount_point: Optional[str] = Field(default=None, description="""Optional mount point where partition is mounted""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition']} })
+    mount_point: Optional[str] = Field(default=None, description="""Optional mount point where partition is mounted""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition', 'PartitionMountAssigned']} })
     size_bytes: Optional[int] = Field(default=None, description="""Total size of the partition in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['HardDrive', 'Partition', 'FileItem']} })
 
 
@@ -167,7 +167,7 @@ class PartitionDetected(DomainEvent):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/events'})
 
-    partition: str = Field(default=..., description="""The detected partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['PartitionDetected']} })
+    partition: str = Field(default=..., description="""The detected partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['PartitionDetected', 'PartitionMountAssigned']} })
 
 
 class FileItemScanned(DomainEvent):
@@ -180,6 +180,16 @@ class FileItemScanned(DomainEvent):
     path: str = Field(default=..., description="""Full path to the file within the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned']} })
     size: int = Field(default=..., description="""Size of the file in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
     content_hash: str = Field(default=..., description="""Hash of the file contents""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
+
+
+class PartitionMountAssigned(DomainEvent):
+    """
+    Event recording that a partition has been assigned to a mount point, representing the desired state. This does not guarantee the partition is actually mounted - reconciliation is needed for that.
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/events'})
+
+    partition: str = Field(default=..., description="""The partition assigned to be mounted""", json_schema_extra = { "linkml_meta": {'domain_of': ['PartitionDetected', 'PartitionMountAssigned']} })
+    mount_point: str = Field(default=..., description="""The desired mount point path""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition', 'PartitionMountAssigned']} })
 
 
 class QueryInput(ConfiguredBaseModel):
@@ -312,6 +322,7 @@ TestMessage.model_rebuild()
 HardDriveDetected.model_rebuild()
 PartitionDetected.model_rebuild()
 FileItemScanned.model_rebuild()
+PartitionMountAssigned.model_rebuild()
 QueryInput.model_rebuild()
 Query.model_rebuild()
 ListHardDrivesInput.model_rebuild()

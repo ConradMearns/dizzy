@@ -13,6 +13,7 @@ from gen.events import (
     FileItemScanned,
     HardDriveDetected,
     PartitionDetected,
+    PartitionMountAssigned,
 )
 
 # Import query types
@@ -66,4 +67,23 @@ class ScanPartitionContext:
     """Context for ScanPartition procedure."""
     emit: ScanPartitionEmitters
     query: ScanPartitionQueries
+
+
+@dataclass
+class AssignPartitionMountEmitters:
+    """Emitters for AssignPartitionMount procedure."""
+    partition_mount_assigned: Callable[[PartitionMountAssigned], None]
+
+
+@dataclass
+class AssignPartitionMountQueries:
+    """Queries for AssignPartitionMount procedure."""
+    pass
+
+
+@dataclass
+class AssignPartitionMountContext:
+    """Context for AssignPartitionMount procedure."""
+    emit: AssignPartitionMountEmitters
+    query: AssignPartitionMountQueries
 

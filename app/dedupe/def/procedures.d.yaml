@@ -17,3 +17,8 @@ procedures:
       list_hard_drives: ListHardDrives
       list_partitions: ListPartitions
       list_file_items: ListFileItems
+
+  AssignPartitionMount:
+    emitters:
+      emit_partition_mount_assigned: PartitionMountAssigned
+    queries: {}

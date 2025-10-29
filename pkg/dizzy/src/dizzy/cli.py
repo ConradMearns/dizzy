@@ -8,7 +8,7 @@ import subprocess
 from dizzy.utils.generate_query_interfaces import generate_query_interfaces
 from dizzy.utils.generate_mutation_interfaces import generate_mutation_interfaces
 from dizzy.utils.generate_procedure_contexts import generate_procedure_contexts
-from dizzy.utils.fix_event_types import fix_event_types
+from dizzy.utils.fix_event_types import fix_event_types, fix_command_types
 
 app = typer.Typer()
 
@@ -89,12 +89,20 @@ def gen(
     # Apply custom fixes
     print("\nCustom fixes:")
     events_file = gen_dir / "events.py"
+    commands_file = gen_dir / "commands.py"
     models_file = gen_dir / "models.py"
-    if events_file.exists():
-        if fix_event_types(events_file, models_file):
-            print("✓ Fixed event type annotations")
-        else:
-            print("  No fixes needed for events.py")
+
+    fixes_applied = False
+    if events_file.exists() and fix_event_types(events_file, models_file):
+        print("✓ Fixed event type annotations")
+        fixes_applied = True
+
+    if commands_file.exists() and fix_command_types(commands_file, models_file):
+        print("✓ Fixed command type annotations")
+        fixes_applied = True
+
+    if not fixes_applied:
+        print("  No fixes needed")
 
     # Query interfaces
     print("\nQuery interfaces:")
