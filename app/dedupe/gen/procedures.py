@@ -11,6 +11,8 @@ from typing import Callable
 # Import event types
 from gen.events import (
     FileItemScanned,
+    HardDriveDetected,
+    PartitionDetected,
 )
 
 # Import query types
@@ -22,6 +24,27 @@ from gen.queries import (
     ListPartitions,
     ListPartitionsInput,
 )
+
+
+@dataclass
+class InspectStorageEmitters:
+    """Emitters for InspectStorage procedure."""
+    hard_drive_detected: Callable[[HardDriveDetected], None]
+    partition_detected: Callable[[PartitionDetected], None]
+
+
+@dataclass
+class InspectStorageQueries:
+    """Queries for InspectStorage procedure."""
+    list_hard_drives: Callable[[ListHardDrivesInput], ListHardDrives]
+    list_partitions: Callable[[ListPartitionsInput], ListPartitions]
+
+
+@dataclass
+class InspectStorageContext:
+    """Context for InspectStorage procedure."""
+    emit: InspectStorageEmitters
+    query: InspectStorageQueries
 
 
 @dataclass

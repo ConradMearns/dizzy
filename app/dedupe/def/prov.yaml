@@ -1,0 +1,48 @@
+id: https://example.org/provo
+name: prov
+title: Prov-O Data Model
+description: >-
+  LinkML schema for tracking hard drives, partitions, and filesystem items
+  for deduplication purposes.
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+
+default_prefix: provo
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  Entity:
+    description: >-
+      Prov-O Entity
+    slots:
+      - id
+      - was_generated_by
+      - was_derived_from
+
+  Activity:
+    description: >-
+      Prov-O Activity
+    slots:
+      - id
+      - generated
+      - used
+      - started_at
+      - ended_at
+
+slots:
+  was_generated_by: 
+    range: Activity
+  was_derived_from:
+    range: Entity
+    multivalued: true
+  used:
+    range: Entity
+    multivalued: true
+  generated:
+    range: Entity
+    multivalued: true
+

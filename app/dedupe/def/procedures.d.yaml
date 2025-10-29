@@ -2,6 +2,14 @@
 # Maps procedures to their required emitters and queries
 
 procedures:
+  InspectStorage:
+    emitters:
+      emit_hard_drive_detected: HardDriveDetected
+      emit_partition_detected: PartitionDetected
+    queries:
+      list_hard_drives: ListHardDrives
+      list_partitions: ListPartitions
+
   ScanPartition:
     emitters:
       emit_scanned: FileItemScanned

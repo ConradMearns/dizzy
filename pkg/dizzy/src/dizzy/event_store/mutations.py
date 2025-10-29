@@ -63,6 +63,12 @@ class EventRecordMutation:
                 writer = csv.writer(f)
                 writer.writerow(['timestamp', 'event_hash', 'event_type'])
 
+        # Create .gitignore in data folder
+        gitignore_file = self.base_path / ".gitignore"
+        if not gitignore_file.exists():
+            with open(gitignore_file, 'w') as f:
+                f.write('*\n')
+
     def execute(self, mutation_input: EventRecordInput, event_record_class: type) -> EventRecord:
         """
         Store an event and return the record.

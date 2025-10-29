@@ -17,3 +17,7 @@ dev = [
 
 [tool.pytest.ini_options]
 pythonpath = "."
+markers = [
+    "manual: marks tests as manual-only (deselect with '-m \"not manual\"')"
+]
+addopts = "-m 'not manual'"

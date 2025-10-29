@@ -18,6 +18,12 @@ imports:
 
 classes:
 
+  InspectStorage:
+    description: >-
+      Command to discover and list all hard drives and partitions with details
+      to help identify storage for scanning
+    is_a: Command
+
   ScanPartition:
     description: >-
       Command to scan a specific partition and catalog all files

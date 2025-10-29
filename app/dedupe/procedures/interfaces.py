@@ -7,12 +7,22 @@ Generated from procedures.d.yaml by dizzy.utils.generate_procedure_contexts
 
 from typing import Protocol
 from gen.procedures import (
+    InspectStorageContext,
     ScanPartitionContext,
 )
 
 from gen.commands import (
+    InspectStorageCommand,
     ScanPartitionCommand,
 )
+
+
+class InspectStorageProcedureProtocol(Protocol):
+    """Protocol for InspectStorage procedure implementations."""
+    
+    def __call__(self, context: InspectStorageContext, command: InspectStorageCommand) -> None:
+        """Execute the InspectStorage procedure."""
+        ...
 
 
 class ScanPartitionProcedureProtocol(Protocol):

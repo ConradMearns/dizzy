@@ -9,7 +9,7 @@ from pathlib import Path
 
 from procedures.interfaces import ScanPartitionProcedureProtocol
 from gen.procedures import ScanPartitionContext
-from gen.commands import ScanPartitionCommand
+from gen.commands import ScanPartition
 from gen.queries import ListFileItemsInput
 from gen.events import FileItemScanned
 
@@ -17,7 +17,7 @@ from gen.events import FileItemScanned
 class ScanPartitionProcedure:
     """Scan a partition and emit FileItemScanned events for each file."""
 
-    def __call__(self, context: ScanPartitionContext, command: ScanPartitionCommand) -> None:
+    def __call__(self, context: ScanPartitionContext, command: ScanPartition) -> None:
         # Get all file items in the partition
         file_items = context.query.list_file_items(
             ListFileItemsInput(partition_uuid=command.partition_uuid)
@@ -43,7 +43,8 @@ class ScanPartitionProcedure:
                 size=file_path.stat().st_size,
                 content_hash=hasher.hexdigest()
             ))
-
+            print("Wrapping up")
+            exit()
 
 # Type check: Ensure we implement the protocol correctly
 _: ScanPartitionProcedureProtocol = ScanPartitionProcedure()

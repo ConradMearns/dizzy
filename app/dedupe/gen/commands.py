@@ -102,6 +102,15 @@ class Command(ConfiguredBaseModel):
     pass
 
 
+class InspectStorage(Command):
+    """
+    Command to discover and list all hard drives and partitions with details to help identify storage for scanning
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/commands'})
+
+    pass
+
+
 class ScanPartition(Command):
     """
     Command to scan a specific partition and catalog all files
@@ -114,4 +123,5 @@ class ScanPartition(Command):
 # Model rebuild
 # see https://pydantic-docs.helpmanual.io/usage/models/#rebuilding-a-model
 Command.model_rebuild()
+InspectStorage.model_rebuild()
 ScanPartition.model_rebuild()

@@ -15,6 +15,7 @@ default_range: string
 imports:
   - linkml:types
   - ../../../pkg/dizzy/src/dizzy/def/events
+  - models
 
 classes:
 
@@ -27,6 +28,26 @@ classes:
         description: The test message content
         required: true
         range: string
+
+  HardDriveDetected:
+    description: >-
+      Event recording that a hard drive was detected
+    is_a: DomainEvent
+    attributes:
+      hard_drive:
+        description: The detected hard drive
+        required: true
+        range: HardDrive
+
+  PartitionDetected:
+    description: >-
+      Event recording that a partition was detected
+    is_a: DomainEvent
+    attributes:
+      partition:
+        description: The detected partition
+        required: true
+        range: Partition
 
   FileItemScanned:
     description: >-
