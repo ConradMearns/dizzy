@@ -89,7 +89,7 @@ linkml_meta = LinkMLMeta({'default_prefix': 'dedupe',
                              'prefix_reference': 'https://example.org/dedupe/'},
                   'linkml': {'prefix_prefix': 'linkml',
                              'prefix_reference': 'https://w3id.org/linkml/'}},
-     'source_file': 'def/commands.yaml',
+     'source_file': '/home/conrad/dizzy/app/dedupe/def/commands.yaml',
      'title': 'Dedupe Commands Data Model'} )
 
 

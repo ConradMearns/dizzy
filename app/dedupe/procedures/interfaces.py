@@ -12,15 +12,15 @@ from gen.procedures import (
 )
 
 from gen.commands import (
-    InspectStorageCommand,
-    ScanPartitionCommand,
+    InspectStorage,
+    ScanPartition,
 )
 
 
 class InspectStorageProcedureProtocol(Protocol):
     """Protocol for InspectStorage procedure implementations."""
     
-    def __call__(self, context: InspectStorageContext, command: InspectStorageCommand) -> None:
+    def __call__(self, context: InspectStorageContext, command: InspectStorage) -> None:
         """Execute the InspectStorage procedure."""
         ...
 
@@ -28,7 +28,7 @@ class InspectStorageProcedureProtocol(Protocol):
 class ScanPartitionProcedureProtocol(Protocol):
     """Protocol for ScanPartition procedure implementations."""
     
-    def __call__(self, context: ScanPartitionContext, command: ScanPartitionCommand) -> None:
+    def __call__(self, context: ScanPartitionContext, command: ScanPartition) -> None:
         """Execute the ScanPartition procedure."""
         ...
 

@@ -6,7 +6,11 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "pyyaml>=6.0",
+    "typer[all]>=0.20.0",
 ]
+
+[project.scripts]
+dizzy = "dizzy.cli:app"
 
 [dependency-groups]
 dev = [

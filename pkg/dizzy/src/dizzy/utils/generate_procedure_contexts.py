@@ -157,7 +157,7 @@ def generate_protocol_interfaces(
     # Import command types
     lines.append(f'from {commands_import_path} import (')
     for proc_name in procedures:
-        lines.append(f'    {proc_name}Command,')
+        lines.append(f'    {proc_name},')
     lines.append(')')
     lines.append('')
     lines.append('')
@@ -168,7 +168,7 @@ def generate_protocol_interfaces(
         lines.append(f'class {protocol_name}(Protocol):')
         lines.append(f'    """Protocol for {proc_name} procedure implementations."""')
         lines.append(f'    ')
-        lines.append(f'    def __call__(self, context: {proc_name}Context, command: {proc_name}Command) -> None:')
+        lines.append(f'    def __call__(self, context: {proc_name}Context, command: {proc_name}) -> None:')
         lines.append(f'        """Execute the {proc_name} procedure."""')
         lines.append(f'        ...')
         lines.append('')

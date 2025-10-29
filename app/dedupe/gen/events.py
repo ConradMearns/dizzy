@@ -91,7 +91,7 @@ linkml_meta = LinkMLMeta({'default_prefix': 'dedupe',
                              'prefix_reference': 'https://example.org/dedupe/'},
                   'linkml': {'prefix_prefix': 'linkml',
                              'prefix_reference': 'https://w3id.org/linkml/'}},
-     'source_file': 'def/events.yaml',
+     'source_file': '/home/conrad/dizzy/app/dedupe/def/events.yaml',
      'title': 'Dedupe Domain Events Data Model'} )
 
 
@@ -158,7 +158,7 @@ class HardDriveDetected(DomainEvent):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/events'})
 
-    hard_drive: str = Field(default=..., description="""The detected hard drive""", json_schema_extra = { "linkml_meta": {'domain_of': ['HardDriveDetected']} })
+    hard_drive: HardDrive = Field(default=..., description="""The detected hard drive""", json_schema_extra = { "linkml_meta": {'domain_of': ['HardDriveDetected']} })
 
 
 class PartitionDetected(DomainEvent):
@@ -167,7 +167,7 @@ class PartitionDetected(DomainEvent):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/events'})
 
-    partition: str = Field(default=..., description="""The detected partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['PartitionDetected']} })
+    partition: Partition = Field(default=..., description="""The detected partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['PartitionDetected']} })
 
 
 class FileItemScanned(DomainEvent):

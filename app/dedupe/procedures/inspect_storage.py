@@ -8,6 +8,7 @@ from procedures.interfaces import InspectStorageProcedureProtocol
 from gen.procedures import InspectStorageContext
 from gen.commands import InspectStorage
 from gen.queries import ListHardDrivesInput, ListPartitionsInput
+from gen.events import HardDriveDetected, PartitionDetected, HardDrive, Partition
 
 
 class InspectStorageProcedure:
@@ -27,8 +28,13 @@ class InspectStorageProcedure:
         print(f"{'HARD DRIVES':<80}")
         print("─"*80)
 
-        for i, drive in enumerate(hard_drives.drives, 1):
-            print(f"{i}. {drive}")
+        # Emit HardDriveDetected event for each discovered drive
+        for i, drive_uuid in enumerate(hard_drives.drives, 1):
+            print(f"{i}. {drive_uuid}")
+
+            # Create HardDrive model and emit event
+            hard_drive = HardDrive(uuid=drive_uuid)
+            context.emit.hard_drive_detected(HardDriveDetected(hard_drive=hard_drive))
 
         # Get all partitions
         print("\n\nQuerying partitions...")
@@ -47,15 +53,19 @@ class InspectStorageProcedure:
         print("PARTITIONS BY DRIVE")
         print("="*80)
 
-        for drive in hard_drives.drives:
-            print(f"\n{drive}:")
+        for drive_uuid in hard_drives.drives:
+            print(f"\n{drive_uuid}:")
             drive_partitions = context.query.list_partitions(
-                ListPartitionsInput(drive_uuid=drive)
+                ListPartitionsInput(drive_uuid=drive_uuid)
             )
 
             if drive_partitions.partitions:
-                for partition in drive_partitions.partitions:
-                    print(f"  └─ {partition}")
+                for partition_uuid in drive_partitions.partitions:
+                    print(f"  └─ {partition_uuid}")
+
+                    # Create Partition model and emit event
+                    partition = Partition(uuid=partition_uuid, drive_uuid=drive_uuid)
+                    context.emit.partition_detected(PartitionDetected(partition=partition))
             else:
                 print("  └─ (no partitions)")
 
