@@ -1,1 +1,0 @@
-# Vibes scripts package
