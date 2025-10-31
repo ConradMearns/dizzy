@@ -27,18 +27,29 @@ class MountPartitionMutation:
 
         print(f"[MUTATOR] Mounting partition {partition_uuid} at {mount_point}")
 
-        # Ensure mount point directory exists
+        # Ensure mount point directory exists using sudo
         mount_path = Path(mount_point)
-        try:
-            mount_path.mkdir(parents=True, exist_ok=True)
-            print(f"[MUTATOR] ✓ Mount point directory ready: {mount_point}")
-        except Exception as e:
-            return MountPartition(
-                success=False,
-                partition_uuid=partition_uuid,
-                mount_point=mount_point,
-                error_message=f"Failed to create mount point directory: {e}"
-            )
+        if not mount_path.exists():
+            mkdir_cmd = ["sudo", "mkdir", "-p", mount_point]
+            print(f"[MUTATOR] $ {' '.join(mkdir_cmd)}")
+            try:
+                subprocess.run(
+                    mkdir_cmd,
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+                print(f"[MUTATOR] ✓ Mount point directory created: {mount_point}")
+            except subprocess.CalledProcessError as e:
+                error_msg = e.stderr.strip() if e.stderr else str(e)
+                return MountPartition(
+                    success=False,
+                    partition_uuid=partition_uuid,
+                    mount_point=mount_point,
+                    error_message=f"Failed to create mount point directory: {error_msg}"
+                )
+        else:
+            print(f"[MUTATOR] ✓ Mount point directory exists: {mount_point}")
 
         # Execute mount command
         device_path = f"/dev/disk/by-uuid/{partition_uuid}"

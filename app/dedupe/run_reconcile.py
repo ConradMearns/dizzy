@@ -22,26 +22,41 @@ from mutations.mount_partition import MountPartitionMutation
 
 
 def main():
-    # Simulated event from the event stream
+    # Simulated events from the event stream
     # In production, this would come from reading the event store
     import os
-    mount_point = os.path.expanduser("/mnt/photos")
 
-    event = PartitionMountAssigned(
-        partition=Partition(
-            uuid="FACE862BCE85E06D",
-            drive_uuid="WP004TCG"
-        ),
-        mount_point=mount_point
-    )
+    # Define partitions to mount (from manifesting.md)
+    partitions_to_mount = [
+        {"uuid": "B0E2ACBDE2AC8964", "device": "/dev/sda3", "mount_point": "/mnt/dedupe_a"},
+        {"uuid": "FACE862BCE85E06D", "device": "/dev/sdd2", "mount_point": "/mnt/dedupe_b"},
+        {"uuid": "94BA918FBA916F0C", "device": "/dev/sde2", "mount_point": "/mnt/dedupe_c"},
+        {"uuid": "784A20BF4A207C4E", "device": "/dev/sdf1", "mount_point": "/mnt/dedupe_d"},
+    ]
 
     print("="*80)
     print("PARTITION MOUNT RECONCILIATION")
     print("="*80)
-    print(f"\nReceived event: PartitionMountAssigned")
-    print(f"  Partition UUID: {event.partition.uuid}")
-    print(f"  Drive UUID: {event.partition.drive_uuid}")
-    print(f"  Desired mount point: {event.mount_point}")
+    print(f"\nProcessing {len(partitions_to_mount)} partitions...")
+    print("\nNote: /dev/sdb1 skipped (no UUID, only PARTUUID)")
+    print()
+
+    events = []
+    for p in partitions_to_mount:
+        event = PartitionMountAssigned(
+            partition=Partition(
+                uuid=p["uuid"],
+                drive_uuid="UNKNOWN"  # We don't have drive UUIDs yet
+            ),
+            mount_point=p["mount_point"]
+        )
+        events.append((p, event))
+
+    for p, event in events:
+        print(f"\n{'='*80}")
+        print(f"Processing: {p['device']} (UUID: {p['uuid'][:16]}...)")
+        print(f"  Desired mount point: {event.mount_point}")
+        print(f"{'='*80}")
 
     # Track emitted commands
     emitted_commands = []
@@ -54,7 +69,7 @@ def main():
     def list_partitions_query(input: ListPartitionsInput) -> ListPartitions:
         """Query currently mounted partitions."""
         # In production, this would query actual OS state via lsblk
-        return ListPartitions(partitions=["FACE862BCE85E06D"])
+        return ListPartitions(partitions=[p["uuid"] for p in partitions_to_mount])
 
     # Create real mount mutator
     mount_mutator = MountPartitionMutation()
@@ -72,9 +87,10 @@ def main():
         )
     )
 
-    # Execute policy
+    # Execute policy for each event
     policy = PartitionMountAssignedPolicy()
-    policy(context, event)
+    for p, event in events:
+        policy(context, event)
 
     # Summary
     print("="*80)
