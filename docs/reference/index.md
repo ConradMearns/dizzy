@@ -1,5 +1,12 @@
 # Reference
 
+- Commands (intent)
+- Procedures (pure business logic)
+- Events (immutable facts)
+- Policies (reconciliation logic)
+- Queries (read operations)
+- Mutations (write operations)
+
 --8<-- "docs/reference/events.md"
 
 --8<-- "docs/reference/commands.md"

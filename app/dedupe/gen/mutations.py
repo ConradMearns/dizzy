@@ -85,6 +85,7 @@ linkml_meta = LinkMLMeta({'default_prefix': 'dedupe',
      'id': 'https://example.org/dedupe/mutations',
      'imports': ['linkml:types',
                  'events',
+                 'models',
                  '../../../pkg/dizzy/src/dizzy/def/mutations'],
      'name': 'dedupe-mutations-schema',
      'prefixes': {'dedupe': {'prefix_prefix': 'dedupe',
@@ -124,7 +125,10 @@ class Partition(ConfiguredBaseModel):
     uuid: str = Field(default=..., description="""Unique identifier for the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['HardDrive', 'Partition']} })
     drive_uuid: str = Field(default=..., description="""UUID of the hard drive containing this partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition', 'FileItem']} })
     label: Optional[str] = Field(default=None, description="""Optional human-readable label for the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['HardDrive', 'Partition']} })
-    mount_point: Optional[str] = Field(default=None, description="""Optional mount point where partition is mounted""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition', 'PartitionMountAssigned']} })
+    mount_point: Optional[str] = Field(default=None, description="""Optional mount point where partition is mounted""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition',
+                       'PartitionMountAssigned',
+                       'MountPartitionInput',
+                       'MountPartition']} })
     size_bytes: Optional[int] = Field(default=None, description="""Total size of the partition in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['HardDrive', 'Partition', 'FileItem']} })
 
 
@@ -136,7 +140,7 @@ class FileItem(ConfiguredBaseModel):
 
     id: str = Field(default=..., description="""Unique identifier for this file item record""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem']} })
     drive_uuid: str = Field(default=..., description="""UUID of the hard drive where item was found""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition', 'FileItem']} })
-    partition_uuid: str = Field(default=..., description="""UUID of the partition where item was found""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned']} })
+    partition_uuid: str = Field(default=..., description="""UUID of the partition where item was found""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned', 'MountPartition']} })
     path: str = Field(default=..., description="""Full path of the item on the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned']} })
     size_bytes: int = Field(default=..., description="""Size of the item in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['HardDrive', 'Partition', 'FileItem']} })
     hash: str = Field(default=..., description="""Hash of the item contents (e.g., SHA256, MD5)""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem']} })
@@ -167,7 +171,9 @@ class PartitionDetected(DomainEvent):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/events'})
 
-    partition: str = Field(default=..., description="""The detected partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['PartitionDetected', 'PartitionMountAssigned']} })
+    partition: str = Field(default=..., description="""The detected partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['PartitionDetected',
+                       'PartitionMountAssigned',
+                       'MountPartitionInput']} })
 
 
 class FileItemScanned(DomainEvent):
@@ -176,7 +182,7 @@ class FileItemScanned(DomainEvent):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/events'})
 
-    partition_uuid: str = Field(default=..., description="""UUID of the partition containing this file""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned']} })
+    partition_uuid: str = Field(default=..., description="""UUID of the partition containing this file""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned', 'MountPartition']} })
     path: str = Field(default=..., description="""Full path to the file within the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned']} })
     size: int = Field(default=..., description="""Size of the file in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
     content_hash: str = Field(default=..., description="""Hash of the file contents""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
@@ -188,8 +194,13 @@ class PartitionMountAssigned(DomainEvent):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/events'})
 
-    partition: str = Field(default=..., description="""The partition assigned to be mounted""", json_schema_extra = { "linkml_meta": {'domain_of': ['PartitionDetected', 'PartitionMountAssigned']} })
-    mount_point: str = Field(default=..., description="""The desired mount point path""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition', 'PartitionMountAssigned']} })
+    partition: str = Field(default=..., description="""The partition assigned to be mounted""", json_schema_extra = { "linkml_meta": {'domain_of': ['PartitionDetected',
+                       'PartitionMountAssigned',
+                       'MountPartitionInput']} })
+    mount_point: str = Field(default=..., description="""The desired mount point path""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition',
+                       'PartitionMountAssigned',
+                       'MountPartitionInput',
+                       'MountPartition']} })
 
 
 class MutationInput(ConfiguredBaseModel):
@@ -230,6 +241,36 @@ class EventRecord(Mutation):
     event: DomainEvent = Field(default=..., description="""The original event that was stored""", json_schema_extra = { "linkml_meta": {'domain_of': ['EventRecordInput', 'EventRecord']} })
 
 
+class MountPartitionInput(MutationInput):
+    """
+    Input parameters for mounting a partition at a specific mount point
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/mutations'})
+
+    partition: Partition = Field(default=..., description="""The partition to mount""", json_schema_extra = { "linkml_meta": {'domain_of': ['PartitionDetected',
+                       'PartitionMountAssigned',
+                       'MountPartitionInput']} })
+    mount_point: str = Field(default=..., description="""The mount point path where partition should be mounted""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition',
+                       'PartitionMountAssigned',
+                       'MountPartitionInput',
+                       'MountPartition']} })
+
+
+class MountPartition(Mutation):
+    """
+    Result of attempting to mount a partition
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/mutations'})
+
+    success: bool = Field(default=..., description="""Whether the mount operation succeeded""", json_schema_extra = { "linkml_meta": {'domain_of': ['MountPartition']} })
+    partition_uuid: str = Field(default=..., description="""UUID of the partition that was mounted (or attempted)""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned', 'MountPartition']} })
+    mount_point: str = Field(default=..., description="""The mount point path used""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition',
+                       'PartitionMountAssigned',
+                       'MountPartitionInput',
+                       'MountPartition']} })
+    error_message: Optional[str] = Field(default=None, description="""Error message if the mount failed""", json_schema_extra = { "linkml_meta": {'domain_of': ['MountPartition']} })
+
+
 # Model rebuild
 # see https://pydantic-docs.helpmanual.io/usage/models/#rebuilding-a-model
 DomainEvent.model_rebuild()
@@ -245,3 +286,5 @@ MutationInput.model_rebuild()
 Mutation.model_rebuild()
 EventRecordInput.model_rebuild()
 EventRecord.model_rebuild()
+MountPartitionInput.model_rebuild()
+MountPartition.model_rebuild()

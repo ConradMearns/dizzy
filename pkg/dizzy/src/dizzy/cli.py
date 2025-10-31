@@ -8,7 +8,8 @@ import subprocess
 from dizzy.utils.generate_query_interfaces import generate_query_interfaces
 from dizzy.utils.generate_mutation_interfaces import generate_mutation_interfaces
 from dizzy.utils.generate_procedure_contexts import generate_procedure_contexts
-from dizzy.utils.fix_event_types import fix_event_types, fix_command_types
+from dizzy.utils.generate_policy_contexts import generate_policy_contexts
+from dizzy.utils.fix_event_types import fix_event_types, fix_command_types, fix_mutation_types
 
 app = typer.Typer()
 
@@ -59,6 +60,7 @@ def gen(
     queries_dir = base_dir / "queries"
     mutations_dir = base_dir / "mutations"
     procedures_dir = base_dir / "procedures"
+    policies_dir = base_dir / "policies"
 
     if not def_dir.exists():
         print(f"✗ def/ directory not found at {def_dir}")
@@ -90,6 +92,7 @@ def gen(
     print("\nCustom fixes:")
     events_file = gen_dir / "events.py"
     commands_file = gen_dir / "commands.py"
+    mutations_file = gen_dir / "mutations.py"
     models_file = gen_dir / "models.py"
 
     fixes_applied = False
@@ -99,6 +102,10 @@ def gen(
 
     if commands_file.exists() and fix_command_types(commands_file, models_file):
         print("✓ Fixed command type annotations")
+        fixes_applied = True
+
+    if mutations_file.exists() and fix_mutation_types(mutations_file, models_file):
+        print("✓ Fixed mutation type annotations")
         fixes_applied = True
 
     if not fixes_applied:
@@ -145,7 +152,21 @@ def gen(
         except Exception as e:
             print(f"✗ procedures: {e}")
             success = False
-    
+
+    # Policy contexts
+    print("\nPolicy contexts:")
+    policies_yaml = def_dir / "policies.d.yaml"
+    if policies_yaml.exists():
+        try:
+            generate_policy_contexts(
+                policies_yaml,
+                gen_dir / "policies.py",
+                policies_dir / "interfaces.py",
+            )
+        except Exception as e:
+            print(f"✗ policies: {e}")
+            success = False
+
     print()
     if success:
         print("✨ Done")

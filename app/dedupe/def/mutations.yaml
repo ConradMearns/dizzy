@@ -15,6 +15,7 @@ default_range: string
 imports:
   - linkml:types
   - events
+  - models
   - ../../../pkg/dizzy/src/dizzy/def/mutations
 
 classes:
@@ -46,3 +47,39 @@ classes:
         description: The original event that was stored
         required: true
         range: DomainEvent
+
+  MountPartitionInput:
+    description: >-
+      Input parameters for mounting a partition at a specific mount point
+    is_a: MutationInput
+    attributes:
+      partition:
+        description: The partition to mount
+        required: true
+        range: Partition
+      mount_point:
+        description: The mount point path where partition should be mounted
+        required: true
+        range: string
+
+  MountPartition:
+    description: >-
+      Result of attempting to mount a partition
+    is_a: Mutation
+    attributes:
+      success:
+        description: Whether the mount operation succeeded
+        required: true
+        range: boolean
+      partition_uuid:
+        description: UUID of the partition that was mounted (or attempted)
+        required: true
+        range: string
+      mount_point:
+        description: The mount point path used
+        required: true
+        range: string
+      error_message:
+        description: Error message if the mount failed
+        required: false
+        range: string

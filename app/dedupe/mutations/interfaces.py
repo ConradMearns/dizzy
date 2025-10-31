@@ -9,6 +9,8 @@ from typing import Protocol
 from gen.mutations import (
     EventRecordInput,
     EventRecord,
+    MountPartitionInput,
+    MountPartition,
 )
 
 
@@ -17,5 +19,13 @@ class EventRecordProtocol(Protocol):
     
     def execute(self, mutation_input: EventRecordInput) -> EventRecord:
         """Execute the EventRecord mutation."""
+        ...
+
+
+class MountPartitionProtocol(Protocol):
+    """Protocol for MountPartition mutation implementations."""
+    
+    def execute(self, mutation_input: MountPartitionInput) -> MountPartition:
+        """Execute the MountPartition mutation."""
         ...
 

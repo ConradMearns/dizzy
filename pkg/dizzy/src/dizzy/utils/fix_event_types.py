@@ -87,3 +87,37 @@ def fix_command_types(commands_file: Path, models_file: Path = None) -> bool:
         return True
 
     return False
+
+
+def fix_mutation_types(mutations_file: Path, models_file: Path = None) -> bool:
+    """
+    Fix type annotations in generated mutations.py file.
+
+    Args:
+        mutations_file: Path to generated mutations.py
+        models_file: Path to generated models.py (unused, for compatibility)
+
+    Returns:
+        True if fixes were applied, False otherwise
+    """
+    if not mutations_file.exists():
+        return False
+
+    content = mutations_file.read_text()
+    original_content = content
+
+    # Track if we made any changes
+    made_changes = False
+
+    # Fix MountPartitionInput.partition: str -> Partition
+    pattern = r'(class MountPartitionInput\([^)]+\):.*?partition:\s+)str(\s+=\s+Field)'
+    if re.search(pattern, content, re.DOTALL):
+        content = re.sub(pattern, r'\1Partition\2', content, flags=re.DOTALL)
+        made_changes = True
+
+    # Write back if changes were made
+    if made_changes and content != original_content:
+        mutations_file.write_text(content)
+        return True
+
+    return False
