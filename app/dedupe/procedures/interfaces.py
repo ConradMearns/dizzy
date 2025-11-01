@@ -13,14 +13,14 @@ from gen.procedures import (
 )
 
 from gen.commands import (
+    AssignPartitionMount,
     InspectStorage,
     ScanPartition,
-    AssignPartitionMount,
 )
 
 
 class InspectStorageProcedureProtocol(Protocol):
-    """Protocol for InspectStorage procedure implementations."""
+    """Protocol for InspectStorage procedure implementations (storage_inspector)."""
     
     def __call__(self, context: InspectStorageContext, command: InspectStorage) -> None:
         """Execute the InspectStorage procedure."""
@@ -28,7 +28,7 @@ class InspectStorageProcedureProtocol(Protocol):
 
 
 class ScanPartitionProcedureProtocol(Protocol):
-    """Protocol for ScanPartition procedure implementations."""
+    """Protocol for ScanPartition procedure implementations (partition_scanner)."""
     
     def __call__(self, context: ScanPartitionContext, command: ScanPartition) -> None:
         """Execute the ScanPartition procedure."""
@@ -36,7 +36,7 @@ class ScanPartitionProcedureProtocol(Protocol):
 
 
 class AssignPartitionMountProcedureProtocol(Protocol):
-    """Protocol for AssignPartitionMount procedure implementations."""
+    """Protocol for AssignPartitionMount procedure implementations (partition_mount_assigner)."""
     
     def __call__(self, context: AssignPartitionMountContext, command: AssignPartitionMount) -> None:
         """Execute the AssignPartitionMount procedure."""

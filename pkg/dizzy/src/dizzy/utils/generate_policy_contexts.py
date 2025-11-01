@@ -46,9 +46,9 @@ def generate_context_classes(
     lines.append('# Import event types')
     lines.append(f'from {events_import_path} import (')
     event_types = set()
-    for policy_name in policies:
-        # Policy name matches the event it handles
-        event_types.add(policy_name)
+    for policy_name, policy_def in policies.items():
+        # Get the event this policy handles
+        event_types.add(policy_def['event'])
     for event_type in sorted(event_types):
         lines.append(f'    {event_type},')
     lines.append(')')
@@ -98,11 +98,13 @@ def generate_context_classes(
 
     # Generate classes for each policy
     for policy_name, policy_def in policies.items():
+        event_name = policy_def['event']
+
         # Generate Emitters class (for Commands)
-        emitters_class = f'{policy_name}PolicyEmitters'
+        emitters_class = f'{event_name}PolicyEmitters'
         lines.append(f'@dataclass')
         lines.append(f'class {emitters_class}:')
-        lines.append(f'    """Command emitters for {policy_name} policy."""')
+        lines.append(f'    """Command emitters for {event_name} policy ({policy_name})."""')
 
         if 'emitters' in policy_def and policy_def['emitters']:
             for emit_name, command_type in policy_def['emitters'].items():
@@ -116,10 +118,10 @@ def generate_context_classes(
         lines.append('')
 
         # Generate Queries class
-        queries_class = f'{policy_name}PolicyQueries'
+        queries_class = f'{event_name}PolicyQueries'
         lines.append(f'@dataclass')
         lines.append(f'class {queries_class}:')
-        lines.append(f'    """Queries for {policy_name} policy."""')
+        lines.append(f'    """Queries for {event_name} policy ({policy_name})."""')
 
         if 'queries' in policy_def and policy_def['queries']:
             for query_name, query_type in policy_def['queries'].items():
@@ -131,10 +133,10 @@ def generate_context_classes(
         lines.append('')
 
         # Generate Mutators class
-        mutators_class = f'{policy_name}PolicyMutators'
+        mutators_class = f'{event_name}PolicyMutators'
         lines.append(f'@dataclass')
         lines.append(f'class {mutators_class}:')
-        lines.append(f'    """Mutators for {policy_name} policy."""')
+        lines.append(f'    """Mutators for {event_name} policy ({policy_name})."""')
 
         if 'mutators' in policy_def and policy_def['mutators']:
             for mutator_name, mutation_type in policy_def['mutators'].items():
@@ -146,10 +148,10 @@ def generate_context_classes(
         lines.append('')
 
         # Generate Context class
-        context_class = f'{policy_name}PolicyContext'
+        context_class = f'{event_name}PolicyContext'
         lines.append(f'@dataclass')
         lines.append(f'class {context_class}:')
-        lines.append(f'    """Context for {policy_name} policy."""')
+        lines.append(f'    """Context for {event_name} policy ({policy_name})."""')
         lines.append(f'    emit: {emitters_class}')
         lines.append(f'    query: {queries_class}')
         lines.append(f'    mutate: {mutators_class}')
@@ -163,8 +165,9 @@ def generate_context_classes(
 
     print(f"Generated policy contexts: {output_path}")
     print(f"Found {len(policies)} policies:")
-    for policy_name in policies:
-        print(f"  - {policy_name}PolicyContext")
+    for policy_name, policy_def in policies.items():
+        event_name = policy_def['event']
+        print(f"  - {event_name}PolicyContext (from {policy_name})")
 
 
 def generate_protocol_interfaces(
@@ -189,8 +192,11 @@ def generate_protocol_interfaces(
 
     # Import all context classes
     imports = []
-    for policy_name in policies:
-        imports.append(f'    {policy_name}PolicyContext,')
+    event_types = set()
+    for policy_name, policy_def in policies.items():
+        event_name = policy_def['event']
+        imports.append(f'    {event_name}PolicyContext,')
+        event_types.add(event_name)
 
     lines.extend(imports)
     lines.append(')')
@@ -198,20 +204,21 @@ def generate_protocol_interfaces(
 
     # Import event types
     lines.append(f'from {events_import_path} import (')
-    for policy_name in policies:
-        lines.append(f'    {policy_name},')
+    for event_name in sorted(event_types):
+        lines.append(f'    {event_name},')
     lines.append(')')
     lines.append('')
     lines.append('')
 
     # Generate Protocol for each policy
-    for policy_name in policies:
-        protocol_name = f'{policy_name}PolicyProtocol'
+    for policy_name, policy_def in policies.items():
+        event_name = policy_def['event']
+        protocol_name = f'{event_name}PolicyProtocol'
         lines.append(f'class {protocol_name}(Protocol):')
-        lines.append(f'    """Protocol for {policy_name} policy implementations."""')
+        lines.append(f'    """Protocol for {event_name} policy implementations ({policy_name})."""')
         lines.append(f'    ')
-        lines.append(f'    def __call__(self, context: {policy_name}PolicyContext, event: {policy_name}) -> None:')
-        lines.append(f'        """Execute the {policy_name} policy."""')
+        lines.append(f'    def __call__(self, context: {event_name}PolicyContext, event: {event_name}) -> None:')
+        lines.append(f'        """Execute the {event_name} policy."""')
         lines.append(f'        ...')
         lines.append('')
         lines.append('')
@@ -223,8 +230,9 @@ def generate_protocol_interfaces(
 
     print(f"Generated policy protocols: {output_path}")
     print(f"Found {len(policies)} policy protocols:")
-    for policy_name in policies:
-        print(f"  - {policy_name}PolicyProtocol")
+    for policy_name, policy_def in policies.items():
+        event_name = policy_def['event']
+        print(f"  - {event_name}PolicyProtocol (from {policy_name})")
 
 
 def generate_policy_contexts(

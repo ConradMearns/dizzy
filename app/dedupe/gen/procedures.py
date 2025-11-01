@@ -29,34 +29,34 @@ from gen.queries import (
 
 @dataclass
 class InspectStorageEmitters:
-    """Emitters for InspectStorage procedure."""
+    """Emitters for InspectStorage procedure (storage_inspector)."""
     hard_drive_detected: Callable[[HardDriveDetected], None]
     partition_detected: Callable[[PartitionDetected], None]
 
 
 @dataclass
 class InspectStorageQueries:
-    """Queries for InspectStorage procedure."""
+    """Queries for InspectStorage procedure (storage_inspector)."""
     list_hard_drives: Callable[[ListHardDrivesInput], ListHardDrives]
     list_partitions: Callable[[ListPartitionsInput], ListPartitions]
 
 
 @dataclass
 class InspectStorageContext:
-    """Context for InspectStorage procedure."""
+    """Context for InspectStorage procedure (storage_inspector)."""
     emit: InspectStorageEmitters
     query: InspectStorageQueries
 
 
 @dataclass
 class ScanPartitionEmitters:
-    """Emitters for ScanPartition procedure."""
+    """Emitters for ScanPartition procedure (partition_scanner)."""
     scanned: Callable[[FileItemScanned], None]
 
 
 @dataclass
 class ScanPartitionQueries:
-    """Queries for ScanPartition procedure."""
+    """Queries for ScanPartition procedure (partition_scanner)."""
     list_hard_drives: Callable[[ListHardDrivesInput], ListHardDrives]
     list_partitions: Callable[[ListPartitionsInput], ListPartitions]
     list_file_items: Callable[[ListFileItemsInput], ListFileItems]
@@ -64,26 +64,26 @@ class ScanPartitionQueries:
 
 @dataclass
 class ScanPartitionContext:
-    """Context for ScanPartition procedure."""
+    """Context for ScanPartition procedure (partition_scanner)."""
     emit: ScanPartitionEmitters
     query: ScanPartitionQueries
 
 
 @dataclass
 class AssignPartitionMountEmitters:
-    """Emitters for AssignPartitionMount procedure."""
+    """Emitters for AssignPartitionMount procedure (partition_mount_assigner)."""
     partition_mount_assigned: Callable[[PartitionMountAssigned], None]
 
 
 @dataclass
 class AssignPartitionMountQueries:
-    """Queries for AssignPartitionMount procedure."""
+    """Queries for AssignPartitionMount procedure (partition_mount_assigner)."""
     pass
 
 
 @dataclass
 class AssignPartitionMountContext:
-    """Context for AssignPartitionMount procedure."""
+    """Context for AssignPartitionMount procedure (partition_mount_assigner)."""
     emit: AssignPartitionMountEmitters
     query: AssignPartitionMountQueries
 

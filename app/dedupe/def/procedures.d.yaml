@@ -1,8 +1,10 @@
 # Procedure dependency definitions
 # Maps procedures to their required emitters and queries
+# Each procedure has a distinct name and specifies which command it handles
 
 procedures:
-  InspectStorage:
+  storage_inspector:
+    command: InspectStorage
     emitters:
       emit_hard_drive_detected: HardDriveDetected
       emit_partition_detected: PartitionDetected
@@ -10,7 +12,8 @@ procedures:
       list_hard_drives: ListHardDrives
       list_partitions: ListPartitions
 
-  ScanPartition:
+  partition_scanner:
+    command: ScanPartition
     emitters:
       emit_scanned: FileItemScanned
     queries:
@@ -18,7 +21,8 @@ procedures:
       list_partitions: ListPartitions
       list_file_items: ListFileItems
 
-  AssignPartitionMount:
+  partition_mount_assigner:
+    command: AssignPartitionMount
     emitters:
       emit_partition_mount_assigned: PartitionMountAssigned
     queries: {}

@@ -1,9 +1,10 @@
 # Policy dependency definitions
 # Maps policies to their command emitters, queries, and mutators
-# Policy names match the Event they handle (just like procedure names match Commands)
+# Each policy has a distinct name and specifies which event it handles
 
 policies:
-  PartitionMountAssigned:
+  partition_mount_reconciler:
+    event: PartitionMountAssigned
     emitters:
       assign_partition_mount: AssignPartitionMount
     queries:

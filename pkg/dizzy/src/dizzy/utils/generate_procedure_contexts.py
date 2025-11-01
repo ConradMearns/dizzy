@@ -72,11 +72,13 @@ def generate_context_classes(
 
     # Generate classes for each procedure
     for proc_name, proc_def in procedures.items():
+        command_name = proc_def['command']
+
         # Generate Emitters class
-        emitters_class = f'{proc_name}Emitters'
+        emitters_class = f'{command_name}Emitters'
         lines.append(f'@dataclass')
         lines.append(f'class {emitters_class}:')
-        lines.append(f'    """Emitters for {proc_name} procedure."""')
+        lines.append(f'    """Emitters for {command_name} procedure ({proc_name})."""')
 
         if 'emitters' in proc_def and proc_def['emitters']:
             for emit_name, event_type in proc_def['emitters'].items():
@@ -90,10 +92,10 @@ def generate_context_classes(
         lines.append('')
 
         # Generate Queries class
-        queries_class = f'{proc_name}Queries'
+        queries_class = f'{command_name}Queries'
         lines.append(f'@dataclass')
         lines.append(f'class {queries_class}:')
-        lines.append(f'    """Queries for {proc_name} procedure."""')
+        lines.append(f'    """Queries for {command_name} procedure ({proc_name})."""')
 
         if 'queries' in proc_def and proc_def['queries']:
             for query_name, query_type in proc_def['queries'].items():
@@ -105,10 +107,10 @@ def generate_context_classes(
         lines.append('')
 
         # Generate Context class
-        context_class = f'{proc_name}Context'
+        context_class = f'{command_name}Context'
         lines.append(f'@dataclass')
         lines.append(f'class {context_class}:')
-        lines.append(f'    """Context for {proc_name} procedure."""')
+        lines.append(f'    """Context for {command_name} procedure ({proc_name})."""')
         lines.append(f'    emit: {emitters_class}')
         lines.append(f'    query: {queries_class}')
         lines.append('')
@@ -121,8 +123,9 @@ def generate_context_classes(
 
     print(f"Generated procedure contexts: {output_path}")
     print(f"Found {len(procedures)} procedures:")
-    for proc_name in procedures:
-        print(f"  - {proc_name}Context")
+    for proc_name, proc_def in procedures.items():
+        command_name = proc_def['command']
+        print(f"  - {command_name}Context (from {proc_name})")
 
 
 def generate_protocol_interfaces(
@@ -147,8 +150,11 @@ def generate_protocol_interfaces(
 
     # Import all context classes and command types
     imports = []
-    for proc_name in procedures:
-        imports.append(f'    {proc_name}Context,')
+    command_types = set()
+    for proc_name, proc_def in procedures.items():
+        command_name = proc_def['command']
+        imports.append(f'    {command_name}Context,')
+        command_types.add(command_name)
 
     lines.extend(imports)
     lines.append(')')
@@ -156,20 +162,21 @@ def generate_protocol_interfaces(
 
     # Import command types
     lines.append(f'from {commands_import_path} import (')
-    for proc_name in procedures:
-        lines.append(f'    {proc_name},')
+    for command_name in sorted(command_types):
+        lines.append(f'    {command_name},')
     lines.append(')')
     lines.append('')
     lines.append('')
 
     # Generate Protocol for each procedure
-    for proc_name in procedures:
-        protocol_name = f'{proc_name}ProcedureProtocol'
+    for proc_name, proc_def in procedures.items():
+        command_name = proc_def['command']
+        protocol_name = f'{command_name}ProcedureProtocol'
         lines.append(f'class {protocol_name}(Protocol):')
-        lines.append(f'    """Protocol for {proc_name} procedure implementations."""')
+        lines.append(f'    """Protocol for {command_name} procedure implementations ({proc_name})."""')
         lines.append(f'    ')
-        lines.append(f'    def __call__(self, context: {proc_name}Context, command: {proc_name}) -> None:')
-        lines.append(f'        """Execute the {proc_name} procedure."""')
+        lines.append(f'    def __call__(self, context: {command_name}Context, command: {command_name}) -> None:')
+        lines.append(f'        """Execute the {command_name} procedure."""')
         lines.append(f'        ...')
         lines.append('')
         lines.append('')
@@ -181,8 +188,9 @@ def generate_protocol_interfaces(
 
     print(f"Generated procedure protocols: {output_path}")
     print(f"Found {len(procedures)} procedure protocols:")
-    for proc_name in procedures:
-        print(f"  - {proc_name}ProcedureProtocol")
+    for proc_name, proc_def in procedures.items():
+        command_name = proc_def['command']
+        print(f"  - {command_name}ProcedureProtocol (from {proc_name})")
 
 
 def generate_procedure_contexts(

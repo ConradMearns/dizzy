@@ -92,7 +92,7 @@ linkml_meta = LinkMLMeta({'default_prefix': 'dedupe',
                              'prefix_reference': 'https://example.org/dedupe/'},
                   'linkml': {'prefix_prefix': 'linkml',
                              'prefix_reference': 'https://w3id.org/linkml/'}},
-     'source_file': '/home/conrad/dizzy/app/dedupe/def/mutations.yaml',
+     'source_file': 'def/mutations.yaml',
      'title': 'Dedupe Mutations Data Model'} )
 
 
@@ -247,7 +247,7 @@ class MountPartitionInput(MutationInput):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/mutations'})
 
-    partition: Partition = Field(default=..., description="""The partition to mount""", json_schema_extra = { "linkml_meta": {'domain_of': ['PartitionDetected',
+    partition: str = Field(default=..., description="""The partition to mount""", json_schema_extra = { "linkml_meta": {'domain_of': ['PartitionDetected',
                        'PartitionMountAssigned',
                        'MountPartitionInput']} })
     mount_point: str = Field(default=..., description="""The mount point path where partition should be mounted""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition',

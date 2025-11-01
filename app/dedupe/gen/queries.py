@@ -91,7 +91,7 @@ linkml_meta = LinkMLMeta({'default_prefix': 'dedupe',
                              'prefix_reference': 'https://example.org/dedupe/'},
                   'linkml': {'prefix_prefix': 'linkml',
                              'prefix_reference': 'https://w3id.org/linkml/'}},
-     'source_file': '/home/conrad/dizzy/app/dedupe/def/queries.yaml',
+     'source_file': 'def/queries.yaml',
      'title': 'Dedupe Queries Data Model'} )
 
 
