@@ -10,6 +10,8 @@ from dizzy.utils.generate_mutation_interfaces import generate_mutation_interface
 from dizzy.utils.generate_procedure_contexts import generate_procedure_contexts
 from dizzy.utils.generate_policy_contexts import generate_policy_contexts
 from dizzy.utils.fix_event_types import fix_event_types, fix_command_types, fix_mutation_types
+from dizzy.utils.system_parser import load_system
+from dizzy.utils.mermaid_generator import save_mermaid_diagram
 
 app = typer.Typer()
 
@@ -173,6 +175,56 @@ def gen(
         raise typer.Exit(0)
     else:
         print("⚠️  Completed with errors")
+        raise typer.Exit(1)
+
+
+@app.command()
+def diagram(
+    def_dir: Path = typer.Option(
+        "def",
+        "--def-dir",
+        help="Directory containing LinkML schema files"
+    ),
+    output: Path = typer.Option(
+        "architecture.mermaid",
+        "--output",
+        "-o",
+        help="Output file path for the Mermaid diagram"
+    ),
+):
+    """Generate a Mermaid diagram from LinkML schemas."""
+    def_dir = def_dir.resolve()
+    output = output.resolve()
+
+    if not def_dir.exists():
+        print(f"✗ def/ directory not found at {def_dir}")
+        raise typer.Exit(1)
+
+    print(f"Loading system from {def_dir}/")
+
+    try:
+        # Load the system from YAML files
+        system = load_system(def_dir)
+
+        # Generate and save the diagram
+        save_mermaid_diagram(system, output)
+
+        print(f"✓ Diagram generated: {output}")
+        print()
+
+        # Print some statistics
+        print("System summary:")
+        print(f"  Commands:   {len(system.commands)}")
+        print(f"  Events:     {len(system.events)}")
+        print(f"  Queries:    {len(system.queries)}")
+        print(f"  Mutators:   {len(system.mutators)}")
+        print(f"  Procedures: {len(system.procedures)}")
+        print(f"  Policies:   {len(system.policies)}")
+        print()
+        print("✨ Done")
+
+    except Exception as e:
+        print(f"✗ Error generating diagram: {e}")
         raise typer.Exit(1)
 
 
