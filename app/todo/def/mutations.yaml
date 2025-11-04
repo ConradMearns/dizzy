@@ -1,0 +1,21 @@
+id: https://example.org/todo/mutations
+name: todo-mutations-schema
+title: Todo Mutations Data Model
+description: >-
+  LinkML schema for mutation objects that represent state changes in the system
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  todo: https://example.org/todo/
+
+default_prefix: todo
+default_range: string
+
+imports:
+  - linkml:types
+  - ../../../pkg/dizzy/src/dizzy/def/mutations
+  - models
+
+classes:
+  # Placeholder for future mutations if needed
+  # For now, the todo app doesn't require separate mutations

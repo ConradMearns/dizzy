@@ -1,0 +1,62 @@
+id: https://example.org/todo/events
+name: todo-events-schema
+title: Todo Domain Events Data Model
+description: >-
+  LinkML schema for domain events that capture immutable facts about
+  what has happened in the system.
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  todo: https://example.org/todo/
+
+default_prefix: todo
+default_range: string
+
+imports:
+  - linkml:types
+  - ../../../pkg/dizzy/src/dizzy/def/events
+  - models
+
+classes:
+
+  TodoAdded:
+    description: >-
+      Event recording that a todo item was added
+    is_a: DomainEvent
+    attributes:
+      todo_id:
+        description: ID of the todo that was added
+        required: true
+        range: string
+      text:
+        description: Text of the todo
+        required: true
+        range: string
+      created_at:
+        description: When the todo was created
+        required: true
+        range: datetime
+
+  TodoCompleted:
+    description: >-
+      Event recording that a todo item was marked as completed
+    is_a: DomainEvent
+    attributes:
+      todo_id:
+        description: ID of the todo item that was completed
+        required: true
+        range: string
+      completed_at:
+        description: Timestamp when the todo was completed
+        required: true
+        range: datetime
+
+  TodoDeleted:
+    description: >-
+      Event recording that a todo item was deleted
+    is_a: DomainEvent
+    attributes:
+      todo_id:
+        description: ID of the todo item that was deleted
+        required: true
+        range: string

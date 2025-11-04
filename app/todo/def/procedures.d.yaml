@@ -1,0 +1,25 @@
+# Procedure dependency definitions
+# Maps procedures to their required emitters and queries
+# Each procedure has a distinct name and specifies which command it handles
+
+procedures:
+  add_todo:
+    command: AddTodo
+    emitters:
+      emit_todo_added: TodoAdded
+    queries:
+      list_todos: ListTodos
+
+  complete_todo:
+    command: CompleteTodo
+    emitters:
+      emit_todo_completed: TodoCompleted
+    queries:
+      get_todo: GetTodo
+
+  delete_todo:
+    command: DeleteTodo
+    emitters:
+      emit_todo_deleted: TodoDeleted
+    queries:
+      get_todo: GetTodo

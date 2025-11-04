@@ -1,0 +1,5 @@
+# Policy definitions
+# Policies react to events and may trigger commands or mutations
+# For the simple todo app, we don't need policies initially
+
+policies: {}

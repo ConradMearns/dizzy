@@ -1,0 +1,42 @@
+id: https://example.org/todo
+name: todo-schema
+title: Todo Data Model
+description: >-
+  LinkML schema for simple collaborative todo list
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  todo: https://example.org/todo/
+
+default_prefix: todo
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  Todo:
+    description: >-
+      Represents a todo item with text and completion status
+    attributes:
+      id:
+        description: Unique identifier for the todo item
+        identifier: true
+        required: true
+        range: string
+      text:
+        description: The text content of the todo item
+        required: true
+        range: string
+      completed:
+        description: Whether the todo has been completed
+        required: true
+        range: boolean
+      created_at:
+        description: Timestamp when the todo was created
+        required: true
+        range: datetime
+      completed_at:
+        description: Timestamp when the todo was completed
+        required: false
+        range: datetime

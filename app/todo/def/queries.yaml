@@ -1,0 +1,60 @@
+id: https://example.org/todo/queries
+name: todo-queries-schema
+title: Todo Queries Data Model
+description: >-
+  LinkML schema for query objects that retrieve todo information
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  todo: https://example.org/todo/
+
+default_prefix: todo
+default_range: string
+
+imports:
+  - linkml:types
+  - ../../../pkg/dizzy/src/dizzy/def/queries
+  - models
+
+classes:
+
+  ListTodosInput:
+    description: >-
+      Input for listing all todos
+    is_a: QueryInput
+    attributes:
+      include_completed:
+        description: Whether to include completed todos
+        required: false
+        range: boolean
+
+  ListTodos:
+    description: >-
+      Query result containing list of todos
+    is_a: Query
+    attributes:
+      todos:
+        description: List of all todos
+        required: true
+        range: Todo
+        multivalued: true
+
+  GetTodoInput:
+    description: >-
+      Input for getting a specific todo by ID
+    is_a: QueryInput
+    attributes:
+      todo_id:
+        description: ID of the todo to retrieve
+        required: true
+        range: string
+
+  GetTodo:
+    description: >-
+      Query result containing a single todo
+    is_a: Query
+    attributes:
+      todo:
+        description: The requested todo
+        required: false
+        range: Todo
