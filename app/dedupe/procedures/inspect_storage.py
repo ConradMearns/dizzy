@@ -8,7 +8,7 @@ from procedures.interfaces import InspectStorageProcedureProtocol
 from gen.procedures import InspectStorageContext
 from gen.commands import InspectStorage
 from gen.queries import ListHardDrivesInput, ListPartitionsInput
-from gen.events import HardDriveDetected, PartitionDetected, HardDrive, Partition
+from gen.events import HardDriveDetected, PartitionDetected
 
 
 class InspectStorageProcedure:
@@ -32,9 +32,8 @@ class InspectStorageProcedure:
         for i, drive_uuid in enumerate(hard_drives.drives, 1):
             print(f"{i}. {drive_uuid}")
 
-            # Create HardDrive model and emit event
-            hard_drive = HardDrive(uuid=drive_uuid)
-            context.emit.hard_drive_detected(HardDriveDetected(hard_drive=hard_drive))
+            # Emit event with UUID string
+            context.emit.hard_drive_detected(HardDriveDetected(hard_drive=drive_uuid))
 
         # Get all partitions
         print("\n\nQuerying partitions...")
@@ -63,9 +62,8 @@ class InspectStorageProcedure:
                 for partition_uuid in drive_partitions.partitions:
                     print(f"  └─ {partition_uuid}")
 
-                    # Create Partition model and emit event
-                    partition = Partition(uuid=partition_uuid, drive_uuid=drive_uuid)
-                    context.emit.partition_detected(PartitionDetected(partition=partition))
+                    # Emit event with UUID string
+                    context.emit.partition_detected(PartitionDetected(partition=partition_uuid))
             else:
                 print("  └─ (no partitions)")
 
