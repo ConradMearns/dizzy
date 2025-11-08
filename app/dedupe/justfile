@@ -21,3 +21,42 @@ check:
 test:
     uv run pytest tests/
 
+# Deployment recipes
+deploy-install:
+    cd deploy && pulumi install
+
+deploy-config-secrets user="admin" password="changeme":
+    cd deploy && pulumi config set --secret minio:minio_user "{{user}}"
+    cd deploy && pulumi config set --secret minio:minio_password "{{password}}"
+
+deploy-up:
+    cd deploy && pulumi up
+
+deploy-preview:
+    cd deploy && pulumi preview
+
+deploy-destroy:
+    cd deploy && pulumi destroy
+
+deploy-status:
+    cd deploy && pulumi stack output
+    @echo ""
+    kubectl get all -n minio
+
+deploy-verify:
+    @echo "Checking Pulumi outputs..."
+    cd deploy && pulumi stack output
+    @echo ""
+    @echo "Checking Kubernetes resources..."
+    kubectl get all -n minio
+    @echo ""
+    @echo "Testing API connectivity..."
+    curl -s http://localhost:30000/minio/health/live || echo "API not responding"
+    @echo ""
+    @echo "Minio console available at: http://localhost:30001"
+
+deploy-full: deploy-install deploy-up deploy-verify
+
+deploy-logs:
+    kubectl logs -n minio -l app=minio --tail=50 -f
+

@@ -1,0 +1,16 @@
+encryptionsalt: v1:eDKeS0CdEkk=:v1:qIxZw83foYwBd+Nh:6fQhl5Lnkn02ajemnwG8iIS6uS2Slg==
+config:
+  dizzy_dedupe_pulumi:k8sNamespace: nginx-ingress
+  dizzy_dedupe_pulumi:minio_user:
+    secure: v1:rvLIqQ/5+Nq/b7Iq:NqkWYb6znbRdW0s/R2b7jZo7jqEN
+  dizzy_dedupe_pulumi:c:
+    secure: v1:02DwDKzL6PTN6J98:exTnXt3duzP61XCqNX55946zUzrunVtfrsRuY8Cp
+  minio:minio_user:
+    secure: v1:YfQ/gKCSs/sQurWl:6biuPIxe4BVOBEDon1BNRzu7K/0X
+  minio:minio_password:
+    secure: v1:S0zrUcEWMUGjjx3+:JqNHA9USLMfT7b6nfW7AgOxVgPnVzK1TGSawaiQ3
+  tailscale:apiKey:
+    secure: v1:P/pZHSTrRykVhFfl:Lm4BqG9COFDCH97LivJwlH9E5pOjJPrU7+5f/ePuoF2046mK26qhyJ0zZ/py7wJ6nLYtqgQGaGFr11tBymA/p00g5ti/YhT4oif81w==
+  minio-acl:allowed_users:
+    secure: v1:L8p6d9UQs0WEo2lz:7LGSwqt5UtpH1W3THP/A4OJThxZkCLZ8hTSL2hFCFgIlHSQdjeNhdWvSNL3AqASLTInSF8SFrA==
+  minio-acl:minio_server_tag: tag:minio-open
