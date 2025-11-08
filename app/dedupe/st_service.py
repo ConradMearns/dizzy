@@ -15,7 +15,7 @@ from gen.policies import (
     PartitionMountAssignedPolicyQueries,
     PartitionMountAssignedPolicyMutators
 )
-from gen.events import HardDriveDetected, PartitionDetected, PartitionMountAssigned
+from gen.events import HardDriveDetected, PartitionDetected, PartitionMountAssigned, FileItemScanned
 from procedures.inspect_storage import InspectStorageProcedure
 from procedures.assign_partition_mount import AssignPartitionMountProcedure
 from policies.partition_mount_assigned import PartitionMountAssignedPolicy
