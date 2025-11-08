@@ -5,8 +5,14 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "base58>=2.1.1",
+    "blake3>=1.0.8",
     "dizzy",
     "linkml>=1.9.4",
+    "minio>=7.2.18",
+    "pulumi>=3.206.0",
+    "pulumi-kubernetes>=4.24.0",
+    "pulumi-tailscale>=0.22.0",
 ]
 
 [dependency-groups]

@@ -11,7 +11,7 @@ from policies.interfaces import PartitionMountAssignedPolicyProtocol
 from gen.policies import PartitionMountAssignedPolicyContext
 from gen.events import PartitionMountAssigned
 from gen.queries import ListPartitionsInput
-from gen.mutations import MountPartitionInput, Partition as MutationPartition
+from gen.mutations import MountPartitionInput
 
 
 class PartitionMountAssignedPolicy:
@@ -26,11 +26,11 @@ class PartitionMountAssignedPolicy:
         2. If not mounted, executes the mount mutation
         3. Logs the reconciliation result
         """
-        partition = event.partition
+        partition_uuid = event.partition  # This is a string UUID
         desired_mount_point = event.mount_point
 
         print(f"\n🔍 Reconciling mount assignment:")
-        print(f"   Partition: {partition.uuid}")
+        print(f"   Partition UUID: {partition_uuid}")
         print(f"   Desired mount point: {desired_mount_point}")
 
         # Query current partition state
@@ -41,26 +41,17 @@ class PartitionMountAssignedPolicy:
         # Execute mount mutation
         print(f"   Action: Executing mount mutation...")
 
-        # Convert event partition to mutation partition
-        mutation_partition = MutationPartition(
-            uuid=partition.uuid,
-            drive_uuid=partition.drive_uuid,
-            label=partition.label,
-            mount_point=partition.mount_point,
-            size_bytes=partition.size_bytes
-        )
-
         mount_input = MountPartitionInput(
-            partition=mutation_partition,
+            partition=partition_uuid,
             mount_point=desired_mount_point
         )
 
         result = context.mutate.mount_partition(mount_input)
 
         if result.success:
-            print(f"   ✓ Successfully mounted {partition.uuid} at {result.mount_point}")
+            print(f"   ✓ Successfully mounted {partition_uuid} at {result.mount_point}")
         else:
-            print(f"   ✗ Failed to mount {partition.uuid}: {result.error_message}")
+            print(f"   ✗ Failed to mount {partition_uuid}: {result.error_message}")
             # TODO: Could emit a command to retry or alert
 
         print()

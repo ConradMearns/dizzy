@@ -1,0 +1,5 @@
+{
+  "type": "AssignPartitionMount",
+  "partition": "FACE862BCE85E06D",
+  "mount_point": "/mnt/photos"
+}

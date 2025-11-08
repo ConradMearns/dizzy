@@ -143,8 +143,18 @@ class FileItem(ConfiguredBaseModel):
     partition_uuid: str = Field(default=..., description="""UUID of the partition where item was found""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned', 'MountPartition']} })
     path: str = Field(default=..., description="""Full path of the item on the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned']} })
     size_bytes: int = Field(default=..., description="""Size of the item in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['HardDrive', 'Partition', 'FileItem']} })
-    hash: str = Field(default=..., description="""Hash of the item contents (e.g., SHA256, MD5)""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem']} })
+    hash: str = Field(default=..., description="""Hash of the item contents (e.g., SHA256, MD5)""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'CASIdentity']} })
     hash_algorithm: Optional[str] = Field(default=None, description="""Algorithm used to generate the hash""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem']} })
+
+
+class CASIdentity(ConfiguredBaseModel):
+    """
+    Content Addressable Storage identifier consisting of version and hash. Used to uniquely identify content by its cryptographic hash.
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe'})
+
+    version: str = Field(default=..., description="""CAS version string (e.g., \"DZ0\")""", json_schema_extra = { "linkml_meta": {'domain_of': ['CASIdentity']} })
+    hash: str = Field(default=..., description="""Base58-encoded BLAKE3 hash of the content""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'CASIdentity']} })
 
 
 class TestMessage(DomainEvent):
@@ -186,6 +196,7 @@ class FileItemScanned(DomainEvent):
     path: str = Field(default=..., description="""Full path to the file within the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned']} })
     size: int = Field(default=..., description="""Size of the file in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
     content_hash: str = Field(default=..., description="""Hash of the file contents""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
+    cas_id: str = Field(default=..., description="""CAS identity (version + hash) of the stored content""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
 
 
 class PartitionMountAssigned(DomainEvent):
@@ -277,6 +288,7 @@ DomainEvent.model_rebuild()
 HardDrive.model_rebuild()
 Partition.model_rebuild()
 FileItem.model_rebuild()
+CASIdentity.model_rebuild()
 TestMessage.model_rebuild()
 HardDriveDetected.model_rebuild()
 PartitionDetected.model_rebuild()

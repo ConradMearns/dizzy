@@ -93,3 +93,19 @@ classes:
         description: Algorithm used to generate the hash
         required: false
         range: string
+
+  CASIdentity:
+    description: >-
+      Content Addressable Storage identifier consisting of version and hash.
+      Used to uniquely identify content by its cryptographic hash.
+    attributes:
+      version:
+        description: CAS version string (e.g., "DZ0")
+        identifier: true
+        required: true
+        range: string
+      hash:
+        description: Base58-encoded BLAKE3 hash of the content
+        identifier: true
+        required: true
+        range: string

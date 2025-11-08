@@ -15,6 +15,7 @@ default_range: string
 imports:
   - linkml:types
   - events
+  - models
   - ../../../pkg/dizzy/src/dizzy/def/queries
 
 classes:
@@ -135,3 +136,67 @@ classes:
         required: true
         multivalued: true
         range: ChainEntry
+
+  PutContentInput:
+    description: >-
+      Input parameters for storing content in CAS
+    is_a: QueryInput
+    attributes:
+      source_path:
+        description: Path to the file to upload to CAS
+        required: true
+        range: string
+
+  PutContent:
+    description: >-
+      Query result containing the CAS identity of stored content
+    is_a: Query
+    attributes:
+      cas_id:
+        description: CAS identity (version + hash) of the stored content
+        required: true
+        range: CASIdentity
+
+  GetContentInput:
+    description: >-
+      Input parameters for retrieving content from CAS by identity
+    is_a: QueryInput
+    attributes:
+      cas_id:
+        description: CAS identity (version + hash) to retrieve
+        required: true
+        range: CASIdentity
+      destination_path:
+        description: Path where the content should be written
+        required: true
+        range: string
+
+  GetContent:
+    description: >-
+      Query result for content retrieval (content is written to destination_path)
+    is_a: Query
+    attributes:
+      success:
+        description: Whether the content was successfully written to the destination
+        required: true
+        range: boolean
+
+  CheckExistsInput:
+    description: >-
+      Input parameters for checking if content exists in CAS
+    is_a: QueryInput
+    attributes:
+      cas_id:
+        description: CAS identity (version + hash) to check
+        required: true
+        range: CASIdentity
+
+  CheckExists:
+    description: >-
+      Query result indicating whether content exists in CAS
+    is_a: Query
+    attributes:
+      exists:
+        description: True if content exists in CAS, False otherwise
+        required: true
+        range: boolean

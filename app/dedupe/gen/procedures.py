@@ -24,6 +24,8 @@ from gen.queries import (
     ListHardDrivesInput,
     ListPartitions,
     ListPartitionsInput,
+    PutContent,
+    PutContentInput,
 )
 
 
@@ -60,6 +62,7 @@ class ScanPartitionQueries:
     list_hard_drives: Callable[[ListHardDrivesInput], ListHardDrives]
     list_partitions: Callable[[ListPartitionsInput], ListPartitions]
     list_file_items: Callable[[ListFileItemsInput], ListFileItems]
+    put_content: Callable[[PutContentInput], PutContent]
 
 
 @dataclass

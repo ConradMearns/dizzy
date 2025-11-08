@@ -33,25 +33,25 @@ from gen.mutations import (
 
 @dataclass
 class PartitionMountAssignedPolicyEmitters:
-    """Command emitters for PartitionMountAssigned policy."""
+    """Command emitters for PartitionMountAssigned policy (partition_mount_reconciler)."""
     assign_partition_mount: Callable[[AssignPartitionMount], None]
 
 
 @dataclass
 class PartitionMountAssignedPolicyQueries:
-    """Queries for PartitionMountAssigned policy."""
+    """Queries for PartitionMountAssigned policy (partition_mount_reconciler)."""
     list_partitions: Callable[[ListPartitionsInput], ListPartitions]
 
 
 @dataclass
 class PartitionMountAssignedPolicyMutators:
-    """Mutators for PartitionMountAssigned policy."""
+    """Mutators for PartitionMountAssigned policy (partition_mount_reconciler)."""
     mount_partition: Callable[[MountPartitionInput], MountPartition]
 
 
 @dataclass
 class PartitionMountAssignedPolicyContext:
-    """Context for PartitionMountAssigned policy."""
+    """Context for PartitionMountAssigned policy (partition_mount_reconciler)."""
     emit: PartitionMountAssignedPolicyEmitters
     query: PartitionMountAssignedPolicyQueries
     mutate: PartitionMountAssignedPolicyMutators
