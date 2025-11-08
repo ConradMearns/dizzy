@@ -11,24 +11,27 @@
 # F09: calendar-albums - Automatic calendar-based album generation
 # F10: remote-upload - Remote photo upload capability for friends and family
 # F11: remote-viewer - Remote photo/album viewing interface
+# F12: content-addressable-storage - Content Addressable Storage (CAS) to record file hashes and enable deduplication
+# F13: file-provenance-manifest - Record a manifest of every file found and every path it came from
 #
 # Interaction strength values: 5 (strong), 3 (medium), 1 (weak), --- (none/unknown)
 #
-F00,F01,F02,F03,F04,F05,F06,F07,F08,F09,F10,F11,NEED
- 5 , - , - , - , - , - , ~ , ~ , ~ , ~ , ~ , ~ ,quick-infrastructure-visualization
- - , 5 , - , - , - , - , ~ , ~ , ~ , ~ , ~ , ~ ,encryption-for-photo-storage
- - , 5 , 5 , 3 , - , - , ~ , ~ , ~ , ~ , 5 , 5 ,shared-infrastructure-with-safety
- - , - , - , 3 , - , - , ~ , ~ , ~ , ~ , ~ , ~ ,multi-language-support
- - , - , - , - , 3 , 3 , ~ , ~ , ~ , ~ , ~ , ~ ,ai-assisted-design
- 3 , - , - , - , 5 , 3 , ~ , ~ , ~ , ~ , ~ , ~ ,understandable-documentation
- 3 , 1 , - , - , - , - , ~ , ~ , ~ , ~ , ~ , ~ ,deployability-visibility
- - , 1 , - , - , - , - , ~ , ~ , ~ , ~ , ~ , ~ ,time-travel-debugging
- - , 3 , - , - , - , - , ~ , ~ , ~ , ~ , ~ , ~ ,etl-idempotency
- - , 3 , - , - , - , - , ~ , ~ , ~ , ~ , ~ , ~ ,provenance-tracking
- - , 1 , - , - , - , - , ~ , ~ , ~ , ~ , ~ , ~ ,instrumentation
- ~ , ~ , ~ , ~ , ~ , ~ , 5 , ~ , ~ , ~ , ~ , 5 ,find-pictures-of-people
- ~ , ~ , 3 , ~ , ~ , ~ , 3 , ~ , 5 , ~ , 5 , ~ ,share-photos-with-friends
- ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,custom-album-organization
- ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , 5 , ~ , ~ ,automatic-date-organization
- ~ , ~ , 3 , ~ , ~ , ~ , ~ , ~ , 5 , ~ , 5 , ~ ,collaborative-photo-upload
- ~ , ~ , 3 , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , 5 ,shared-photo-viewing
+F00,F01,F02,F03,F04,F05,F06,F07,F08,F09,F10,F11,F12,F13,NEED
+ 5 , - , - , - , - , - , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,quick-infrastructure-visualization
+ - , 5 , - , - , - , - , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,encryption-for-photo-storage
+ - , 5 , 5 , 3 , - , - , ~ , ~ , ~ , ~ , 5 , 5 , ~ , ~ ,shared-infrastructure-with-safety
+ - , - , - , 3 , - , - , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,multi-language-support
+ - , - , - , - , 3 , 3 , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,ai-assisted-design
+ 3 , - , - , - , 5 , 3 , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,understandable-documentation
+ 3 , 1 , - , - , - , - , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,deployability-visibility
+ - , 1 , - , - , - , - , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,time-travel-debugging
+ - , 3 , - , - , - , - , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,etl-idempotency
+ - , 3 , - , - , - , - , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,provenance-tracking
+ - , 1 , - , - , - , - , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,instrumentation
+ ~ , ~ , ~ , ~ , ~ , ~ , 5 , ~ , ~ , ~ , ~ , 5 , ~ , ~ ,find-pictures-of-people
+ ~ , ~ , 3 , ~ , ~ , ~ , 3 , ~ , 5 , ~ , 5 , ~ , ~ , ~ ,share-photos-with-friends
+ ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,custom-album-organization
+ ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , 5 , ~ , ~ , ~ , ~ ,automatic-date-organization
+ ~ , ~ , 3 , ~ , ~ , ~ , ~ , ~ , 5 , ~ , 5 , ~ , ~ , ~ ,collaborative-photo-upload
+ ~ , ~ , 3 , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , 5 , ~ , ~ ,shared-photo-viewing
+ ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,preserve-harvested-data-compatibility

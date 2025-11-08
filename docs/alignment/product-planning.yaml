@@ -56,6 +56,9 @@ needs:
   shared-photo-viewing:
     description: Allow friends and family to remotely view photos and albums
 
+  preserve-harvested-data-compatibility:
+    description: Preserve compatibility with data harvested from various drives
+
 features:
   mermaid-def-rendering:
     description: Mermaid `def/` rendering
@@ -92,3 +95,9 @@ features:
 
   remote-viewer:
     description: Remote photo/album viewing interface
+
+  content-addressable-storage:
+    description: Content Addressable Storage (CAS) to record file hashes and enable deduplication
+
+  file-provenance-manifest:
+    description: Record a manifest of every file found and every path it came from
