@@ -1,0 +1,63 @@
+graph LR
+
+    %% Node definitions with styling
+
+    %% Commands
+    InspectStorage[InspectStorage]
+    style InspectStorage fill:#e1f5ff,stroke:#01579b
+    ScanPartition[ScanPartition]
+    style ScanPartition fill:#e1f5ff,stroke:#01579b
+    AssignPartitionMount[AssignPartitionMount]
+    style AssignPartitionMount fill:#e1f5ff,stroke:#01579b
+
+    %% Procedures
+    storage_inspector[storage_inspector]
+    style storage_inspector fill:#f3e5f5,stroke:#4a148c
+    partition_scanner[partition_scanner]
+    style partition_scanner fill:#f3e5f5,stroke:#4a148c
+    partition_mount_assigner[partition_mount_assigner]
+    style partition_mount_assigner fill:#f3e5f5,stroke:#4a148c
+
+    %% Events
+    HardDriveDetected[HardDriveDetected]
+    style HardDriveDetected fill:#fff3e0,stroke:#e65100
+    PartitionDetected[PartitionDetected]
+    style PartitionDetected fill:#fff3e0,stroke:#e65100
+    FileItemScanned[FileItemScanned]
+    style FileItemScanned fill:#fff3e0,stroke:#e65100
+    PartitionMountAssigned[PartitionMountAssigned]
+    style PartitionMountAssigned fill:#fff3e0,stroke:#e65100
+
+    %% Policies
+    partition_mount_reconciler[partition_mount_reconciler]
+    style partition_mount_reconciler fill:#e8f5e9,stroke:#1b5e20
+
+    %% Queries
+    ListHardDrives[ListHardDrives]
+    style ListHardDrives fill:#fce4ec,stroke:#880e4f
+    ListPartitions[ListPartitions]
+    style ListPartitions fill:#fce4ec,stroke:#880e4f
+    ListFileItems[ListFileItems]
+    style ListFileItems fill:#fce4ec,stroke:#880e4f
+
+    %% Mutators
+    MountPartition[MountPartition]
+    style MountPartition fill:#fff9c4,stroke:#f57f17
+
+    %% Relationships
+    InspectStorage -->|handled by| storage_inspector
+    ScanPartition -->|handled by| partition_scanner
+    AssignPartitionMount -->|handled by| partition_mount_assigner
+    storage_inspector -->|emits| PartitionDetected
+    storage_inspector -->|emits| HardDriveDetected
+    partition_scanner -->|emits| FileItemScanned
+    partition_mount_assigner -->|emits| PartitionMountAssigned
+    PartitionMountAssigned -->|triggers| partition_mount_reconciler
+    partition_mount_reconciler -->|emits| AssignPartitionMount
+    storage_inspector -->|calls| ListPartitions
+    storage_inspector -->|calls| ListHardDrives
+    partition_scanner -->|calls| ListFileItems
+    partition_scanner -->|calls| ListPartitions
+    partition_scanner -->|calls| ListHardDrives
+    partition_mount_reconciler -->|calls| ListPartitions
+    partition_mount_reconciler -->|calls| MountPartition

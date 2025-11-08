@@ -4,14 +4,27 @@ import typer
 from pathlib import Path
 from typing import Optional
 import subprocess
+from enum import Enum
 
 from dizzy.utils.generate_query_interfaces import generate_query_interfaces
 from dizzy.utils.generate_mutation_interfaces import generate_mutation_interfaces
 from dizzy.utils.generate_procedure_contexts import generate_procedure_contexts
 from dizzy.utils.generate_policy_contexts import generate_policy_contexts
 from dizzy.utils.fix_event_types import fix_event_types, fix_command_types, fix_mutation_types
+from dizzy.utils.system_parser import load_system
+from dizzy.utils.mermaid_generator import save_mermaid_diagram
 
 app = typer.Typer()
+
+
+class EntityType(str, Enum):
+    """Types of entities that can be listed."""
+    commands = "commands"
+    events = "events"
+    queries = "queries"
+    mutators = "mutators"
+    procedures = "procedures"
+    policies = "policies"
 
 
 def run_gen_pydantic(schema_file: Path, output_file: Path) -> bool:
@@ -173,6 +186,122 @@ def gen(
         raise typer.Exit(0)
     else:
         print("⚠️  Completed with errors")
+        raise typer.Exit(1)
+
+
+@app.command()
+def list(
+    entity_type: EntityType = typer.Argument(
+        ...,
+        help="Type of entity to list"
+    ),
+    def_dir: Path = typer.Argument(
+        "def",
+        help="Directory containing LinkML schema files"
+    ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        "-v",
+        help="Show descriptions for each entity"
+    ),
+):
+    """List entities of a specific type from LinkML schemas."""
+    def_dir = def_dir.resolve()
+
+    if not def_dir.exists():
+        print(f"✗ def/ directory not found at {def_dir}")
+        raise typer.Exit(1)
+
+    try:
+        # Load the system from YAML files
+        system = load_system(def_dir)
+
+        # Get the appropriate dictionary based on entity type
+        entities_map = {
+            EntityType.commands: system.commands,
+            EntityType.events: system.events,
+            EntityType.queries: system.queries,
+            EntityType.mutators: system.mutators,
+            EntityType.procedures: system.procedures,
+            EntityType.policies: system.policies,
+        }
+
+        entities = entities_map[entity_type]
+
+        if not entities:
+            print(f"No {entity_type.value} found in {def_dir}")
+            return
+
+        print(f"\n{entity_type.value.capitalize()} ({len(entities)}):")
+        print()
+
+        for name, entity in sorted(entities.items()):
+            if verbose and hasattr(entity, 'description') and entity.description:
+                # Clean up description for display
+                desc = entity.description.replace('\n', ' ').strip()
+                # Truncate if too long
+                if len(desc) > 100:
+                    desc = desc[:97] + "..."
+                print(f"  • {name}")
+                print(f"    {desc}")
+            else:
+                print(f"  • {name}")
+
+        print()
+
+    except Exception as e:
+        print(f"✗ Error listing {entity_type.value}: {e}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def diagram(
+    def_dir: Path = typer.Option(
+        "def",
+        "--def-dir",
+        help="Directory containing LinkML schema files"
+    ),
+    output: Path = typer.Option(
+        "architecture.mermaid",
+        "--output",
+        "-o",
+        help="Output file path for the Mermaid diagram"
+    ),
+):
+    """Generate a Mermaid diagram from LinkML schemas."""
+    def_dir = def_dir.resolve()
+    output = output.resolve()
+
+    if not def_dir.exists():
+        print(f"✗ def/ directory not found at {def_dir}")
+        raise typer.Exit(1)
+
+    print(f"Loading system from {def_dir}/")
+
+    try:
+        # Load the system from YAML files
+        system = load_system(def_dir)
+
+        # Generate and save the diagram
+        save_mermaid_diagram(system, output)
+
+        print(f"✓ Diagram generated: {output}")
+        print()
+
+        # Print some statistics
+        print("System summary:")
+        print(f"  Commands:   {len(system.commands)}")
+        print(f"  Events:     {len(system.events)}")
+        print(f"  Queries:    {len(system.queries)}")
+        print(f"  Mutators:   {len(system.mutators)}")
+        print(f"  Procedures: {len(system.procedures)}")
+        print(f"  Policies:   {len(system.policies)}")
+        print()
+        print("✨ Done")
+
+    except Exception as e:
+        print(f"✗ Error generating diagram: {e}")
         raise typer.Exit(1)
 
 
