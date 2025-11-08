@@ -333,7 +333,7 @@ class PutContentInput(QueryInput):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
 
-    content: str = Field(default=..., description="""The binary content to store""", json_schema_extra = { "linkml_meta": {'domain_of': ['PutContentInput', 'GetContent']} })
+    source_path: str = Field(default=..., description="""Path to the file to upload to CAS""", json_schema_extra = { "linkml_meta": {'domain_of': ['PutContentInput']} })
 
 
 class PutContent(Query):
@@ -358,15 +358,16 @@ class GetContentInput(QueryInput):
                        'PutContent',
                        'GetContentInput',
                        'CheckExistsInput']} })
+    destination_path: str = Field(default=..., description="""Path where the content should be written""", json_schema_extra = { "linkml_meta": {'domain_of': ['GetContentInput']} })
 
 
 class GetContent(Query):
     """
-    Query result containing the retrieved content
+    Query result for content retrieval (content is written to destination_path)
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
 
-    content: str = Field(default=..., description="""The binary content retrieved from CAS""", json_schema_extra = { "linkml_meta": {'domain_of': ['PutContentInput', 'GetContent']} })
+    success: bool = Field(default=..., description="""Whether the content was successfully written to the destination""", json_schema_extra = { "linkml_meta": {'domain_of': ['GetContent']} })
 
 
 class CheckExistsInput(QueryInput):

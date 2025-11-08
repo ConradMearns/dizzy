@@ -142,10 +142,10 @@ classes:
       Input parameters for storing content in CAS
     is_a: QueryInput
     attributes:
-      content:
-        description: The binary content to store
+      source_path:
+        description: Path to the file to upload to CAS
         required: true
-        range: string  # Will be bytes in Python
+        range: string
 
   PutContent:
     description: >-
@@ -166,16 +166,20 @@ classes:
         description: CAS identity (version + hash) to retrieve
         required: true
         range: CASIdentity
+      destination_path:
+        description: Path where the content should be written
+        required: true
+        range: string
 
   GetContent:
     description: >-
-      Query result containing the retrieved content
+      Query result for content retrieval (content is written to destination_path)
     is_a: Query
     attributes:
-      content:
-        description: The binary content retrieved from CAS
+      success:
+        description: Whether the content was successfully written to the destination
         required: true
-        range: string  # Will be bytes in Python
+        range: boolean
 
   CheckExistsInput:
     description: >-

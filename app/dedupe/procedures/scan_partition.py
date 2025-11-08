@@ -30,19 +30,15 @@ class ScanPartitionProcedure:
             if not file_path.exists() or not file_path.is_file():
                 continue
 
-            # Read file content and compute hash
+            # Compute hash for tracking purposes
             hasher = hashlib.sha256()
-            file_content = bytearray()
             with open(file_path, 'rb') as f:
                 for chunk in iter(lambda: f.read(8192), b''):
                     hasher.update(chunk)
-                    file_content.extend(chunk)
 
-            # Store content in CAS and get the CAS ID
-            # Use model_construct to bypass Pydantic validation since we're passing bytes
-            # but the schema expects str (LinkML limitation with binary data)
+            # Store content in CAS using path-based interface
             put_result = context.query.put_content(
-                PutContentInput.model_construct(content=bytes(file_content))
+                PutContentInput(source_path=str(file_path))
             )
 
             # Emit event with CAS ID

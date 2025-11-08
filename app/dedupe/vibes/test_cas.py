@@ -5,6 +5,12 @@ Tests PutContent, GetContent, and CheckExists queries with MinIO backend.
 """
 
 import sys
+import tempfile
+from pathlib import Path
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from gen.queries import PutContentInput, GetContentInput, CheckExistsInput
 from queries.cas_minio import (
     PutContentQuery,
@@ -33,125 +39,143 @@ def main():
     print(f"Using bucket: {config.bucket_name}")
     print()
 
-    # Test 1: Put some content
-    print("Test 1: PutContent")
-    print("-" * 60)
-    test_content = b"Hello, DIZZY CAS! This is a test of content-addressable storage."
-    print(f"Storing content: {test_content[:50]}...")
+    # Create temporary directory for test files
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir_path = Path(tmpdir)
 
-    put_query = PutContentQuery(config)
-    put_result = put_query.execute(PutContentInput(content=test_content))
+        # Test 1: Put some content
+        print("Test 1: PutContent")
+        print("-" * 60)
+        test_content = b"Hello, DIZZY CAS! This is a test of content-addressable storage."
+        test_file_1 = tmpdir_path / "test1.txt"
+        test_file_1.write_bytes(test_content)
+        print(f"Created test file: {test_file_1}")
+        print(f"Content: {test_content[:50]}...")
 
-    cas_id = put_result.cas_id
-    version, hash_value = cas_id.split(":", 1)
-    print(f"✓ Content stored successfully!")
-    print(f"  CAS ID: {cas_id}")
-    print(f"  Version: {version}")
-    print(f"  Hash: {hash_value}")
-    print(f"  Path: {version}/{hash_value}")
-    print()
+        put_query = PutContentQuery(config)
+        put_result = put_query.execute(PutContentInput(source_path=str(test_file_1)))
 
-    # Test 2: Check if content exists
-    print("Test 2: CheckExists")
-    print("-" * 60)
-    check_query = CheckExistsQuery(config)
-    check_result = check_query.execute(CheckExistsInput(cas_id=cas_id))
+        cas_id = put_result.cas_id
+        version, hash_value = cas_id.split(":", 1)
+        print(f"✓ Content stored successfully!")
+        print(f"  CAS ID: {cas_id}")
+        print(f"  Version: {version}")
+        print(f"  Hash: {hash_value}")
+        print(f"  Path: {version}/{hash_value}")
+        print()
 
-    print(f"Checking if content exists...")
-    print(f"✓ Exists: {check_result.exists}")
-    print()
+        # Test 2: Check if content exists
+        print("Test 2: CheckExists")
+        print("-" * 60)
+        check_query = CheckExistsQuery(config)
+        check_result = check_query.execute(CheckExistsInput(cas_id=cas_id))
 
-    # Test 3: Retrieve the content
-    print("Test 3: GetContent")
-    print("-" * 60)
-    get_query = GetContentQuery(config)
-    get_result = get_query.execute(GetContentInput(cas_id=cas_id))
+        print(f"Checking if content exists...")
+        print(f"✓ Exists: {check_result.exists}")
+        print()
 
-    retrieved_content = get_result.content
-    print(f"Retrieved content: {retrieved_content[:50]}...")
-    print(f"  Type: {type(retrieved_content)}, Length: {len(retrieved_content)}")
-    print(f"  Original type: {type(test_content)}, Length: {len(test_content)}")
+        # Test 3: Retrieve the content
+        print("Test 3: GetContent")
+        print("-" * 60)
+        get_query = GetContentQuery(config)
+        download_file_1 = tmpdir_path / "downloaded1.txt"
+        get_result = get_query.execute(
+            GetContentInput(cas_id=cas_id, destination_path=str(download_file_1))
+        )
 
-    # Verify content matches (handle both bytes and string)
-    if isinstance(retrieved_content, str):
-        retrieved_content = retrieved_content.encode('utf-8')
+        if not get_result.success:
+            print("✗ ERROR: Download reported failure!")
+            return 1
 
-    if retrieved_content == test_content:
-        print("✓ Content matches original!")
-    else:
-        print("✗ ERROR: Content does not match!")
-        print(f"  Expected: {test_content[:50]}")
-        print(f"  Got: {retrieved_content[:50]}")
-        return 1
-    print()
+        retrieved_content = download_file_1.read_bytes()
+        print(f"Retrieved content: {retrieved_content[:50]}...")
+        print(f"  Original length: {len(test_content)}")
+        print(f"  Retrieved length: {len(retrieved_content)}")
 
-    # Test 4: Store different content and verify different hash
-    print("Test 4: Content Deduplication Test")
-    print("-" * 60)
-    test_content_2 = b"Different content should produce a different hash."
-    print(f"Storing different content: {test_content_2[:50]}...")
+        if retrieved_content == test_content:
+            print("✓ Content matches original!")
+        else:
+            print("✗ ERROR: Content does not match!")
+            print(f"  Expected: {test_content[:50]}")
+            print(f"  Got: {retrieved_content[:50]}")
+            return 1
+        print()
 
-    put_result_2 = put_query.execute(PutContentInput(content=test_content_2))
-    cas_id_2 = put_result_2.cas_id
+        # Test 4: Store different content and verify different hash
+        print("Test 4: Content Deduplication Test")
+        print("-" * 60)
+        test_content_2 = b"Different content should produce a different hash."
+        test_file_2 = tmpdir_path / "test2.txt"
+        test_file_2.write_bytes(test_content_2)
+        print(f"Storing different content: {test_content_2[:50]}...")
 
-    print(f"✓ Content stored successfully!")
-    print(f"  CAS ID: {cas_id_2}")
+        put_result_2 = put_query.execute(PutContentInput(source_path=str(test_file_2)))
+        cas_id_2 = put_result_2.cas_id
 
-    if cas_id != cas_id_2:
-        print("✓ Different content produces different hash (as expected)")
-    else:
-        print("✗ ERROR: Same hash for different content!")
-        return 1
-    print()
+        print(f"✓ Content stored successfully!")
+        print(f"  CAS ID: {cas_id_2}")
 
-    # Test 5: Store same content again and verify same hash
-    print("Test 5: Idempotency Test")
-    print("-" * 60)
-    print("Storing original content again...")
+        if cas_id != cas_id_2:
+            print("✓ Different content produces different hash (as expected)")
+        else:
+            print("✗ ERROR: Same hash for different content!")
+            return 1
+        print()
 
-    put_result_3 = put_query.execute(PutContentInput(content=test_content))
-    cas_id_3 = put_result_3.cas_id
+        # Test 5: Store same content again and verify same hash
+        print("Test 5: Idempotency Test")
+        print("-" * 60)
+        test_file_3 = tmpdir_path / "test3.txt"
+        test_file_3.write_bytes(test_content)
+        print("Storing original content again...")
 
-    print(f"✓ Content stored successfully!")
-    print(f"  CAS ID: {cas_id_3}")
+        put_result_3 = put_query.execute(PutContentInput(source_path=str(test_file_3)))
+        cas_id_3 = put_result_3.cas_id
 
-    if cas_id == cas_id_3:
-        print("✓ Same content produces same hash (idempotent)")
-    else:
-        print("✗ ERROR: Different hash for same content!")
-        return 1
-    print()
+        print(f"✓ Content stored successfully!")
+        print(f"  CAS ID: {cas_id_3}")
 
-    # Test 6: Test with text content (string)
-    print("Test 6: String Content Test")
-    print("-" * 60)
-    text_content = "This is a string, not bytes!"
-    print(f"Storing string content: {text_content}")
+        if cas_id == cas_id_3:
+            print("✓ Same content produces same hash (idempotent)")
+        else:
+            print("✗ ERROR: Different hash for same content!")
+            return 1
+        print()
 
-    put_result_4 = put_query.execute(PutContentInput(content=text_content))
-    cas_id_4 = put_result_4.cas_id
+        # Test 6: Test with text content
+        print("Test 6: Text Content Test")
+        print("-" * 60)
+        text_content = "This is a string, not bytes!"
+        test_file_4 = tmpdir_path / "test4.txt"
+        test_file_4.write_text(text_content, encoding='utf-8')
+        print(f"Storing text content: {text_content}")
 
-    print(f"✓ String content stored successfully!")
-    print(f"  CAS ID: {cas_id_4}")
+        put_result_4 = put_query.execute(PutContentInput(source_path=str(test_file_4)))
+        cas_id_4 = put_result_4.cas_id
 
-    # Retrieve and verify
-    get_result_4 = get_query.execute(GetContentInput(cas_id=cas_id_4))
-    retrieved_text = get_result_4.content
+        print(f"✓ Text content stored successfully!")
+        print(f"  CAS ID: {cas_id_4}")
 
-    # Handle both string and bytes
-    if isinstance(retrieved_text, str):
-        retrieved_text_bytes = retrieved_text.encode('utf-8')
-    else:
-        retrieved_text_bytes = retrieved_text
+        # Retrieve and verify
+        download_file_4 = tmpdir_path / "downloaded4.txt"
+        get_result_4 = get_query.execute(
+            GetContentInput(cas_id=cas_id_4, destination_path=str(download_file_4))
+        )
 
-    if retrieved_text_bytes == text_content.encode('utf-8'):
-        print("✓ Retrieved content matches original text")
-    else:
-        print("✗ ERROR: Retrieved content does not match!")
-        print(f"  Expected: {text_content.encode('utf-8')}")
-        print(f"  Got: {retrieved_text_bytes}")
-        return 1
-    print()
+        if not get_result_4.success:
+            print("✗ ERROR: Download reported failure!")
+            return 1
+
+        retrieved_text = download_file_4.read_text(encoding='utf-8')
+
+        if retrieved_text == text_content:
+            print("✓ Retrieved content matches original text")
+        else:
+            print("✗ ERROR: Retrieved content does not match!")
+            print(f"  Expected: {text_content}")
+            print(f"  Got: {retrieved_text}")
+            return 1
+        print()
 
     print("=" * 60)
     print("✓ All CAS tests passed!")
@@ -163,7 +187,7 @@ def main():
     print(f"  - CheckExists: Working ✓")
     print(f"  - Deduplication: Working ✓")
     print(f"  - Idempotency: Working ✓")
-    print(f"  - String handling: Working ✓")
+    print(f"  - Text handling: Working ✓")
     print()
 
     return 0

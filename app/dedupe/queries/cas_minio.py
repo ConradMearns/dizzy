@@ -62,19 +62,9 @@ class PutContentQuery:
             self.client.make_bucket(self.config.bucket_name)
 
     def execute(self, query_input: PutContentInput) -> PutContent:
-        # Get content - handle both bytes and str (from Pydantic schema)
-        # IMPORTANT: We work with raw bytes to preserve binary files exactly
-        content = query_input.content
-
-        if isinstance(content, bytes):
-            # Already bytes - use as-is for binary preservation
-            content_bytes = content
-        elif isinstance(content, str):
-            # String from Pydantic - encode to bytes
-            # NOTE: Only use for text content. Binary files should pass bytes directly.
-            content_bytes = content.encode('utf-8')
-        else:
-            raise TypeError(f"Expected bytes or str, got {type(content)}")
+        # Read content from source path
+        with open(query_input.source_path, 'rb') as f:
+            content_bytes = f.read()
 
         # Compute BLAKE3 hash of raw bytes
         hasher = blake3.blake3()
@@ -104,7 +94,7 @@ class PutContentQuery:
 
 
 class GetContentQuery:
-    """Retrieve content from MinIO by CAS identity."""
+    """Retrieve content from MinIO by CAS identity and write to destination path."""
 
     def __init__(self, config: MinIOCASConfig | None = None):
         self.config = config or MinIOCASConfig()
@@ -128,14 +118,15 @@ class GetContentQuery:
         )
 
         # Read all content as raw bytes - preserves binary files exactly
-        # MinIO returns bytes, no encoding/decoding happens
         content_bytes = response.read()
         response.close()
         response.release_conn()
 
-        # Return raw bytes - Pydantic may convert to str, but the underlying
-        # bytes are preserved in MinIO storage
-        return GetContent(content=content_bytes)
+        # Write content to destination path
+        with open(query_input.destination_path, 'wb') as f:
+            f.write(content_bytes)
+
+        return GetContent(success=True)
 
 
 class CheckExistsQuery:
