@@ -53,7 +53,7 @@ class ScanPartitionProcedure:
                 content_hash=hasher.hexdigest(),
                 cas_id=put_result.cas_id
             ))
-            print(file_path)
+            print(file_path, put_result.cas_id)
             # exit()
 
 # Type check: Ensure we implement the protocol correctly
