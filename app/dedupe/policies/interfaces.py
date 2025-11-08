@@ -16,7 +16,7 @@ from gen.events import (
 
 
 class PartitionMountAssignedPolicyProtocol(Protocol):
-    """Protocol for PartitionMountAssigned policy implementations."""
+    """Protocol for PartitionMountAssigned policy implementations (partition_mount_reconciler)."""
     
     def __call__(self, context: PartitionMountAssignedPolicyContext, event: PartitionMountAssigned) -> None:
         """Execute the PartitionMountAssigned policy."""
