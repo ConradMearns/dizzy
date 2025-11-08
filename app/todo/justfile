@@ -1,0 +1,24 @@
+# Todo project automation
+
+default:
+    @just --list
+
+gen:
+    uv run gen-pydantic def/models.yaml > gen/models.py
+    uv run gen-pydantic def/commands.yaml > gen/commands.py
+    uv run gen-pydantic def/queries.yaml > gen/queries.py
+    uv run gen-pydantic def/events.yaml > gen/events.py
+    uv run gen-pydantic def/mutations.yaml > gen/mutations.py
+
+    uv run python -m dizzy.utils.generate_query_interfaces def/queries.yaml queries/interfaces.py
+    uv run python -m dizzy.utils.generate_mutation_interfaces def/mutations.yaml mutations/interfaces.py
+    uv run python -m dizzy.utils.generate_procedure_contexts def/procedures.d.yaml gen/procedures.py procedures/interfaces.py
+
+check:
+    uv run ty check queries/
+
+test:
+    uv run pytest tests/
+
+serve:
+    uv run python web/server.py

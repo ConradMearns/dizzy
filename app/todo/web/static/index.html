@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dizzy Todo App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+
+        .status {
+            color: white;
+            text-align: center;
+            padding: 0.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .status.connected {
+            background: #48bb78;
+        }
+
+        .status.disconnected {
+            background: #f56565;
+        }
+
+        .columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .columns {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 250px);
+        }
+
+        .column-header {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: #667eea;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .scrollable {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        /* Event Stream Styles */
+        .event-item {
+            padding: 0.75rem;
+            border-left: 4px solid #667eea;
+            background: #f7fafc;
+            border-radius: 4px;
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .event-item.TodoAdded {
+            border-left-color: #48bb78;
+        }
+
+        .event-item.TodoCompleted {
+            border-left-color: #ed8936;
+        }
+
+        .event-item.TodoDeleted {
+            border-left-color: #f56565;
+        }
+
+        .event-type {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.25rem;
+        }
+
+        .event-data {
+            color: #4a5568;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .event-time {
+            color: #a0aec0;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Todo Styles */
+        .add-todo-form {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        #todo-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        #todo-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s;
+            background: white;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .todo-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .todo-item.completed {
+            opacity: 0.6;
+            background: #f7fafc;
+        }
+
+        .todo-item.completed .todo-text {
+            text-decoration: line-through;
+        }
+
+        .todo-text {
+            flex: 1;
+            margin-left: 0.75rem;
+            font-size: 1rem;
+            color: #2d3748;
+        }
+
+        .todo-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .delete-btn {
+            padding: 0.4rem 0.8rem;
+            background: #f56565;
+            font-size: 0.875rem;
+        }
+
+        .delete-btn:hover {
+            background: #e53e3e;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #a0aec0;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dizzy Todo</h1>
+        <div class="subtitle">Event-Driven Architecture Demo</div>
+
+        <div class="status" id="status">Connecting to server...</div>
+
+        <div class="columns">
+            <!-- Left Column: Event Stream -->
+            <div class="card">
+                <div class="column-header">
+                    📡 Event Stream
+                    <span class="badge" id="event-count">0</span>
+                </div>
+                <div class="scrollable" id="event-stream">
+                    <div class="empty-state">Waiting for events...</div>
+                </div>
+            </div>
+
+            <!-- Right Column: Todo List -->
+            <div class="card">
+                <div class="column-header">
+                    ✅ Todo List
+                    <span class="badge" id="todo-count">0</span>
+                </div>
+                <div class="add-todo-form">
+                    <input
+                        type="text"
+                        id="todo-input"
+                        placeholder="What needs to be done?"
+                        autocomplete="off"
+                    >
+                    <button onclick="addTodo()">Add</button>
+                </div>
+                <div class="scrollable" id="todo-list">
+                    <div class="empty-state">No todos yet. Add one above!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        const todos = new Map();
+        const events = [];
+        let evtSource = null;
+
+        // Initialize SSE connection
+        function connectSSE() {
+            evtSource = new EventSource("/events");
+
+            evtSource.onopen = () => {
+                updateStatus("Connected", "connected");
+            };
+
+            evtSource.onerror = () => {
+                updateStatus("Disconnected - Reconnecting...", "disconnected");
+            };
+
+            evtSource.onmessage = (e) => {
+                try {
+                    const event = JSON.parse(e.data);
+                    handleEvent(event);
+                } catch (err) {
+                    console.error("Failed to parse event:", err);
+                }
+            };
+        }
+
+        // Handle events from server
+        function handleEvent(event) {
+            console.log("Event received:", event);
+
+            // Add to event stream
+            events.unshift({...event, timestamp: new Date()});
+            renderEventStream();
+
+            // Process event for todo list
+            if (event.type === "TodoAdded") {
+                const todo = {
+                    id: event.todo_id,
+                    text: event.text,
+                    completed: false,
+                    created_at: event.created_at,
+                    completed_at: null
+                };
+                todos.set(todo.id, todo);
+                renderTodos();
+            } else if (event.type === "TodoCompleted") {
+                const todo = todos.get(event.todo_id);
+                if (todo) {
+                    todo.completed = true;
+                    todo.completed_at = event.completed_at;
+                    renderTodos();
+                }
+            } else if (event.type === "TodoDeleted") {
+                todos.delete(event.todo_id);
+                renderTodos();
+            }
+        }
+
+        // Render event stream
+        function renderEventStream() {
+            const stream = document.getElementById("event-stream");
+            const count = document.getElementById("event-count");
+
+            count.textContent = events.length;
+
+            if (events.length === 0) {
+                stream.innerHTML = '<div class="empty-state">Waiting for events...</div>';
+                return;
+            }
+
+            stream.innerHTML = events.map(event => {
+                // Format event data (exclude type and timestamp)
+                const {type, timestamp, ...data} = event;
+                const dataStr = JSON.stringify(data, null, 2);
+                const timeStr = timestamp.toLocaleTimeString();
+
+                return `
+                    <div class="event-item ${type}">
+                        <div class="event-type">${type}</div>
+                        <div class="event-data">${escapeHtml(dataStr)}</div>
+                        <div class="event-time">${timeStr}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Send command to server
+        async function sendCommand(type, data) {
+            try {
+                const response = await fetch("/command", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ type, data }),
+                });
+
+                if (!response.ok) {
+                    console.error("Command failed:", await response.text());
+                }
+            } catch (err) {
+                console.error("Failed to send command:", err);
+                updateStatus("Error sending command", "disconnected");
+            }
+        }
+
+        // Add todo
+        async function addTodo() {
+            const input = document.getElementById("todo-input");
+            const text = input.value.trim();
+
+            if (!text) return;
+
+            await sendCommand("AddTodo", { text });
+            input.value = "";
+        }
+
+        // Complete todo
+        async function completeTodo(todoId) {
+            await sendCommand("CompleteTodo", { todo_id: todoId });
+        }
+
+        // Delete todo
+        async function deleteTodo(todoId) {
+            await sendCommand("DeleteTodo", { todo_id: todoId });
+        }
+
+        // Render todos
+        function renderTodos() {
+            const list = document.getElementById("todo-list");
+            const count = document.getElementById("todo-count");
+
+            count.textContent = todos.size;
+
+            if (todos.size === 0) {
+                list.innerHTML = '<div class="empty-state">No todos yet. Add one above!</div>';
+                return;
+            }
+
+            const todoArray = Array.from(todos.values());
+            list.innerHTML = todoArray.map(todo => `
+                <div class="todo-item ${todo.completed ? 'completed' : ''}">
+                    <input
+                        type="checkbox"
+                        class="todo-checkbox"
+                        ${todo.completed ? 'checked' : ''}
+                        onchange="completeTodo('${todo.id}')"
+                        ${todo.completed ? 'disabled' : ''}
+                    >
+                    <span class="todo-text">${escapeHtml(todo.text)}</span>
+                    <button class="delete-btn" onclick="deleteTodo('${todo.id}')">
+                        Delete
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Update status message
+        function updateStatus(message, className) {
+            const status = document.getElementById("status");
+            status.textContent = message;
+            status.className = `status ${className}`;
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Handle Enter key in input
+        document.getElementById("todo-input").addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                addTodo();
+            }
+        });
+
+        // Initialize
+        connectSSE();
+        renderTodos();
+    </script>
+</body>
+</html>

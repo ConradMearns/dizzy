@@ -1,0 +1,50 @@
+id: https://example.org/todo/commands
+name: todo-commands-schema
+title: Todo Commands Data Model
+description: >-
+  LinkML schema for command objects that represent operations to be performed
+  on todo items.
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  todo: https://example.org/todo/
+
+default_prefix: todo
+default_range: string
+
+imports:
+  - linkml:types
+  - ../../../pkg/dizzy/src/dizzy/def/commands
+  - models
+
+classes:
+
+  AddTodo:
+    description: >-
+      Command to add a new todo item
+    is_a: Command
+    attributes:
+      text:
+        description: The text content of the new todo item
+        required: true
+        range: string
+
+  CompleteTodo:
+    description: >-
+      Command to mark a todo item as completed
+    is_a: Command
+    attributes:
+      todo_id:
+        description: ID of the todo item to complete
+        required: true
+        range: string
+
+  DeleteTodo:
+    description: >-
+      Command to delete a todo item
+    is_a: Command
+    attributes:
+      todo_id:
+        description: ID of the todo item to delete
+        required: true
+        range: string
