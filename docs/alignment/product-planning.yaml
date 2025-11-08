@@ -36,7 +36,25 @@ needs:
     description: As a user, have provenance tracking capabilities from event sourcing
 
   instrumentation:
-    description: As a user, have instrumentation capabilities
+    description: Required for NVPSM / Maintence
+
+  find-pictures-of-people:
+    description: Quickly find pictures of specific people in my photo collection
+
+  share-photos-with-friends:
+    description: Notify friends with links to photos containing them when I take pictures
+
+  custom-album-organization:
+    description: Create custom albums to organize photos how I want
+
+  automatic-date-organization:
+    description: Have photos automatically organized by calendar/date
+
+  collaborative-photo-upload:
+    description: Allow friends and family to remotely upload photos to my collection
+
+  shared-photo-viewing:
+    description: Allow friends and family to remotely view photos and albums
 
 features:
   mermaid-def-rendering:
@@ -56,3 +74,21 @@ features:
 
   nvpsm-framework:
     description: NVPSM framework for assessing deployability of components and stacks
+
+  facial-recognition:
+    description: Facial recognition technology for identifying people in photos
+
+  tag-based-albums:
+    description: Tag-based metadata and album system for organizing photos
+
+  notification-system:
+    description: Friend notification system with shareable links to albums
+
+  calendar-albums:
+    description: Automatic calendar-based album generation
+
+  remote-upload:
+    description: Remote photo upload capability for friends and family
+
+  remote-viewer:
+    description: Remote photo/album viewing interface
