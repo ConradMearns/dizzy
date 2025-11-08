@@ -1,0 +1,22 @@
+# Feature Mapping:
+# F00: mermaid-def-rendering - Mermaid `def/` rendering
+# F01: minio-storage - Use MinIO for distributed storage
+# F02: tailscale-networking - Use Tailscale to help with connections and networking
+# F03: dizzy-strategizer - A dizzy-strategizer that can inject correct components into a program regardless of language (based on schema-defined def)
+# F04: diataxis-documentation - Implement Diataxis documentation framework for better understanding
+# F05: nvpsm-framework - NVPSM framework for assessing deployability of components and stacks
+#
+# Interaction strength values: 5 (strong), 3 (medium), 1 (weak), --- (none/unknown)
+#
+F00,F01,F02,F03,F04,F05,NEED
+ 5 , - , - , - , - , - ,quick-infrastructure-visualization
+ - , 5 , - , - , - , - ,encryption-for-photo-storage
+ - , 5 , 5 , - , - , - ,shared-infrastructure-with-safety
+ - , - , - , 3 , - , - ,multi-language-support
+ - , - , - , - , 3 , 3 ,ai-assisted-design
+ 3 , - , - , - , 5 , 3 ,understandable-documentation
+ 3 , 1 , - , - , - , - ,deployability-visibility
+ - , 1 , - , - , - , - ,time-travel-debugging
+ - , 3 , - , - , - , - ,etl-idempotency
+ - , 3 , - , - , - , - ,provenance-tracking
+ - , 1 , - , - , - , - ,instrumentation
