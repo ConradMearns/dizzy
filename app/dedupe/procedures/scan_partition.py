@@ -10,7 +10,7 @@ from pathlib import Path
 from procedures.interfaces import ScanPartitionProcedureProtocol
 from gen.procedures import ScanPartitionContext
 from gen.commands import ScanPartition
-from gen.queries import ListFileItemsInput
+from gen.queries import ListFileItemsInput, PutContentInput
 from gen.events import FileItemScanned
 
 
@@ -30,21 +30,31 @@ class ScanPartitionProcedure:
             if not file_path.exists() or not file_path.is_file():
                 continue
 
-            # Read file and compute hash
+            # Read file content and compute hash
             hasher = hashlib.sha256()
+            file_content = bytearray()
             with open(file_path, 'rb') as f:
                 for chunk in iter(lambda: f.read(8192), b''):
                     hasher.update(chunk)
+                    file_content.extend(chunk)
 
-            # Emit event
+            # Store content in CAS and get the CAS ID
+            # Use model_construct to bypass Pydantic validation since we're passing bytes
+            # but the schema expects str (LinkML limitation with binary data)
+            put_result = context.query.put_content(
+                PutContentInput.model_construct(content=bytes(file_content))
+            )
+
+            # Emit event with CAS ID
             context.emit.scanned(FileItemScanned(
                 partition_uuid=command.partition_uuid,
                 path=str(file_path),
                 size=file_path.stat().st_size,
-                content_hash=hasher.hexdigest()
+                content_hash=hasher.hexdigest(),
+                cas_id=put_result.cas_id
             ))
-            print("Wrapping up")
-            exit()
+            print(file_path)
+            # exit()
 
 # Type check: Ensure we implement the protocol correctly
 _: ScanPartitionProcedureProtocol = ScanPartitionProcedure()

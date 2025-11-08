@@ -191,6 +191,10 @@ class FileItemScanned(DomainEvent):
     path: str = Field(default=..., description="""Full path to the file within the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned']} })
     size: int = Field(default=..., description="""Size of the file in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
     content_hash: str = Field(default=..., description="""Hash of the file contents""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
+    cas_id: str = Field(default=..., description="""CAS identity (version + hash) of the stored content""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned',
+                       'PutContent',
+                       'GetContentInput',
+                       'CheckExistsInput']} })
 
 
 class PartitionMountAssigned(DomainEvent):
@@ -338,7 +342,10 @@ class PutContent(Query):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
 
-    cas_id: str = Field(default=..., description="""CAS identity (version + hash) of the stored content""", json_schema_extra = { "linkml_meta": {'domain_of': ['PutContent', 'GetContentInput', 'CheckExistsInput']} })
+    cas_id: str = Field(default=..., description="""CAS identity (version + hash) of the stored content""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned',
+                       'PutContent',
+                       'GetContentInput',
+                       'CheckExistsInput']} })
 
 
 class GetContentInput(QueryInput):
@@ -347,7 +354,10 @@ class GetContentInput(QueryInput):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
 
-    cas_id: str = Field(default=..., description="""CAS identity (version + hash) to retrieve""", json_schema_extra = { "linkml_meta": {'domain_of': ['PutContent', 'GetContentInput', 'CheckExistsInput']} })
+    cas_id: str = Field(default=..., description="""CAS identity (version + hash) to retrieve""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned',
+                       'PutContent',
+                       'GetContentInput',
+                       'CheckExistsInput']} })
 
 
 class GetContent(Query):
@@ -365,7 +375,10 @@ class CheckExistsInput(QueryInput):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
 
-    cas_id: str = Field(default=..., description="""CAS identity (version + hash) to check""", json_schema_extra = { "linkml_meta": {'domain_of': ['PutContent', 'GetContentInput', 'CheckExistsInput']} })
+    cas_id: str = Field(default=..., description="""CAS identity (version + hash) to check""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned',
+                       'PutContent',
+                       'GetContentInput',
+                       'CheckExistsInput']} })
 
 
 class CheckExists(Query):

@@ -196,6 +196,7 @@ class FileItemScanned(DomainEvent):
     path: str = Field(default=..., description="""Full path to the file within the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned']} })
     size: int = Field(default=..., description="""Size of the file in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
     content_hash: str = Field(default=..., description="""Hash of the file contents""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
+    cas_id: str = Field(default=..., description="""CAS identity (version + hash) of the stored content""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
 
 
 class PartitionMountAssigned(DomainEvent):

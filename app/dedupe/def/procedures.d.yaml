@@ -20,6 +20,7 @@ procedures:
       list_hard_drives: ListHardDrives
       list_partitions: ListPartitions
       list_file_items: ListFileItems
+      put_content: PutContent
 
   partition_mount_assigner:
     command: AssignPartitionMount

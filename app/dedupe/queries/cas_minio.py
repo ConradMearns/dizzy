@@ -62,17 +62,26 @@ class PutContentQuery:
             self.client.make_bucket(self.config.bucket_name)
 
     def execute(self, query_input: PutContentInput) -> PutContent:
-        # Convert content to bytes if needed
-        content_bytes = query_input.content
-        if isinstance(content_bytes, str):
-            content_bytes = content_bytes.encode('utf-8')
+        # Get content - handle both bytes and str (from Pydantic schema)
+        # IMPORTANT: We work with raw bytes to preserve binary files exactly
+        content = query_input.content
 
-        # Compute BLAKE3 hash
+        if isinstance(content, bytes):
+            # Already bytes - use as-is for binary preservation
+            content_bytes = content
+        elif isinstance(content, str):
+            # String from Pydantic - encode to bytes
+            # NOTE: Only use for text content. Binary files should pass bytes directly.
+            content_bytes = content.encode('utf-8')
+        else:
+            raise TypeError(f"Expected bytes or str, got {type(content)}")
+
+        # Compute BLAKE3 hash of raw bytes
         hasher = blake3.blake3()
         hasher.update(content_bytes)
         hash_bytes = hasher.digest()
 
-        # Encode as base58
+        # Encode hash as base58
         hash_b58 = base58.b58encode(hash_bytes).decode('ascii')
 
         # Create CAS identity string in format "version:hash"
@@ -82,7 +91,7 @@ class PutContentQuery:
         # Store in MinIO at /version/hash
         object_path = f"{version}/{hash_b58}"
 
-        # Upload content
+        # Upload raw bytes to MinIO - no encoding/decoding, preserves binary exactly
         content_stream = BytesIO(content_bytes)
         self.client.put_object(
             self.config.bucket_name,
@@ -112,17 +121,20 @@ class GetContentQuery:
         version, hash_b58 = cas_id_str.split(":", 1)
         object_path = f"{version}/{hash_b58}"
 
-        # Retrieve from MinIO
+        # Retrieve from MinIO as raw bytes
         response = self.client.get_object(
             self.config.bucket_name,
             object_path,
         )
 
-        # Read all content
+        # Read all content as raw bytes - preserves binary files exactly
+        # MinIO returns bytes, no encoding/decoding happens
         content_bytes = response.read()
         response.close()
         response.release_conn()
 
+        # Return raw bytes - Pydantic may convert to str, but the underlying
+        # bytes are preserved in MinIO storage
         return GetContent(content=content_bytes)
 
 

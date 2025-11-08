@@ -23,7 +23,7 @@ import argparse
 from pathlib import Path
 from typing import List, Dict, Any
 
-from gen.commands import InspectStorage, AssignPartitionMount, Partition
+from gen.commands import InspectStorage, AssignPartitionMount, ScanPartition, Partition
 from st_service import Service
 
 
@@ -31,6 +31,7 @@ from st_service import Service
 COMMAND_REGISTRY = {
     "InspectStorage": InspectStorage,
     "AssignPartitionMount": AssignPartitionMount,
+    "ScanPartition": ScanPartition,
 }
 
 

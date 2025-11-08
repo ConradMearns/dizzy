@@ -4,10 +4,11 @@
 Single-threaded DIZZY service for testing the complete command-procedure-event-policy loop.
 """
 
-from gen.commands import InspectStorage, AssignPartitionMount
+from gen.commands import InspectStorage, AssignPartitionMount, ScanPartition
 from gen.procedures import (
     InspectStorageContext, InspectStorageEmitters, InspectStorageQueries,
-    AssignPartitionMountContext, AssignPartitionMountEmitters, AssignPartitionMountQueries
+    AssignPartitionMountContext, AssignPartitionMountEmitters, AssignPartitionMountQueries,
+    ScanPartitionContext, ScanPartitionEmitters, ScanPartitionQueries
 )
 from gen.policies import (
     PartitionMountAssignedPolicyContext,
@@ -18,8 +19,10 @@ from gen.policies import (
 from gen.events import HardDriveDetected, PartitionDetected, PartitionMountAssigned, FileItemScanned
 from procedures.inspect_storage import InspectStorageProcedure
 from procedures.assign_partition_mount import AssignPartitionMountProcedure
+from procedures.scan_partition import ScanPartitionProcedure
 from policies.partition_mount_assigned import PartitionMountAssignedPolicy
-from queries.file_scanners.linux import ListHardDrivesQuery, ListPartitionsQuery
+from queries.file_scanners.linux import ListHardDrivesQuery, ListPartitionsQuery, ListFileItemsQuery
+from queries.cas_minio import PutContentQuery
 from mutations.mount_partition import MountPartitionMutation
 from gen.queries import ListPartitionsInput, ListPartitions
 from gen.mutations import MountPartitionInput
@@ -33,12 +36,15 @@ class Service:
         # Initialize query and mutation implementations
         list_hard_drives_query = ListHardDrivesQuery()
         list_partitions_query = ListPartitionsQuery()
+        list_file_items_query = ListFileItemsQuery()
+        put_content_query = PutContentQuery()
         mount_partition_mutation = MountPartitionMutation()
 
         # Command to Procedure mapping
         self.command_map = {
             InspectStorage: [InspectStorageProcedure],
             AssignPartitionMount: [AssignPartitionMountProcedure],
+            ScanPartition: [ScanPartitionProcedure],
         }
 
         # Procedure to Context mapping
@@ -58,6 +64,17 @@ class Service:
                     partition_mount_assigned=lambda event: self.emit_event(event),
                 ),
                 query=AssignPartitionMountQueries()
+            ),
+            ScanPartitionProcedure: ScanPartitionContext(
+                emit=ScanPartitionEmitters(
+                    scanned=lambda event: self.emit_event(event),
+                ),
+                query=ScanPartitionQueries(
+                    list_hard_drives=list_hard_drives_query.execute,
+                    list_partitions=list_partitions_query.execute,
+                    list_file_items=list_file_items_query.execute,
+                    put_content=put_content_query.execute,
+                )
             ),
         }
 

@@ -70,6 +70,10 @@ classes:
         description: Hash of the file contents
         required: true
         range: string
+      cas_id:
+        description: CAS identity (version + hash) of the stored content
+        required: true
+        range: string
 
   PartitionMountAssigned:
     description: >-
