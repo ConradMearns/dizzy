@@ -17,12 +17,12 @@ class MountPartitionMutation:
         Mount a partition at the specified mount point.
 
         Args:
-            input: MountPartitionInput with partition and mount_point
+            input: MountPartitionInput with partition UUID and mount_point
 
         Returns:
             MountPartition with success status and optional error message
         """
-        partition_uuid = input.partition.uuid
+        partition_uuid = input.partition  # This is a string UUID
         mount_point = input.mount_point
 
         print(f"[MUTATOR] Mounting partition {partition_uuid} at {mount_point}")

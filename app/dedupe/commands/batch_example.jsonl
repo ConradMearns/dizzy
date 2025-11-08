@@ -1,0 +1,5 @@
+{"type": "InspectStorage"}
+{"type": "AssignPartitionMount", "partition": "B0E2ACBDE2AC8964", "mount_point": "/mnt/dedupe_a"}
+{"type": "AssignPartitionMount", "partition": "FACE862BCE85E06D", "mount_point": "/mnt/dedupe_b"}
+{"type": "AssignPartitionMount", "partition": "94BA918FBA916F0C", "mount_point": "/mnt/dedupe_c"}
+{"type": "AssignPartitionMount", "partition": "784A20BF4A207C4E", "mount_point": "/mnt/dedupe_d"}
