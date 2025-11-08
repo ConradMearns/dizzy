@@ -92,7 +92,7 @@ linkml_meta = LinkMLMeta({'default_prefix': 'dedupe',
                              'prefix_reference': 'https://example.org/dedupe/'},
                   'linkml': {'prefix_prefix': 'linkml',
                              'prefix_reference': 'https://w3id.org/linkml/'}},
-     'source_file': '/home/conrad/dizzy/app/dedupe/def/mutations.yaml',
+     'source_file': 'def/mutations.yaml',
      'title': 'Dedupe Mutations Data Model'} )
 
 
@@ -143,8 +143,18 @@ class FileItem(ConfiguredBaseModel):
     partition_uuid: str = Field(default=..., description="""UUID of the partition where item was found""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned', 'MountPartition']} })
     path: str = Field(default=..., description="""Full path of the item on the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned']} })
     size_bytes: int = Field(default=..., description="""Size of the item in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['HardDrive', 'Partition', 'FileItem']} })
-    hash: str = Field(default=..., description="""Hash of the item contents (e.g., SHA256, MD5)""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem']} })
+    hash: str = Field(default=..., description="""Hash of the item contents (e.g., SHA256, MD5)""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'CASIdentity']} })
     hash_algorithm: Optional[str] = Field(default=None, description="""Algorithm used to generate the hash""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem']} })
+
+
+class CASIdentity(ConfiguredBaseModel):
+    """
+    Content Addressable Storage identifier consisting of version and hash. Used to uniquely identify content by its cryptographic hash.
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe'})
+
+    version: str = Field(default=..., description="""CAS version string (e.g., \"DZ0\")""", json_schema_extra = { "linkml_meta": {'domain_of': ['CASIdentity']} })
+    hash: str = Field(default=..., description="""Base58-encoded BLAKE3 hash of the content""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'CASIdentity']} })
 
 
 class TestMessage(DomainEvent):
@@ -247,7 +257,7 @@ class MountPartitionInput(MutationInput):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/mutations'})
 
-    partition: Partition = Field(default=..., description="""The partition to mount""", json_schema_extra = { "linkml_meta": {'domain_of': ['PartitionDetected',
+    partition: str = Field(default=..., description="""The partition to mount""", json_schema_extra = { "linkml_meta": {'domain_of': ['PartitionDetected',
                        'PartitionMountAssigned',
                        'MountPartitionInput']} })
     mount_point: str = Field(default=..., description="""The mount point path where partition should be mounted""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition',
@@ -277,6 +287,7 @@ DomainEvent.model_rebuild()
 HardDrive.model_rebuild()
 Partition.model_rebuild()
 FileItem.model_rebuild()
+CASIdentity.model_rebuild()
 TestMessage.model_rebuild()
 HardDriveDetected.model_rebuild()
 PartitionDetected.model_rebuild()

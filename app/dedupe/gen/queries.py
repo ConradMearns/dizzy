@@ -85,13 +85,14 @@ linkml_meta = LinkMLMeta({'default_prefix': 'dedupe',
      'id': 'https://example.org/dedupe/queries',
      'imports': ['linkml:types',
                  'events',
+                 'models',
                  '../../../pkg/dizzy/src/dizzy/def/queries'],
      'name': 'dedupe-queries-schema',
      'prefixes': {'dedupe': {'prefix_prefix': 'dedupe',
                              'prefix_reference': 'https://example.org/dedupe/'},
                   'linkml': {'prefix_prefix': 'linkml',
                              'prefix_reference': 'https://w3id.org/linkml/'}},
-     'source_file': '/home/conrad/dizzy/app/dedupe/def/queries.yaml',
+     'source_file': 'def/queries.yaml',
      'title': 'Dedupe Queries Data Model'} )
 
 
@@ -139,8 +140,18 @@ class FileItem(ConfiguredBaseModel):
     partition_uuid: str = Field(default=..., description="""UUID of the partition where item was found""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned', 'ListFileItemsInput']} })
     path: str = Field(default=..., description="""Full path of the item on the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned']} })
     size_bytes: int = Field(default=..., description="""Size of the item in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['HardDrive', 'Partition', 'FileItem']} })
-    hash: str = Field(default=..., description="""Hash of the item contents (e.g., SHA256, MD5)""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem']} })
+    hash: str = Field(default=..., description="""Hash of the item contents (e.g., SHA256, MD5)""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'CASIdentity']} })
     hash_algorithm: Optional[str] = Field(default=None, description="""Algorithm used to generate the hash""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem']} })
+
+
+class CASIdentity(ConfiguredBaseModel):
+    """
+    Content Addressable Storage identifier consisting of version and hash. Used to uniquely identify content by its cryptographic hash.
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe'})
+
+    version: str = Field(default=..., description="""CAS version string (e.g., \"DZ0\")""", json_schema_extra = { "linkml_meta": {'domain_of': ['CASIdentity']} })
+    hash: str = Field(default=..., description="""Base58-encoded BLAKE3 hash of the content""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'CASIdentity']} })
 
 
 class TestMessage(DomainEvent):
@@ -312,12 +323,67 @@ class GetEventsByTypes(Query):
     events: list[ChainEntry] = Field(default=..., description="""List of chain entries matching the requested types""", json_schema_extra = { "linkml_meta": {'domain_of': ['GetAllEvents', 'GetEventsByTypes']} })
 
 
+class PutContentInput(QueryInput):
+    """
+    Input parameters for storing content in CAS
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
+
+    content: str = Field(default=..., description="""The binary content to store""", json_schema_extra = { "linkml_meta": {'domain_of': ['PutContentInput', 'GetContent']} })
+
+
+class PutContent(Query):
+    """
+    Query result containing the CAS identity of stored content
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
+
+    cas_id: str = Field(default=..., description="""CAS identity (version + hash) of the stored content""", json_schema_extra = { "linkml_meta": {'domain_of': ['PutContent', 'GetContentInput', 'CheckExistsInput']} })
+
+
+class GetContentInput(QueryInput):
+    """
+    Input parameters for retrieving content from CAS by identity
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
+
+    cas_id: str = Field(default=..., description="""CAS identity (version + hash) to retrieve""", json_schema_extra = { "linkml_meta": {'domain_of': ['PutContent', 'GetContentInput', 'CheckExistsInput']} })
+
+
+class GetContent(Query):
+    """
+    Query result containing the retrieved content
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
+
+    content: str = Field(default=..., description="""The binary content retrieved from CAS""", json_schema_extra = { "linkml_meta": {'domain_of': ['PutContentInput', 'GetContent']} })
+
+
+class CheckExistsInput(QueryInput):
+    """
+    Input parameters for checking if content exists in CAS
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
+
+    cas_id: str = Field(default=..., description="""CAS identity (version + hash) to check""", json_schema_extra = { "linkml_meta": {'domain_of': ['PutContent', 'GetContentInput', 'CheckExistsInput']} })
+
+
+class CheckExists(Query):
+    """
+    Query result indicating whether content exists in CAS
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
+
+    exists: bool = Field(default=..., description="""True if content exists in CAS, False otherwise""", json_schema_extra = { "linkml_meta": {'domain_of': ['CheckExists']} })
+
+
 # Model rebuild
 # see https://pydantic-docs.helpmanual.io/usage/models/#rebuilding-a-model
 DomainEvent.model_rebuild()
 HardDrive.model_rebuild()
 Partition.model_rebuild()
 FileItem.model_rebuild()
+CASIdentity.model_rebuild()
 TestMessage.model_rebuild()
 HardDriveDetected.model_rebuild()
 PartitionDetected.model_rebuild()
@@ -336,3 +402,9 @@ GetAllEventsInput.model_rebuild()
 GetAllEvents.model_rebuild()
 GetEventsByTypesInput.model_rebuild()
 GetEventsByTypes.model_rebuild()
+PutContentInput.model_rebuild()
+PutContent.model_rebuild()
+GetContentInput.model_rebuild()
+GetContent.model_rebuild()
+CheckExistsInput.model_rebuild()
+CheckExists.model_rebuild()

@@ -17,6 +17,12 @@ from gen.queries import (
     GetAllEvents,
     GetEventsByTypesInput,
     GetEventsByTypes,
+    PutContentInput,
+    PutContent,
+    GetContentInput,
+    GetContent,
+    CheckExistsInput,
+    CheckExists,
 )
 
 
@@ -57,5 +63,29 @@ class GetEventsByTypesProtocol(Protocol):
     
     def execute(self, query_input: GetEventsByTypesInput) -> GetEventsByTypes:
         """Execute the GetEventsByTypes query."""
+        ...
+
+
+class PutContentProtocol(Protocol):
+    """Protocol for PutContent query implementations."""
+    
+    def execute(self, query_input: PutContentInput) -> PutContent:
+        """Execute the PutContent query."""
+        ...
+
+
+class GetContentProtocol(Protocol):
+    """Protocol for GetContent query implementations."""
+    
+    def execute(self, query_input: GetContentInput) -> GetContent:
+        """Execute the GetContent query."""
+        ...
+
+
+class CheckExistsProtocol(Protocol):
+    """Protocol for CheckExists query implementations."""
+    
+    def execute(self, query_input: CheckExistsInput) -> CheckExists:
+        """Execute the CheckExists query."""
         ...
 
