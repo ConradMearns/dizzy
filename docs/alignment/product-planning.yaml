@@ -1,0 +1,103 @@
+meta:
+  description: |
+    Product planning document for DIZZY development.
+    This file tracks needs and features to guide development priorities
+    and ensure alignment between user requirements and implementation efforts.
+
+needs:
+  quick-infrastructure-visualization:
+    description: I need a quick way to visualize how much dizzy infrastructure has been completed
+
+  encryption-for-photo-storage:
+    description: Encryption over MinIO for photo apps
+
+  shared-infrastructure-with-safety:
+    description: Share the burden of infrastructure but need to remain safe
+
+  multi-language-support:
+    description: As a developer, I want to be able to use languages other than Python in DIZZY
+
+  ai-assisted-design:
+    description: As a user, I want to be able to explain my ideas and have the computer assist me in their design
+
+  understandable-documentation:
+    description: As a user, I want to be able to read about DIZZY and understand it
+
+  deployability-visibility:
+    description: As a developer, I want to understand what the perceived deployability of a component or stack is
+
+  time-travel-debugging:
+    description: As a user, leverage event sourcing for time travel debugging
+
+  etl-idempotency:
+    description: As a user, leverage event sourcing for ETL idempotency
+
+  provenance-tracking:
+    description: As a user, have provenance tracking capabilities from event sourcing
+
+  instrumentation:
+    description: Required for NVPSM / Maintence
+
+  find-pictures-of-people:
+    description: Quickly find pictures of specific people in my photo collection
+
+  share-photos-with-friends:
+    description: Notify friends with links to photos containing them when I take pictures
+
+  custom-album-organization:
+    description: Create custom albums to organize photos how I want
+
+  automatic-date-organization:
+    description: Have photos automatically organized by calendar/date
+
+  collaborative-photo-upload:
+    description: Allow friends and family to remotely upload photos to my collection
+
+  shared-photo-viewing:
+    description: Allow friends and family to remotely view photos and albums
+
+  preserve-harvested-data-compatibility:
+    description: Preserve compatibility with data harvested from various drives
+
+features:
+  mermaid-def-rendering:
+    description: Mermaid `def/` rendering
+
+  minio-storage:
+    description: Use MinIO for distributed storage
+
+  tailscale-networking:
+    description: Use Tailscale to help with connections and networking
+
+  dizzy-strategizer:
+    description: A dizzy-strategizer that can inject correct components into a program regardless of language (based on schema-defined def)
+
+  diataxis-documentation:
+    description: Implement Diataxis documentation framework for better understanding
+
+  nvpsm-framework:
+    description: NVPSM framework for assessing deployability of components and stacks
+
+  facial-recognition:
+    description: Facial recognition technology for identifying people in photos
+
+  tag-based-albums:
+    description: Tag-based metadata and album system for organizing photos
+
+  notification-system:
+    description: Friend notification system with shareable links to albums
+
+  calendar-albums:
+    description: Automatic calendar-based album generation
+
+  remote-upload:
+    description: Remote photo upload capability for friends and family
+
+  remote-viewer:
+    description: Remote photo/album viewing interface
+
+  content-addressable-storage:
+    description: Content Addressable Storage (CAS) to record file hashes and enable deduplication
+
+  file-provenance-manifest:
+    description: Record a manifest of every file found and every path it came from
