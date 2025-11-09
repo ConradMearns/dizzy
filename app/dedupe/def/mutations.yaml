@@ -47,6 +47,10 @@ classes:
         description: The original event that was stored
         required: true
         range: DomainEvent
+      is_duplicate:
+        description: True if this exact event was already in the store (based on content hash)
+        required: true
+        range: boolean
 
   MountPartitionInput:
     description: >-

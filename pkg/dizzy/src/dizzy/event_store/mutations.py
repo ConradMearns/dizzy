@@ -38,6 +38,7 @@ class EventRecord(Protocol):
     event_hash: str
     event_type: str
     event: DomainEvent
+    is_duplicate: bool
 
 
 class EventRecordMutation:
@@ -96,8 +97,11 @@ class EventRecordMutation:
 
         event_file = shard_dir / f"{event_hash}.json"
 
+        # Check if this is a duplicate (event file already exists)
+        is_duplicate = event_file.exists()
+
         # Write event file (idempotent - only if not exists)
-        if not event_file.exists():
+        if not is_duplicate:
             with open(event_file, 'w') as f:
                 json.dump(event_dict, f, indent=2)
 
@@ -108,9 +112,10 @@ class EventRecordMutation:
             writer = csv.writer(f)
             writer.writerow([timestamp, event_hash, event_type])
 
-        # Return the event record
+        # Return the event record with duplicate flag
         return event_record_class(
             event_hash=event_hash,
             event_type=event_type,
-            event=event
+            event=event,
+            is_duplicate=is_duplicate
         )

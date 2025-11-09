@@ -28,6 +28,9 @@ from pydantic import (
     model_serializer
 )
 
+# Import DomainEvent from events module to ensure type compatibility
+from gen.events import DomainEvent
+
 
 metamodel_version = "None"
 version = "None"
@@ -92,17 +95,8 @@ linkml_meta = LinkMLMeta({'default_prefix': 'dedupe',
                              'prefix_reference': 'https://example.org/dedupe/'},
                   'linkml': {'prefix_prefix': 'linkml',
                              'prefix_reference': 'https://w3id.org/linkml/'}},
-     'source_file': '/home/conrad/dizzy/app/dedupe/def/mutations.yaml',
+     'source_file': 'def/mutations.yaml',
      'title': 'Dedupe Mutations Data Model'} )
-
-
-class DomainEvent(ConfiguredBaseModel):
-    """
-    Base class for all domain events - immutable facts about what happened. This is an abstract class that should be extended by concrete event types.
-    """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://example.org/dizzy/events'})
-
-    pass
 
 
 class HardDrive(ConfiguredBaseModel):
@@ -256,6 +250,7 @@ class EventRecord(Mutation):
     event_hash: str = Field(default=..., description="""SHA256 hash of the event (content-addressable primary key)""", json_schema_extra = { "linkml_meta": {'domain_of': ['EventRecord']} })
     event_type: str = Field(default=..., description="""Class name of the event (e.g., \"TestMessage\", \"FileItemScanned\")""", json_schema_extra = { "linkml_meta": {'domain_of': ['EventRecord']} })
     event: DomainEvent = Field(default=..., description="""The original event that was stored""", json_schema_extra = { "linkml_meta": {'domain_of': ['EventRecordInput', 'EventRecord']} })
+    is_duplicate: bool = Field(default=..., description="""True if this exact event was already in the store (based on content hash)""", json_schema_extra = { "linkml_meta": {'domain_of': ['EventRecord']} })
 
 
 class MountPartitionInput(MutationInput):
@@ -264,7 +259,7 @@ class MountPartitionInput(MutationInput):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/mutations'})
 
-    partition: Partition = Field(default=..., description="""The partition to mount""", json_schema_extra = { "linkml_meta": {'domain_of': ['PartitionDetected',
+    partition: str = Field(default=..., description="""The partition to mount""", json_schema_extra = { "linkml_meta": {'domain_of': ['PartitionDetected',
                        'PartitionMountAssigned',
                        'MountPartitionInput']} })
     mount_point: str = Field(default=..., description="""The mount point path where partition should be mounted""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition',

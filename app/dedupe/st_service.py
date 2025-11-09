@@ -4,6 +4,8 @@
 Single-threaded DIZZY service for testing the complete command-procedure-event-policy loop.
 """
 
+from pathlib import Path
+
 from gen.commands import InspectStorage, AssignPartitionMount, ScanPartition
 from gen.procedures import (
     InspectStorageContext, InspectStorageEmitters, InspectStorageQueries,
@@ -21,6 +23,7 @@ from gen.policies import (
     FileItemScannedPolicyMutators
 )
 from gen.events import HardDriveDetected, PartitionDetected, PartitionMountAssigned, FileItemScanned
+from gen.mutations import EventRecordInput, EventRecord
 from procedures.inspect_storage import InspectStorageProcedure
 from procedures.assign_partition_mount import AssignPartitionMountProcedure
 from procedures.scan_partition import ScanPartitionProcedure
@@ -32,10 +35,11 @@ from mutations.mount_partition import MountPartitionMutation
 from mutations.append_to_manifest import AppendToManifestMutation
 from gen.queries import ListPartitionsInput, ListPartitions
 from gen.mutations import MountPartitionInput
+from dizzy.event_store import EventRecordMutation
 
 
 class Service:
-    def __init__(self):
+    def __init__(self, data_path: Path | None = None):
         self.command_queue = []
         self.event_queue = []
 
@@ -46,6 +50,18 @@ class Service:
         put_content_query = PutContentQuery()
         mount_partition_mutation = MountPartitionMutation()
         append_to_manifest_mutation = AppendToManifestMutation()
+
+        # Initialize event store mutation
+        self.event_store = EventRecordMutation(base_path=data_path)
+
+        # Event type map for deserialization (used by queries, not needed for writes)
+        # When you need to query events, initialize GetAllEventsQuery or GetEventsByTypesQuery with:
+        # event_type_map = {
+        #     'HardDriveDetected': HardDriveDetected,
+        #     'PartitionDetected': PartitionDetected,
+        #     'PartitionMountAssigned': PartitionMountAssigned,
+        #     'FileItemScanned': FileItemScanned,
+        # }
 
         # Command to Procedure mapping
         self.command_map = {
@@ -132,7 +148,24 @@ class Service:
             while self.event_queue:
                 event = self.event_queue.pop(0)  # FIFO
                 event_type = type(event)
-                if event_type in self.event_map:
+
+                # Write event to event store
+                try:
+                    event_input = EventRecordInput(event=event)
+                    event_record = self.event_store.execute(
+                        mutation_input=event_input,
+                        event_record_class=EventRecord
+                    )
+                    if event_record.is_duplicate:
+                        print(f"⊙ Event duplicate (skipped policies): {event_record.event_type} [{event_record.event_hash[:8]}...]")
+                    else:
+                        print(f"✓ Event stored: {event_record.event_type} [{event_record.event_hash[:8]}...]")
+                except Exception as e:
+                    print(f"✗ FATAL: Failed to write event to event store: {e}")
+                    raise  # Panic if we can't persist events
+
+                # Process policies for this event type (only if not a duplicate)
+                if not event_record.is_duplicate and event_type in self.event_map:
                     for policy_class in self.event_map[event_type]:
                         context = self.policy_map[policy_class]
                         policy = policy_class()

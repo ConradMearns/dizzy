@@ -91,7 +91,7 @@ linkml_meta = LinkMLMeta({'default_prefix': 'dedupe',
                              'prefix_reference': 'https://example.org/dedupe/'},
                   'linkml': {'prefix_prefix': 'linkml',
                              'prefix_reference': 'https://w3id.org/linkml/'}},
-     'source_file': '/home/conrad/dizzy/app/dedupe/def/commands.yaml',
+     'source_file': 'def/commands.yaml',
      'title': 'Dedupe Commands Data Model'} )
 
 
@@ -177,7 +177,7 @@ class AssignPartitionMount(Command):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/commands'})
 
-    partition: Partition = Field(default=..., description="""The partition to be mounted""", json_schema_extra = { "linkml_meta": {'domain_of': ['AssignPartitionMount']} })
+    partition: str = Field(default=..., description="""The partition to be mounted""", json_schema_extra = { "linkml_meta": {'domain_of': ['AssignPartitionMount']} })
     mount_point: str = Field(default=..., description="""The desired mount point path""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition', 'AssignPartitionMount']} })
 
 

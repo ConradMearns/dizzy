@@ -146,6 +146,13 @@ def main():
         help="Print verbose output (show queued commands and events)"
     )
 
+    parser.add_argument(
+        "--data-path",
+        type=str,
+        default="data",
+        help="Path to directory for event store data (default: ./data)"
+    )
+
     args = parser.parse_args()
 
     # Validate arguments
@@ -172,8 +179,9 @@ def main():
     if args.verbose:
         print(f"✅ Loaded {len(all_commands)} command(s)\n")
 
-    # Create service
-    service = Service()
+    # Create service with event store path
+    data_path = Path(args.data_path)
+    service = Service(data_path=data_path)
 
     # Enqueue all commands
     for i, command in enumerate(all_commands, 1):
