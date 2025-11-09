@@ -505,6 +505,7 @@ dependencies = [
     { name = "pulumi" },
     { name = "pulumi-kubernetes" },
     { name = "pulumi-tailscale" },
+    { name = "pydantic" },
 ]
 
 [package.dev-dependencies]
@@ -523,6 +524,7 @@ requires-dist = [
     { name = "pulumi", specifier = ">=3.206.0" },
     { name = "pulumi-kubernetes", specifier = ">=4.24.0" },
     { name = "pulumi-tailscale", specifier = ">=0.22.0" },
+    { name = "pydantic", specifier = ">=2.12.4" },
 ]
 
 [package.metadata.requires-dev]
