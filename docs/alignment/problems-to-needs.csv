@@ -1,0 +1,35 @@
+# Need Mapping:
+# N00: reversible-architecture - Make architectural decisions reversible and changeable without rewriting everything
+# N01: fault-tolerant-workflows - Workflows that can pause, resume, and survive crashes without losing work
+# N02: deferred-infrastructure-decisions - Defer database and infrastructure decisions until usage patterns emerge
+# N03: evolutionary-architecture - Architecture that evolves through continuous adaptation rather than upfront prediction
+# N04: deterministic-replay - Deterministic replay of computations for debugging and verification
+# N05: automatic-provenance - Automatic data lineage and provenance tracking built into the architecture
+# N06: interruptible-pipelines - Long-running analyses that can pause and resume at arbitrary points
+# N07: complete-audit-trail - Complete audit trail of all state changes and their causality
+# N08: quick-infrastructure-visualization - I need a quick way to visualize how much dizzy infrastructure has been completed
+# N09: encryption-for-photo-storage - Encryption over MinIO for photo apps
+# N10: shared-infrastructure-with-safety - Share the burden of infrastructure but need to remain safe
+# N11: multi-language-support - As a developer, I want to be able to use languages other than Python in DIZZY
+# N12: ai-assisted-design - As a user, I want to be able to explain my ideas and have the computer assist me in their design
+# N13: understandable-documentation - As a user, I want to be able to read about DIZZY and understand it
+# N14: deployability-visibility - As a developer, I want to understand what the perceived deployability of a component or stack is
+# N15: time-travel-debugging - As a user, leverage event sourcing for time travel debugging
+# N16: etl-idempotency - As a user, leverage event sourcing for ETL idempotency
+# N17: provenance-tracking - As a user, have provenance tracking capabilities from event sourcing
+# N18: instrumentation - Required for NVPSM / Maintence
+# N19: find-pictures-of-people - Quickly find pictures of specific people in my photo collection
+# N20: share-photos-with-friends - Notify friends with links to photos containing them when I take pictures
+# N21: custom-album-organization - Create custom albums to organize photos how I want
+# N22: automatic-date-organization - Have photos automatically organized by calendar/date
+# N23: collaborative-photo-upload - Allow friends and family to remotely upload photos to my collection
+# N24: shared-photo-viewing - Allow friends and family to remotely view photos and albums
+# N25: preserve-harvested-data-compatibility - Preserve compatibility with data harvested from various drives
+#
+# Interaction strength values: 5 (strong), 3 (medium), 1 (weak), --- (none/unknown)
+#
+N00,N01,N02,N03,N04,N05,N06,N07,N08,N09,N10,N11,N12,N13,N14,N15,N16,N17,N18,N19,N20,N21,N22,N23,N24,N25,PROBLEM
+ 5 , 1 , 5 , 3 , 1 , 1 , ~ , 1 , ~ , ~ , ~ , ~ , ~ , ~ , ~ , 3 , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,decision-fatigue
+ 3 , 5 , ~ , ~ , 3 , 3 , 5 , 3 , ~ , ~ , ~ , ~ , ~ , ~ , ~ , 5 , 3 , 3 , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,state-fragility
+ 3 , ~ , 5 , 5 , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,premature-commitment
+ ~ , 3 , ~ , ~ , 5 , 5 , 5 , 5 , ~ , ~ , ~ , ~ , ~ , ~ , ~ , 3 , 5 , 5 , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,reproducibility-crisis

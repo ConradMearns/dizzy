@@ -17,6 +17,14 @@
 # Interaction strength values: 5 (strong), 3 (medium), 1 (weak), --- (none/unknown)
 #
 F00,F01,F02,F03,F04,F05,F06,F07,F08,F09,F10,F11,F12,F13,NEED
+ ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,reversible-architecture
+ ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,fault-tolerant-workflows
+ ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,deferred-infrastructure-decisions
+ ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,evolutionary-architecture
+ ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,deterministic-replay
+ ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,automatic-provenance
+ ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,interruptible-pipelines
+ ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,complete-audit-trail
  5 , - , - , - , - , - , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,quick-infrastructure-visualization
  - , 5 , - , - , - , - , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,encryption-for-photo-storage
  - , 5 , 5 , 3 , - , - , ~ , ~ , ~ , ~ , 5 , 5 , ~ , ~ ,shared-infrastructure-with-safety

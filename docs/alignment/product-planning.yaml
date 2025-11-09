@@ -4,7 +4,50 @@ meta:
     This file tracks needs and features to guide development priorities
     and ensure alignment between user requirements and implementation efforts.
 
+problems:
+  decision-fatigue:
+    title: Decision Fatigue and Irreversible Choices
+    description: Overwhelmed by architectural decisions when you know the least, locked into choices with high cost of change
+
+  state-fragility:
+    title: State Fragility
+    description: Lost work from crashes, can't debug/replay what happened, no pause/resume for long workflows
+
+  premature-commitment:
+    title: Premature Commitment
+    description: Must make consequential architectural decisions before having enough information to make them well
+
+  reproducibility-crisis:
+    title: Scientific Reproducibility Crisis
+    description: Notebooks hide execution order, data lineage is invisible, and computational methods are impossible to reconstruct
+
 needs:
+  # Value Proposition Needs (addressing core problems)
+  reversible-architecture:
+    description: Make architectural decisions reversible and changeable without rewriting everything
+
+  fault-tolerant-workflows:
+    description: Workflows that can pause, resume, and survive crashes without losing work
+
+  deferred-infrastructure-decisions:
+    description: Defer database and infrastructure decisions until usage patterns emerge
+
+  evolutionary-architecture:
+    description: Architecture that evolves through continuous adaptation rather than upfront prediction
+
+  deterministic-replay:
+    description: Deterministic replay of computations for debugging and verification
+
+  automatic-provenance:
+    description: Automatic data lineage and provenance tracking built into the architecture
+
+  interruptible-pipelines:
+    description: Long-running analyses that can pause and resume at arbitrary points
+
+  complete-audit-trail:
+    description: Complete audit trail of all state changes and their causality
+
+  # Functional Needs (specific use cases)
   quick-infrastructure-visualization:
     description: I need a quick way to visualize how much dizzy infrastructure has been completed
 

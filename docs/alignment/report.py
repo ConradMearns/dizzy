@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-"""Generate House of Quality priority report from product planning data.
+"""Generate House of Quality priority reports from product planning data.
 
-This script calculates:
-- Feature Importance: Sum of interaction strengths for each feature
-- Relative Feature Importance: Percentage contribution of each feature
+This script generates two reports:
+1. Problems-to-Needs: Which needs are most important for solving core problems
+2. Needs-to-Features: Which features are most important for delivering needs
+
+Each report calculates:
+- Importance: Sum of interaction strengths
+- Relative Importance: Percentage contribution
 """
 
 import pandas as pd
@@ -13,7 +17,8 @@ from pathlib import Path
 # File paths
 SCRIPT_DIR = Path(__file__).parent
 YAML_FILE = SCRIPT_DIR / "product-planning.yaml"
-CSV_FILE = SCRIPT_DIR / "product-planning.csv"
+PROBLEMS_TO_NEEDS_CSV = SCRIPT_DIR / "problems-to-needs.csv"
+NEEDS_TO_FEATURES_CSV = SCRIPT_DIR / "product-planning.csv"
 
 
 def load_yaml():
@@ -22,20 +27,20 @@ def load_yaml():
         return yaml.safe_load(f)
 
 
-def load_csv():
-    """Load the product planning CSV file."""
-    df = pd.read_csv(CSV_FILE, comment='#')
-    # Set NEED as index
-    if 'NEED' in df.columns:
-        df = df.set_index('NEED')
+def load_csv(csv_file, row_name):
+    """Load a matrix CSV file."""
+    df = pd.read_csv(csv_file, comment='#')
+    # Set row dimension as index
+    if row_name in df.columns:
+        df = df.set_index(row_name)
     return df
 
 
-def calculate_feature_importance(df):
-    """Calculate feature importance scores.
+def calculate_importance(df):
+    """Calculate importance scores for each column.
 
-    For each feature column, sum up the interaction strengths.
-    Values: 5 (strong), 3 (medium), 1 (weak), --- (0)
+    For each column, sum up the interaction strengths.
+    Values: 5 (strong), 3 (medium), 1 (weak), --- or ~ (0)
     """
     importance = {}
 
@@ -49,7 +54,7 @@ def calculate_feature_importance(df):
                 total += 3
             elif val_str == '1':
                 total += 1
-            # else: '---' or other values count as 0
+            # else: '---', '~', or other values count as 0
         importance[col] = total
 
     return importance
@@ -65,50 +70,85 @@ def calculate_relative_importance(importance):
     return relative
 
 
-def main():
+def print_priority_report(title, df, importance, relative_importance, item_data, prefix):
+    """Print a priority report table.
+
+    Args:
+        title: Report title
+        df: DataFrame with the matrix
+        importance: Dict of importance scores
+        relative_importance: Dict of relative importance percentages
+        item_data: Dict of item descriptions
+        prefix: Code prefix (e.g., "N" or "F")
+    """
     print("=" * 60)
-    print("House of Quality - Feature Priority Report")
+    print(title)
     print("=" * 60)
     print()
 
-    # Load data
-    data = load_yaml()
-    df = load_csv()
-
-    # Get feature descriptions
-    features = data.get("features", {})
-
-    # Calculate importance
-    importance = calculate_feature_importance(df)
-    relative_importance = calculate_relative_importance(importance)
-
     # Sort by importance (descending)
-    sorted_features = sorted(importance.items(), key=lambda x: x[1], reverse=True)
+    sorted_items = sorted(importance.items(), key=lambda x: x[1], reverse=True)
 
     # Print results
-    print(f"{'Feature':<8} {'Importance':<12} {'Relative %':<12} {'Description'}")
+    print(f"{'Code':<8} {'Importance':<12} {'Relative %':<12} {'Description'}")
     print("-" * 60)
 
-    for feat_code, imp_score in sorted_features:
-        rel_pct = relative_importance[feat_code]
+    for code, imp_score in sorted_items:
+        rel_pct = relative_importance[code]
 
-        # Find the feature key from the code (F00 -> mermaid-def-rendering)
-        feat_idx = int(feat_code[1:])  # Extract number from F00, F01, etc.
-        feat_keys = list(features.keys())
-        if feat_idx < len(feat_keys):
-            feat_key = feat_keys[feat_idx]
-            feat_desc = features[feat_key].get('description', '')
+        # Find the item key from the code (N00 -> reversible-architecture)
+        idx = int(code[1:])  # Extract number from N00, F01, etc.
+        item_keys = list(item_data.keys())
+        if idx < len(item_keys):
+            item_key = item_keys[idx]
+            item_desc = item_data[item_key].get('description', '')
             # Truncate description if too long
-            if len(feat_desc) > 40:
-                feat_desc = feat_desc[:37] + "..."
+            if len(item_desc) > 40:
+                item_desc = item_desc[:37] + "..."
         else:
-            feat_desc = "Unknown"
+            item_desc = "Unknown"
 
-        print(f"{feat_code:<8} {imp_score:<12} {rel_pct:>6.1f}%      {feat_desc}")
+        print(f"{code:<8} {imp_score:<12} {rel_pct:>6.1f}%      {item_desc}")
 
     print()
     print(f"Total Importance: {sum(importance.values())}")
     print()
+
+
+def main():
+    # Load data
+    data = load_yaml()
+    problems = data.get("problems", {})
+    needs = data.get("needs", {})
+    features = data.get("features", {})
+
+    # ========== REPORT 1: Problems to Needs ==========
+    df_p2n = load_csv(PROBLEMS_TO_NEEDS_CSV, "PROBLEM")
+    importance_p2n = calculate_importance(df_p2n)
+    relative_p2n = calculate_relative_importance(importance_p2n)
+
+    print_priority_report(
+        title="Problems-to-Needs: Need Priority Report",
+        df=df_p2n,
+        importance=importance_p2n,
+        relative_importance=relative_p2n,
+        item_data=needs,
+        prefix="N"
+    )
+
+    # ========== REPORT 2: Needs to Features ==========
+    df_n2f = load_csv(NEEDS_TO_FEATURES_CSV, "NEED")
+    importance_n2f = calculate_importance(df_n2f)
+    relative_n2f = calculate_relative_importance(importance_n2f)
+
+    print_priority_report(
+        title="Needs-to-Features: Feature Priority Report",
+        df=df_n2f,
+        importance=importance_n2f,
+        relative_importance=relative_n2f,
+        item_data=features,
+        prefix="F"
+    )
 
 
 if __name__ == "__main__":
