@@ -92,7 +92,7 @@ linkml_meta = LinkMLMeta({'default_prefix': 'dedupe',
                              'prefix_reference': 'https://example.org/dedupe/'},
                   'linkml': {'prefix_prefix': 'linkml',
                              'prefix_reference': 'https://w3id.org/linkml/'}},
-     'source_file': 'def/mutations.yaml',
+     'source_file': '/home/conrad/dizzy/app/dedupe/def/mutations.yaml',
      'title': 'Dedupe Mutations Data Model'} )
 
 
@@ -140,8 +140,11 @@ class FileItem(ConfiguredBaseModel):
 
     id: str = Field(default=..., description="""Unique identifier for this file item record""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem']} })
     drive_uuid: str = Field(default=..., description="""UUID of the hard drive where item was found""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition', 'FileItem']} })
-    partition_uuid: str = Field(default=..., description="""UUID of the partition where item was found""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned', 'MountPartition']} })
-    path: str = Field(default=..., description="""Full path of the item on the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned']} })
+    partition_uuid: str = Field(default=..., description="""UUID of the partition where item was found""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem',
+                       'FileItemScanned',
+                       'MountPartition',
+                       'AppendToManifestInput']} })
+    path: str = Field(default=..., description="""Full path of the item on the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned', 'AppendToManifestInput']} })
     size_bytes: int = Field(default=..., description="""Size of the item in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['HardDrive', 'Partition', 'FileItem']} })
     hash: str = Field(default=..., description="""Hash of the item contents (e.g., SHA256, MD5)""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'CASIdentity']} })
     hash_algorithm: Optional[str] = Field(default=None, description="""Algorithm used to generate the hash""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem']} })
@@ -192,11 +195,14 @@ class FileItemScanned(DomainEvent):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/events'})
 
-    partition_uuid: str = Field(default=..., description="""UUID of the partition containing this file""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned', 'MountPartition']} })
-    path: str = Field(default=..., description="""Full path to the file within the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned']} })
-    size: int = Field(default=..., description="""Size of the file in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
-    content_hash: str = Field(default=..., description="""Hash of the file contents""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
-    cas_id: str = Field(default=..., description="""CAS identity (version + hash) of the stored content""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
+    partition_uuid: str = Field(default=..., description="""UUID of the partition containing this file""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem',
+                       'FileItemScanned',
+                       'MountPartition',
+                       'AppendToManifestInput']} })
+    path: str = Field(default=..., description="""Full path to the file within the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned', 'AppendToManifestInput']} })
+    size: int = Field(default=..., description="""Size of the file in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned', 'AppendToManifestInput']} })
+    content_hash: str = Field(default=..., description="""Hash of the file contents""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned', 'AppendToManifestInput']} })
+    cas_id: str = Field(default=..., description="""CAS identity (version + hash) of the stored content""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned', 'AppendToManifestInput']} })
 
 
 class PartitionMountAssigned(DomainEvent):
@@ -258,7 +264,7 @@ class MountPartitionInput(MutationInput):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/mutations'})
 
-    partition: str = Field(default=..., description="""The partition to mount""", json_schema_extra = { "linkml_meta": {'domain_of': ['PartitionDetected',
+    partition: Partition = Field(default=..., description="""The partition to mount""", json_schema_extra = { "linkml_meta": {'domain_of': ['PartitionDetected',
                        'PartitionMountAssigned',
                        'MountPartitionInput']} })
     mount_point: str = Field(default=..., description="""The mount point path where partition should be mounted""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition',
@@ -273,13 +279,43 @@ class MountPartition(Mutation):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/mutations'})
 
-    success: bool = Field(default=..., description="""Whether the mount operation succeeded""", json_schema_extra = { "linkml_meta": {'domain_of': ['MountPartition']} })
-    partition_uuid: str = Field(default=..., description="""UUID of the partition that was mounted (or attempted)""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned', 'MountPartition']} })
+    success: bool = Field(default=..., description="""Whether the mount operation succeeded""", json_schema_extra = { "linkml_meta": {'domain_of': ['MountPartition', 'AppendToManifest']} })
+    partition_uuid: str = Field(default=..., description="""UUID of the partition that was mounted (or attempted)""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem',
+                       'FileItemScanned',
+                       'MountPartition',
+                       'AppendToManifestInput']} })
     mount_point: str = Field(default=..., description="""The mount point path used""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition',
                        'PartitionMountAssigned',
                        'MountPartitionInput',
                        'MountPartition']} })
-    error_message: Optional[str] = Field(default=None, description="""Error message if the mount failed""", json_schema_extra = { "linkml_meta": {'domain_of': ['MountPartition']} })
+    error_message: Optional[str] = Field(default=None, description="""Error message if the mount failed""", json_schema_extra = { "linkml_meta": {'domain_of': ['MountPartition', 'AppendToManifest']} })
+
+
+class AppendToManifestInput(MutationInput):
+    """
+    Input parameters for appending a file entry to a partition manifest
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/mutations'})
+
+    partition_uuid: str = Field(default=..., description="""UUID of the partition containing this file""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem',
+                       'FileItemScanned',
+                       'MountPartition',
+                       'AppendToManifestInput']} })
+    path: str = Field(default=..., description="""Full path to the file within the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned', 'AppendToManifestInput']} })
+    cas_id: str = Field(default=..., description="""CAS identity (version + hash) of the stored content""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned', 'AppendToManifestInput']} })
+    content_hash: str = Field(default=..., description="""Hash of the file contents""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned', 'AppendToManifestInput']} })
+    size: int = Field(default=..., description="""Size of the file in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned', 'AppendToManifestInput']} })
+
+
+class AppendToManifest(Mutation):
+    """
+    Result of appending a file entry to a partition manifest CSV
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/mutations'})
+
+    success: bool = Field(default=..., description="""Whether the append operation succeeded""", json_schema_extra = { "linkml_meta": {'domain_of': ['MountPartition', 'AppendToManifest']} })
+    manifest_path: str = Field(default=..., description="""Path to the manifest file that was updated""", json_schema_extra = { "linkml_meta": {'domain_of': ['AppendToManifest']} })
+    error_message: Optional[str] = Field(default=None, description="""Error message if the append failed""", json_schema_extra = { "linkml_meta": {'domain_of': ['MountPartition', 'AppendToManifest']} })
 
 
 # Model rebuild
@@ -300,3 +336,5 @@ EventRecordInput.model_rebuild()
 EventRecord.model_rebuild()
 MountPartitionInput.model_rebuild()
 MountPartition.model_rebuild()
+AppendToManifestInput.model_rebuild()
+AppendToManifest.model_rebuild()

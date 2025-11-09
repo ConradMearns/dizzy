@@ -11,6 +11,8 @@ from gen.mutations import (
     EventRecord,
     MountPartitionInput,
     MountPartition,
+    AppendToManifestInput,
+    AppendToManifest,
 )
 
 
@@ -27,5 +29,13 @@ class MountPartitionProtocol(Protocol):
     
     def execute(self, mutation_input: MountPartitionInput) -> MountPartition:
         """Execute the MountPartition mutation."""
+        ...
+
+
+class AppendToManifestProtocol(Protocol):
+    """Protocol for AppendToManifest mutation implementations."""
+    
+    def execute(self, mutation_input: AppendToManifestInput) -> AppendToManifest:
+        """Execute the AppendToManifest mutation."""
         ...
 

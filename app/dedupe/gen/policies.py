@@ -10,6 +10,7 @@ from typing import Callable
 
 # Import event types
 from gen.events import (
+    FileItemScanned,
     PartitionMountAssigned,
 )
 
@@ -26,6 +27,8 @@ from gen.queries import (
 
 # Import mutation types
 from gen.mutations import (
+    AppendToManifest,
+    AppendToManifestInput,
     MountPartition,
     MountPartitionInput,
 )
@@ -55,4 +58,30 @@ class PartitionMountAssignedPolicyContext:
     emit: PartitionMountAssignedPolicyEmitters
     query: PartitionMountAssignedPolicyQueries
     mutate: PartitionMountAssignedPolicyMutators
+
+
+@dataclass
+class FileItemScannedPolicyEmitters:
+    """Command emitters for FileItemScanned policy (add_to_manifest)."""
+    pass
+
+
+@dataclass
+class FileItemScannedPolicyQueries:
+    """Queries for FileItemScanned policy (add_to_manifest)."""
+    pass
+
+
+@dataclass
+class FileItemScannedPolicyMutators:
+    """Mutators for FileItemScanned policy (add_to_manifest)."""
+    append_to_manifest: Callable[[AppendToManifestInput], AppendToManifest]
+
+
+@dataclass
+class FileItemScannedPolicyContext:
+    """Context for FileItemScanned policy (add_to_manifest)."""
+    emit: FileItemScannedPolicyEmitters
+    query: FileItemScannedPolicyQueries
+    mutate: FileItemScannedPolicyMutators
 

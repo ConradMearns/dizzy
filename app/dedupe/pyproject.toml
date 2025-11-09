@@ -13,6 +13,7 @@ dependencies = [
     "pulumi>=3.206.0",
     "pulumi-kubernetes>=4.24.0",
     "pulumi-tailscale>=0.22.0",
+    "pydantic>=2.12.4",
 ]
 
 [dependency-groups]

@@ -8,9 +8,11 @@ Generated from policies.d.yaml by dizzy.utils.generate_policy_contexts
 from typing import Protocol
 from gen.policies import (
     PartitionMountAssignedPolicyContext,
+    FileItemScannedPolicyContext,
 )
 
 from gen.events import (
+    FileItemScanned,
     PartitionMountAssigned,
 )
 
@@ -20,5 +22,13 @@ class PartitionMountAssignedPolicyProtocol(Protocol):
     
     def __call__(self, context: PartitionMountAssignedPolicyContext, event: PartitionMountAssigned) -> None:
         """Execute the PartitionMountAssigned policy."""
+        ...
+
+
+class FileItemScannedPolicyProtocol(Protocol):
+    """Protocol for FileItemScanned policy implementations (add_to_manifest)."""
+    
+    def __call__(self, context: FileItemScannedPolicyContext, event: FileItemScanned) -> None:
+        """Execute the FileItemScanned policy."""
         ...
 

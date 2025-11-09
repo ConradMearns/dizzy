@@ -83,3 +83,47 @@ classes:
         description: Error message if the mount failed
         required: false
         range: string
+
+  AppendToManifestInput:
+    description: >-
+      Input parameters for appending a file entry to a partition manifest
+    is_a: MutationInput
+    attributes:
+      partition_uuid:
+        description: UUID of the partition containing this file
+        required: true
+        range: string
+      path:
+        description: Full path to the file within the partition
+        required: true
+        range: string
+      cas_id:
+        description: CAS identity (version + hash) of the stored content
+        required: true
+        range: string
+      content_hash:
+        description: Hash of the file contents
+        required: true
+        range: string
+      size:
+        description: Size of the file in bytes
+        required: true
+        range: integer
+
+  AppendToManifest:
+    description: >-
+      Result of appending a file entry to a partition manifest CSV
+    is_a: Mutation
+    attributes:
+      success:
+        description: Whether the append operation succeeded
+        required: true
+        range: boolean
+      manifest_path:
+        description: Path to the manifest file that was updated
+        required: true
+        range: string
+      error_message:
+        description: Error message if the append failed
+        required: false
+        range: string

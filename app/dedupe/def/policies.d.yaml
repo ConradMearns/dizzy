@@ -11,3 +11,8 @@ policies:
       list_partitions: ListPartitions
     mutators:
       mount_partition: MountPartition
+
+  add_to_manifest:
+    event: FileItemScanned
+    mutators:
+      append_to_manifest: AppendToManifest

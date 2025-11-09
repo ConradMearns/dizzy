@@ -14,16 +14,22 @@ from gen.policies import (
     PartitionMountAssignedPolicyContext,
     PartitionMountAssignedPolicyEmitters,
     PartitionMountAssignedPolicyQueries,
-    PartitionMountAssignedPolicyMutators
+    PartitionMountAssignedPolicyMutators,
+    FileItemScannedPolicyContext,
+    FileItemScannedPolicyEmitters,
+    FileItemScannedPolicyQueries,
+    FileItemScannedPolicyMutators
 )
 from gen.events import HardDriveDetected, PartitionDetected, PartitionMountAssigned, FileItemScanned
 from procedures.inspect_storage import InspectStorageProcedure
 from procedures.assign_partition_mount import AssignPartitionMountProcedure
 from procedures.scan_partition import ScanPartitionProcedure
 from policies.partition_mount_assigned import PartitionMountAssignedPolicy
+from policies.file_item_scanned import FileItemScannedPolicy
 from queries.file_scanners.linux import ListHardDrivesQuery, ListPartitionsQuery, ListFileItemsQuery
 from queries.cas_minio import PutContentQuery
 from mutations.mount_partition import MountPartitionMutation
+from mutations.append_to_manifest import AppendToManifestMutation
 from gen.queries import ListPartitionsInput, ListPartitions
 from gen.mutations import MountPartitionInput
 
@@ -39,6 +45,7 @@ class Service:
         list_file_items_query = ListFileItemsQuery()
         put_content_query = PutContentQuery()
         mount_partition_mutation = MountPartitionMutation()
+        append_to_manifest_mutation = AppendToManifestMutation()
 
         # Command to Procedure mapping
         self.command_map = {
@@ -81,6 +88,7 @@ class Service:
         # Event to Policy mapping
         self.event_map = {
             PartitionMountAssigned: [PartitionMountAssignedPolicy],
+            FileItemScanned: [FileItemScannedPolicy],
             # HardDriveDetected and PartitionDetected don't have policies yet
         }
 
@@ -95,6 +103,13 @@ class Service:
                 ),
                 mutate=PartitionMountAssignedPolicyMutators(
                     mount_partition=mount_partition_mutation.execute,
+                )
+            ),
+            FileItemScannedPolicy: FileItemScannedPolicyContext(
+                emit=FileItemScannedPolicyEmitters(),
+                query=FileItemScannedPolicyQueries(),
+                mutate=FileItemScannedPolicyMutators(
+                    append_to_manifest=append_to_manifest_mutation.execute,
                 )
             ),
         }

@@ -51,6 +51,7 @@ class ScanPartitionProcedure:
             ))
             print(file_path, put_result.cas_id)
             # exit()
+            # break
 
 # Type check: Ensure we implement the protocol correctly
 _: ScanPartitionProcedureProtocol = ScanPartitionProcedure()
