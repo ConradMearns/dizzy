@@ -100,17 +100,17 @@ class EventRecordMutation:
         # Check if this is a duplicate (event file already exists)
         is_duplicate = event_file.exists()
 
-        # Write event file (idempotent - only if not exists)
+        # Write event file and chain entry (idempotent - only if not exists)
         if not is_duplicate:
             with open(event_file, 'w') as f:
                 json.dump(event_dict, f, indent=2)
 
-        # Append to chain (always append, even for duplicates)
-        timestamp = datetime.now(timezone.utc).isoformat()
+            # Append to chain (only for new events, not duplicates)
+            timestamp = datetime.now(timezone.utc).isoformat()
 
-        with open(self.chain_file, 'a', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow([timestamp, event_hash, event_type])
+            with open(self.chain_file, 'a', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow([timestamp, event_hash, event_type])
 
         # Return the event record with duplicate flag
         return event_record_class(

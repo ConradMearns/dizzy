@@ -131,7 +131,15 @@ class Service:
         }
 
     def emit_event(self, event):
-        self.event_queue.append(event)
+        event_input = EventRecordInput(event=event)
+        event_record = self.event_store.execute(
+            mutation_input=event_input,
+            event_record_class=EventRecord
+        )
+
+        # Process policies for this event type (only if not a duplicate)
+        if not event_record.is_duplicate and type(event) in self.event_map: 
+            self.event_queue.append(event)
 
     def emit_command(self, command):
         self.command_queue.append(command)
@@ -149,26 +157,9 @@ class Service:
                 event = self.event_queue.pop(0)  # FIFO
                 event_type = type(event)
 
-                # Write event to event store
-                try:
-                    event_input = EventRecordInput(event=event)
-                    event_record = self.event_store.execute(
-                        mutation_input=event_input,
-                        event_record_class=EventRecord
-                    )
-                    if event_record.is_duplicate:
-                        print(f"⊙ Event duplicate (skipped policies): {event_record.event_type} [{event_record.event_hash[:8]}...]")
-                    else:
-                        print(f"✓ Event stored: {event_record.event_type} [{event_record.event_hash[:8]}...]")
-                except Exception as e:
-                    print(f"✗ FATAL: Failed to write event to event store: {e}")
-                    raise  # Panic if we can't persist events
-
-                # Process policies for this event type (only if not a duplicate)
-                if not event_record.is_duplicate and event_type in self.event_map:
-                    for policy_class in self.event_map[event_type]:
-                        context = self.policy_map[policy_class]
-                        policy = policy_class()
-                        policy(context=context, event=event)
+                for policy_class in self.event_map[event_type]:
+                    context = self.policy_map[policy_class]
+                    policy = policy_class()
+                    policy(context=context, event=event)
 
 
