@@ -60,6 +60,43 @@ def calculate_importance(df):
     return importance
 
 
+def calculate_weighted_importance(df, row_weights):
+    """Calculate weighted importance scores for each column.
+
+    For House of Quality, this multiplies relationship strength by row importance.
+    Formula: Column_Score = Σ(Row_Weight × Relationship_Strength)
+
+    Args:
+        df: DataFrame with relationship matrix
+        row_weights: Dict mapping row names to their importance weights
+
+    Returns:
+        Dict of weighted importance scores for each column
+    """
+    importance = {}
+
+    for col in df.columns:
+        total = 0
+        for idx, val in enumerate(df[col]):
+            row_name = df.index[idx]
+            row_weight = row_weights.get(row_name, 0)
+
+            val_str = str(val).strip()
+            strength = 0
+            if val_str == '5':
+                strength = 5
+            elif val_str == '3':
+                strength = 3
+            elif val_str == '1':
+                strength = 1
+
+            total += row_weight * strength
+
+        importance[col] = total
+
+    return importance
+
+
 def calculate_relative_importance(importance):
     """Calculate relative importance as percentages."""
     total = sum(importance.values())
@@ -70,30 +107,42 @@ def calculate_relative_importance(importance):
     return relative
 
 
-def print_priority_report(title, df, importance, relative_importance, item_data, prefix):
+def print_priority_report(title, df, importance, relative_importance, item_data, prefix,
+                          weighted_importance=None, weighted_relative=None):
     """Print a priority report table.
 
     Args:
         title: Report title
         df: DataFrame with the matrix
-        importance: Dict of importance scores
-        relative_importance: Dict of relative importance percentages
+        importance: Dict of importance scores (unweighted)
+        relative_importance: Dict of relative importance percentages (unweighted)
         item_data: Dict of item descriptions
         prefix: Code prefix (e.g., "N" or "F")
+        weighted_importance: Optional dict of customer-voice weighted importance scores
+        weighted_relative: Optional dict of weighted relative importance percentages
     """
-    print("=" * 60)
+    print("=" * 100)
     print(title)
-    print("=" * 60)
+    print("=" * 100)
     print()
 
-    # Sort by importance (descending)
-    sorted_items = sorted(importance.items(), key=lambda x: x[1], reverse=True)
+    # Determine if we're showing weighted columns
+    show_weighted = weighted_importance is not None and weighted_relative is not None
 
-    # Print results
-    print(f"{'Code':<8} {'Importance':<12} {'Relative %':<12} {'Description'}")
-    print("-" * 60)
+    if show_weighted:
+        # Sort by weighted importance (descending)
+        sorted_items = sorted(weighted_importance.items(), key=lambda x: x[1], reverse=True)
+        header = f"{'Code':<8} {'Unwt.':<10} {'Unwt.%':<8} {'Weighted':<12} {'Wt.%':<8} {'Description'}"
+    else:
+        # Sort by unweighted importance (descending)
+        sorted_items = sorted(importance.items(), key=lambda x: x[1], reverse=True)
+        header = f"{'Code':<8} {'Importance':<12} {'Relative %':<12} {'Description'}"
 
-    for code, imp_score in sorted_items:
+    print(header)
+    print("-" * 100)
+
+    for code, _ in sorted_items:
+        imp_score = importance[code]
         rel_pct = relative_importance[code]
 
         # Find the item key from the code (N00 -> reversible-architecture)
@@ -103,15 +152,23 @@ def print_priority_report(title, df, importance, relative_importance, item_data,
             item_key = item_keys[idx]
             item_desc = item_data[item_key].get('description', '')
             # Truncate description if too long
-            if len(item_desc) > 40:
-                item_desc = item_desc[:37] + "..."
+            if len(item_desc) > 45:
+                item_desc = item_desc[:42] + "..."
         else:
             item_desc = "Unknown"
 
-        print(f"{code:<8} {imp_score:<12} {rel_pct:>6.1f}%      {item_desc}")
+        if show_weighted:
+            wt_score = weighted_importance[code]
+            wt_pct = weighted_relative[code]
+            print(f"{code:<8} {imp_score:<10.0f} {rel_pct:>6.1f}%  {wt_score:<12.1f} {wt_pct:>6.1f}%  {item_desc}")
+        else:
+            print(f"{code:<8} {imp_score:<12} {rel_pct:>6.1f}%      {item_desc}")
 
     print()
-    print(f"Total Importance: {sum(importance.values())}")
+    if show_weighted:
+        print(f"Total Unweighted: {sum(importance.values()):.0f}  |  Total Weighted: {sum(weighted_importance.values()):.1f}")
+    else:
+        print(f"Total Importance: {sum(importance.values())}")
     print()
 
 
@@ -127,8 +184,17 @@ def main():
     importance_p2n = calculate_importance(df_p2n)
     relative_p2n = calculate_relative_importance(importance_p2n)
 
+    # Get problem importance weights (customer voice)
+    # For now, assume all problems have equal weight of 1.0
+    # In future, these could come from YAML as 'importance' field
+    problem_weights = {prob_key: 1.0 for prob_key in problems.keys()}
+
+    # Calculate weighted need importance using problem weights
+    weighted_importance_p2n = calculate_weighted_importance(df_p2n, problem_weights)
+    weighted_relative_p2n = calculate_relative_importance(weighted_importance_p2n)
+
     print_priority_report(
-        title="Problems-to-Needs: Need Priority Report",
+        title="Problems-to-Needs: Need Priority Report (Unweighted - All Problems Equal)",
         df=df_p2n,
         importance=importance_p2n,
         relative_importance=relative_p2n,
@@ -136,18 +202,44 @@ def main():
         prefix="N"
     )
 
-    # ========== REPORT 2: Needs to Features ==========
+    # ========== REPORT 2: Needs to Features (WITHOUT Customer Voice) ==========
     df_n2f = load_csv(NEEDS_TO_FEATURES_CSV, "NEED")
     importance_n2f = calculate_importance(df_n2f)
     relative_n2f = calculate_relative_importance(importance_n2f)
 
     print_priority_report(
-        title="Needs-to-Features: Feature Priority Report",
+        title="Needs-to-Features: Feature Priority Report (WITHOUT Customer Voice)",
         df=df_n2f,
         importance=importance_n2f,
         relative_importance=relative_n2f,
         item_data=features,
         prefix="F"
+    )
+
+    # ========== REPORT 3: Needs to Features (WITH Customer Voice) ==========
+    # Use the need importance from problems-to-needs as customer voice weights
+    # This implements the full House of Quality calculation:
+    # Feature_Score = Σ(Need_Importance × Need-Feature_Relationship_Strength)
+    # Map need keys to their codes (N00, N01, etc) for weighting
+    need_keys = list(needs.keys())
+    need_weights = {}
+    for i, need_key in enumerate(need_keys):
+        need_code = f"N{i:02d}"
+        # Use the need importance from problems-to-needs as the weight
+        need_weights[need_key] = importance_p2n.get(need_code, 0)
+
+    weighted_importance_n2f = calculate_weighted_importance(df_n2f, need_weights)
+    weighted_relative_n2f = calculate_relative_importance(weighted_importance_n2f)
+
+    print_priority_report(
+        title="Needs-to-Features: Feature Priority Report (WITH Customer Voice via Problem→Need weights)",
+        df=df_n2f,
+        importance=importance_n2f,
+        relative_importance=relative_n2f,
+        item_data=features,
+        prefix="F",
+        weighted_importance=weighted_importance_n2f,
+        weighted_relative=weighted_relative_n2f
     )
 
 
