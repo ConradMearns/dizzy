@@ -25,11 +25,16 @@
 # N23: collaborative-photo-upload - Allow friends and family to remotely upload photos to my collection
 # N24: shared-photo-viewing - Allow friends and family to remotely view photos and albums
 # N25: preserve-harvested-data-compatibility - Preserve compatibility with data harvested from various drives
+# N26: organized-component-lifecycle - Organized DIZZY component lifecycle that tracks definitions, generated schemas and models
+# N27: modular-organization - Clear modular organization with well-defined boundaries between components
+# N28: consolidated-workspace - Consolidated workspace for developing DIZZY and apps side by side
 #
 # Interaction strength values: 5 (strong), 3 (medium), 1 (weak), --- (none/unknown)
 #
-N00,N01,N02,N03,N04,N05,N06,N07,N08,N09,N10,N11,N12,N13,N14,N15,N16,N17,N18,N19,N20,N21,N22,N23,N24,N25,PROBLEM
- 5 , 1 , 5 , 3 , 1 , 1 , ~ , 1 , ~ , ~ , ~ , 1 , 3 , ~ , ~ , 3 , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,decision-fatigue
- 3 , 5 , ~ , ~ , 3 , 3 , 5 , 3 , ~ , ~ , 3 , ~ , ~ , 3 , 3 , 5 , 3 , 3 , 1 , ~ , ~ , ~ , ~ , ~ , ~ , 3 ,state-fragility
- 3 , ~ , 5 , 5 , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,premature-commitment
- ~ , 3 , ~ , ~ , 5 , 5 , 5 , 5 , ~ , ~ , 1 , ~ , ~ , 5 , 3 , 3 , 3 , 5 , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,reproducibility-crisis
+N00,N01,N02,N03,N04,N05,N06,N07,N08,N09,N10,N11,N12,N13,N14,N15,N16,N17,N18,N19,N20,N21,N22,N23,N24,N25,N26,N27,N28,PROBLEM
+ 5 , 1 , 5 , 3 , 1 , 1 , ~ , 1 , ~ , ~ , ~ , 1 , 3 , ~ , ~ , 3 , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,decision-fatigue
+ 3 , 5 , ~ , ~ , 3 , 3 , 5 , 3 , ~ , ~ , 3 , ~ , ~ , 3 , 3 , 5 , 3 , 3 , 1 , ~ , ~ , ~ , ~ , ~ , ~ , 3 , ~ , ~ , ~ ,state-fragility
+ 3 , ~ , 5 , 5 , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,premature-commitment
+ ~ , 3 , ~ , ~ , 5 , 5 , 5 , 5 , ~ , ~ , 1 , ~ , ~ , 5 , 3 , 3 , 3 , 5 , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ ,reproducibility-crisis
+ ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , 5 , ~ , ~ ,linkml-multifile-limitation
+ ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , ~ , 5 , 5 ,uv-monorepo-entanglement

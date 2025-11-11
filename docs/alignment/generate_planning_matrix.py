@@ -18,6 +18,7 @@ SCRIPT_DIR = Path(__file__).parent
 YAML_FILE = SCRIPT_DIR / "product-planning.yaml"
 PROBLEMS_TO_NEEDS_CSV = SCRIPT_DIR / "problems-to-needs.csv"
 NEEDS_TO_FEATURES_CSV = SCRIPT_DIR / "product-planning.csv"
+FEATURES_TO_PROBLEMS_CSV = SCRIPT_DIR / "features-to-problems.csv"
 
 DEFAULT_CELL_VALUE = "~"  # Valid values: 5, 3, 1, or ---
 
@@ -139,6 +140,19 @@ def main():
         row_name="NEED",
         col_name="Feature",
         col_prefix="F"
+    )
+
+    print("\n" + "=" * 60)
+    print("Generating Features-to-Problems Matrix")
+    print("=" * 60)
+    # Generate features-to-problems matrix (Feature x Problem)
+    generate_matrix_csv(
+        csv_file=FEATURES_TO_PROBLEMS_CSV,
+        row_data=features,
+        col_data=problems,
+        row_name="FEATURE",
+        col_name="Problem",
+        col_prefix="P"
     )
 
 

@@ -21,6 +21,14 @@ problems:
     title: Scientific Reproducibility Crisis
     description: Notebooks hide execution order, data lineage is invisible, and computational methods are impossible to reconstruct
 
+  linkml-multifile-limitation:
+    title: LinkML Multi-file Output Limitation
+    description: LinkML doesn't work well for multi-file outputs
+
+  uv-monorepo-entanglement:
+    title: UV Monorepo Already Tangled
+    description: uv monorepo is already tangled
+
 needs:
   # Value Proposition Needs (addressing core problems)
   reversible-architecture:
@@ -102,6 +110,15 @@ needs:
   preserve-harvested-data-compatibility:
     description: Preserve compatibility with data harvested from various drives
 
+  organized-component-lifecycle:
+    description: Organized DIZZY component lifecycle that tracks definitions, generated schemas and models
+
+  modular-organization:
+    description: Clear modular organization with well-defined boundaries between components
+
+  consolidated-workspace:
+    description: Consolidated workspace for developing DIZZY and apps side by side
+
 features:
   mermaid-def-rendering:
     description: Mermaid `def/` rendering
@@ -144,3 +161,6 @@ features:
 
   file-provenance-manifest:
     description: Record a manifest of every file found and every path it came from
+
+  linkml-multifile-generation:
+    description: Use LinkML to generate multiple file outputs per component type for organized component lifecycle

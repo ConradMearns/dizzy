@@ -1,0 +1,55 @@
+step: 17
+description: Relative importance scores for step 17
+problems:
+  decision-fatigue: 10.977619453308405
+  state-fragility: 40.22569320464715
+  premature-commitment: 3.0342014512779807
+  reproducibility-crisis: 40.924079271394426
+  linkml-multifile-limitation: 4.838405788262524
+  uv-monorepo-entanglement: 8.311094916115031e-07
+needs:
+  reversible-architecture: 3.5372287424967723
+  fault-tolerant-workflows: 6.414503818280111
+  deferred-infrastructure-decisions: 1.3416202939020425
+  evolutionary-architecture: 0.9211873578851953
+  deterministic-replay: 6.440786709325772
+  automatic-provenance: 6.440786709325772
+  interruptible-pipelines: 7.771785994743147
+  complete-audit-trail: 6.440786709325772
+  quick-infrastructure-visualization: 0.8072280235397158
+  encryption-for-photo-storage: 1.9982837426330315
+  shared-infrastructure-with-safety: 9.064298249691397
+  multi-language-support: 0.5264124507721429
+  ai-assisted-design: 1.409655541116657
+  understandable-documentation: 7.810761089942704
+  deployability-visibility: 5.5470651594963245
+  time-travel-debugging: 7.234593502823565
+  etl-idempotency: 5.8620418424257075
+  provenance-tracking: 7.429540486897166
+  instrumentation: 1.1702646252395061
+  find-pictures-of-people: 1.4057925365737043
+  share-photos-with-friends: 2.6797409571377293
+  custom-album-organization: 0.0
+  automatic-date-organization: 7.893090015632176e-09
+  collaborative-photo-upload: 2.513930830036822
+  shared-photo-viewing: 1.8603971788923743
+  preserve-harvested-data-compatibility: 2.3118236301386994
+  organized-component-lifecycle: 1.0594832636218057
+  modular-organization: 2.729216422808563e-07
+  consolidated-workspace: 2.729216422808563e-07
+features:
+  mermaid-def-rendering: 8.436998927795884
+  minio-storage: 20.834119379733966
+  tailscale-networking: 12.651911004185672
+  dizzy-strategizer: 5.483343988527041
+  diataxis-documentation: 8.279953390611999
+  nvpsm-framework: 5.291713651455465
+  facial-recognition: 2.85879106209555
+  tag-based-albums: 0.0
+  notification-system: 4.9244755998364305
+  calendar-albums: 2.228411301703064e-08
+  remote-upload: 13.561347973874321
+  remote-viewer: 11.73855865880778
+  content-addressable-storage: 0.0
+  file-provenance-manifest: 0.0
+  linkml-multifile-generation: 5.93878634079177
