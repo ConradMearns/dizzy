@@ -75,6 +75,24 @@ classes:
         required: true
         range: string
 
+  FileItemProblem:
+    description: >-
+      Event recording that a problem occurred while processing a file item
+    is_a: DomainEvent
+    attributes:
+      partition_uuid:
+        description: UUID of the partition containing this file
+        required: true
+        range: string
+      path:
+        description: Full path to the file that encountered a problem
+        required: true
+        range: string
+      error:
+        description: Error message describing what went wrong
+        required: true
+        range: string
+
   PartitionMountAssigned:
     description: >-
       Event recording that a partition has been assigned to a mount point,

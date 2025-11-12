@@ -91,6 +91,7 @@ class Service:
             ScanPartitionProcedure: ScanPartitionContext(
                 emit=ScanPartitionEmitters(
                     scanned=lambda event: self.emit_event(event),
+                    problem=lambda event: self.emit_event(event),
                 ),
                 query=ScanPartitionQueries(
                     list_hard_drives=list_hard_drives_query.execute,
@@ -148,14 +149,17 @@ class Service:
         while self.command_queue or self.event_queue:
             while self.command_queue:
                 command = self.command_queue.pop(0)  # FIFO
+                print(f"🔧 Processing command: {type(command).__name__} - {command}")
                 for procedure_class in self.command_map[type(command)]:
                     context = self.procedure_map[procedure_class]
                     procedure = procedure_class()
                     procedure(context=context, command=command)
+                print(f"✅ Completed command: {type(command).__name__}")
 
             while self.event_queue:
                 event = self.event_queue.pop(0)  # FIFO
                 event_type = type(event)
+                print(f"📨 Processing event: {event_type.__name__}")
 
                 for policy_class in self.event_map[event_type]:
                     context = self.policy_map[policy_class]

@@ -137,8 +137,11 @@ class FileItem(ConfiguredBaseModel):
 
     id: str = Field(default=..., description="""Unique identifier for this file item record""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem']} })
     drive_uuid: str = Field(default=..., description="""UUID of the hard drive where item was found""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition', 'FileItem', 'ListPartitionsInput']} })
-    partition_uuid: str = Field(default=..., description="""UUID of the partition where item was found""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned', 'ListFileItemsInput']} })
-    path: str = Field(default=..., description="""Full path of the item on the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned']} })
+    partition_uuid: str = Field(default=..., description="""UUID of the partition where item was found""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem',
+                       'FileItemScanned',
+                       'FileItemProblem',
+                       'ListFileItemsInput']} })
+    path: str = Field(default=..., description="""Full path of the item on the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned', 'FileItemProblem']} })
     size_bytes: int = Field(default=..., description="""Size of the item in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['HardDrive', 'Partition', 'FileItem']} })
     hash: str = Field(default=..., description="""Hash of the item contents (e.g., SHA256, MD5)""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'CASIdentity']} })
     hash_algorithm: Optional[str] = Field(default=None, description="""Algorithm used to generate the hash""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem']} })
@@ -187,14 +190,31 @@ class FileItemScanned(DomainEvent):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/events'})
 
-    partition_uuid: str = Field(default=..., description="""UUID of the partition containing this file""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned', 'ListFileItemsInput']} })
-    path: str = Field(default=..., description="""Full path to the file within the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned']} })
+    partition_uuid: str = Field(default=..., description="""UUID of the partition containing this file""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem',
+                       'FileItemScanned',
+                       'FileItemProblem',
+                       'ListFileItemsInput']} })
+    path: str = Field(default=..., description="""Full path to the file within the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned', 'FileItemProblem']} })
     size: int = Field(default=..., description="""Size of the file in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
     content_hash: str = Field(default=..., description="""Hash of the file contents""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned']} })
     cas_id: str = Field(default=..., description="""CAS identity (version + hash) of the stored content""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned',
                        'PutContent',
                        'GetContentInput',
                        'CheckExistsInput']} })
+
+
+class FileItemProblem(DomainEvent):
+    """
+    Event recording that a problem occurred while processing a file item
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/events'})
+
+    partition_uuid: str = Field(default=..., description="""UUID of the partition containing this file""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem',
+                       'FileItemScanned',
+                       'FileItemProblem',
+                       'ListFileItemsInput']} })
+    path: str = Field(default=..., description="""Full path to the file that encountered a problem""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned', 'FileItemProblem']} })
+    error: str = Field(default=..., description="""Error message describing what went wrong""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemProblem']} })
 
 
 class PartitionMountAssigned(DomainEvent):
@@ -267,7 +287,10 @@ class ListFileItemsInput(QueryInput):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/queries'})
 
-    partition_uuid: str = Field(default=..., description="""UUID of the partition to list files from""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned', 'ListFileItemsInput']} })
+    partition_uuid: str = Field(default=..., description="""UUID of the partition to list files from""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem',
+                       'FileItemScanned',
+                       'FileItemProblem',
+                       'ListFileItemsInput']} })
 
 
 class ListFileItems(Query):
@@ -402,6 +425,7 @@ TestMessage.model_rebuild()
 HardDriveDetected.model_rebuild()
 PartitionDetected.model_rebuild()
 FileItemScanned.model_rebuild()
+FileItemProblem.model_rebuild()
 PartitionMountAssigned.model_rebuild()
 QueryInput.model_rebuild()
 Query.model_rebuild()

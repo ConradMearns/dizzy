@@ -136,9 +136,13 @@ class FileItem(ConfiguredBaseModel):
     drive_uuid: str = Field(default=..., description="""UUID of the hard drive where item was found""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition', 'FileItem']} })
     partition_uuid: str = Field(default=..., description="""UUID of the partition where item was found""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem',
                        'FileItemScanned',
+                       'FileItemProblem',
                        'MountPartition',
                        'AppendToManifestInput']} })
-    path: str = Field(default=..., description="""Full path of the item on the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned', 'AppendToManifestInput']} })
+    path: str = Field(default=..., description="""Full path of the item on the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem',
+                       'FileItemScanned',
+                       'FileItemProblem',
+                       'AppendToManifestInput']} })
     size_bytes: int = Field(default=..., description="""Size of the item in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['HardDrive', 'Partition', 'FileItem']} })
     hash: str = Field(default=..., description="""Hash of the item contents (e.g., SHA256, MD5)""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'CASIdentity']} })
     hash_algorithm: Optional[str] = Field(default=None, description="""Algorithm used to generate the hash""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem']} })
@@ -191,12 +195,34 @@ class FileItemScanned(DomainEvent):
 
     partition_uuid: str = Field(default=..., description="""UUID of the partition containing this file""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem',
                        'FileItemScanned',
+                       'FileItemProblem',
                        'MountPartition',
                        'AppendToManifestInput']} })
-    path: str = Field(default=..., description="""Full path to the file within the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned', 'AppendToManifestInput']} })
+    path: str = Field(default=..., description="""Full path to the file within the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem',
+                       'FileItemScanned',
+                       'FileItemProblem',
+                       'AppendToManifestInput']} })
     size: int = Field(default=..., description="""Size of the file in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned', 'AppendToManifestInput']} })
     content_hash: str = Field(default=..., description="""Hash of the file contents""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned', 'AppendToManifestInput']} })
     cas_id: str = Field(default=..., description="""CAS identity (version + hash) of the stored content""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned', 'AppendToManifestInput']} })
+
+
+class FileItemProblem(DomainEvent):
+    """
+    Event recording that a problem occurred while processing a file item
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dedupe/events'})
+
+    partition_uuid: str = Field(default=..., description="""UUID of the partition containing this file""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem',
+                       'FileItemScanned',
+                       'FileItemProblem',
+                       'MountPartition',
+                       'AppendToManifestInput']} })
+    path: str = Field(default=..., description="""Full path to the file that encountered a problem""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem',
+                       'FileItemScanned',
+                       'FileItemProblem',
+                       'AppendToManifestInput']} })
+    error: str = Field(default=..., description="""Error message describing what went wrong""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemProblem']} })
 
 
 class PartitionMountAssigned(DomainEvent):
@@ -277,6 +303,7 @@ class MountPartition(Mutation):
     success: bool = Field(default=..., description="""Whether the mount operation succeeded""", json_schema_extra = { "linkml_meta": {'domain_of': ['MountPartition', 'AppendToManifest']} })
     partition_uuid: str = Field(default=..., description="""UUID of the partition that was mounted (or attempted)""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem',
                        'FileItemScanned',
+                       'FileItemProblem',
                        'MountPartition',
                        'AppendToManifestInput']} })
     mount_point: str = Field(default=..., description="""The mount point path used""", json_schema_extra = { "linkml_meta": {'domain_of': ['Partition',
@@ -294,9 +321,13 @@ class AppendToManifestInput(MutationInput):
 
     partition_uuid: str = Field(default=..., description="""UUID of the partition containing this file""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem',
                        'FileItemScanned',
+                       'FileItemProblem',
                        'MountPartition',
                        'AppendToManifestInput']} })
-    path: str = Field(default=..., description="""Full path to the file within the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem', 'FileItemScanned', 'AppendToManifestInput']} })
+    path: str = Field(default=..., description="""Full path to the file within the partition""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItem',
+                       'FileItemScanned',
+                       'FileItemProblem',
+                       'AppendToManifestInput']} })
     cas_id: str = Field(default=..., description="""CAS identity (version + hash) of the stored content""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned', 'AppendToManifestInput']} })
     content_hash: str = Field(default=..., description="""Hash of the file contents""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned', 'AppendToManifestInput']} })
     size: int = Field(default=..., description="""Size of the file in bytes""", json_schema_extra = { "linkml_meta": {'domain_of': ['FileItemScanned', 'AppendToManifestInput']} })
@@ -324,6 +355,7 @@ TestMessage.model_rebuild()
 HardDriveDetected.model_rebuild()
 PartitionDetected.model_rebuild()
 FileItemScanned.model_rebuild()
+FileItemProblem.model_rebuild()
 PartitionMountAssigned.model_rebuild()
 MutationInput.model_rebuild()
 Mutation.model_rebuild()

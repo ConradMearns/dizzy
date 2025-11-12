@@ -16,6 +16,7 @@ procedures:
     command: ScanPartition
     emitters:
       emit_scanned: FileItemScanned
+      emit_problem: FileItemProblem
     queries:
       list_hard_drives: ListHardDrives
       list_partitions: ListPartitions

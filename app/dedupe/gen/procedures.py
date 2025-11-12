@@ -10,6 +10,7 @@ from typing import Callable
 
 # Import event types
 from gen.events import (
+    FileItemProblem,
     FileItemScanned,
     HardDriveDetected,
     PartitionDetected,
@@ -54,6 +55,7 @@ class InspectStorageContext:
 class ScanPartitionEmitters:
     """Emitters for ScanPartition procedure (partition_scanner)."""
     scanned: Callable[[FileItemScanned], None]
+    problem: Callable[[FileItemProblem], None]
 
 
 @dataclass
