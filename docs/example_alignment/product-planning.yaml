@@ -1,0 +1,182 @@
+meta:
+  description: |
+    Meta-analysis: Using the alignment tool to analyze itself.
+
+    This YAML models the alignment/QFD planning tool as the product,
+    using the limitations identified in LIMITATIONS.md as the problems,
+    and the tool's current features as solutions.
+
+    This tests whether the tool can:
+    1. Surface its own weaknesses
+    2. Reveal which limitations are most critical
+    3. Suggest which improvements would have highest impact
+    4. Validate or challenge the criticisms in LIMITATIONS.md
+
+problems:
+  aggregation-paradox:
+    title: Arrow's Impossibility Theorem
+    description: Collective preference aggregation is logically inconsistent - team scoring produces mathematically invalid rankings
+
+  missing-customer-voice:
+    title: Models Beliefs Not Reality
+    description: System captures team assumptions about problems/needs, not validated customer behavior or willingness to pay
+
+  cost-blindness:
+    title: No Resource Constraint Modeling
+    description: Ranks by strategic importance but ignores implementation cost, time, budget, and opportunity cost
+
+  time-blindness:
+    title: No Temporal or Dependency Modeling
+    description: Treats features as independent choices, ignoring prerequisites, sequences, lock-ins, and time-sensitive windows
+
+  risk-ignorance:
+    title: Uncertainty Treated As Certainty
+    description: All relationships scored as if outcomes were known, no modeling of execution risk or market uncertainty
+
+  competitive-blindness:
+    title: Internal Focus Ignores Market
+    description: No awareness of competitors, table stakes, first-mover advantage, or commoditization pressure
+
+  scoring-subjectivity:
+    title: Gaming and Measurement Fiction
+    description: Relationship scores are fuzzy opinions that can be gamed or manipulated for political purposes
+
+  cognitive-biases:
+    title: Systematic Human Judgment Flaws
+    description: Recency, availability, confirmation, and anchoring biases distort scoring without awareness
+
+  static-analysis:
+    title: Single Snapshot Can't Adapt
+    description: Analysis becomes outdated as customer needs, problems, technology, and market conditions change
+
+  feedback-loop-gaps:
+    title: Emergent Effects Not Modeled
+    description: Can't predict how solving problems changes behavior, creates new problems, or enables compound effects
+
+  garbage-in-garbage-out:
+    title: Output Quality Bounded By Input Quality
+    description: Bad problem definitions, inaccurate scores, missing perspectives, or homogeneous teams produce confidently wrong answers
+
+needs:
+  # Input Quality & Validation
+  # validated-problem-definitions:
+  #   description: Problems and needs based on customer research, not assumptions
+
+  evidence-based-scoring:
+    description: Relationship strengths grounded in data, metrics, and measurable outcomes rather than opinions
+
+  diverse-perspectives:
+    description: Input from varied stakeholders, domains, and roles to surface blind spots
+
+  # Multi-Dimensional Analysis
+  # cost-effort-modeling:
+  #   description: Understand implementation cost, time, and resource requirements alongside strategic value
+
+  # feasibility-assessment:
+  #   description: Technical difficulty, organizational capability, and execution risk evaluation
+
+  dependency-mapping:
+    description: Model prerequisites, sequences, and which features enable or block others
+
+  # temporal-awareness:
+  #   description: Account for time-sensitive opportunities, market windows, and roadmap phasing
+
+  # External Reality
+  # competitive-intelligence:
+  #   description: Understand market positioning, competitor moves, and table stakes vs differentiators
+
+  # customer-importance-weighting:
+  #   description: Direct customer input on which needs matter most and willingness to pay
+
+  # market-validation:
+  #   description: Evidence that customers actually experience problems and would adopt solutions
+
+  # Uncertainty & Risk
+  # uncertainty-quantification:
+  #   description: Express confidence levels, ranges, and assumptions for each relationship
+
+  # sensitivity-analysis:
+  #   description: Understand how priorities change under different assumptions or scenarios
+
+  # risk-modeling:
+  #   description: Evaluate execution risk, market risk, and what could go wrong
+
+  # Process & Governance
+  # bias-mitigation:
+  #   description: Structured scoring processes to reduce cognitive biases
+
+  # collaborative-alignment:
+  #   description: Surface and resolve disagreements rather than averaging them away
+
+  # documentation-traceability:
+  #   description: Record who scored what, why, based on what evidence, and when
+
+  # dynamic-re-evaluation:
+  #   description: Version control, change triggers, and scheduled updates as reality shifts
+
+  # Systems Thinking
+  feedback-loop-awareness:
+    description: Consider second-order effects, emergent behaviors, and how solutions interact
+
+  # multi-objective-optimization:
+  #   description: Optimize across multiple dimensions (value, cost, risk, time) not just strategic importance
+
+features:
+  # Core QFD System
+  # three-matrix-qfd:
+  #   description: Problems-Needs-Features relationship modeling with feedback loop via Features-to-Problems matrix
+
+  relationship-scoring:
+    description: 5/3/1 strength indicators to quantify problem-need-feature connections
+
+  flat-relationship-scoring:
+    description: Only use a strength indicator of 1 to quantify problem-need-feature connections
+
+  # iterative-refinement:
+  #   description: Multi-step network score propagation where importance flows through relationships
+
+  # automated-calculation:
+  #   description: Automatic relative importance calculation from scored matrices without manual math
+
+  # # Workflow & Usability
+  # yaml-configuration:
+  #   description: Human-readable source of truth for problems, needs, and features
+
+  # csv-matrix-workflow:
+  #   description: Editable CSV matrices with header documentation of codes and meanings
+
+  # score-preservation:
+  #   description: Regenerating matrices after YAML changes preserves existing relationship scores
+
+  # # Analysis & Insights
+  # top-feature-identification:
+  #   description: Ranked priority list showing which features have highest strategic value
+
+  # visual-evolution-plots:
+  #   description: Charts showing how scores converge and change across iteration steps
+
+  # justification-reports:
+  #   description: Backward trace from top features through needs to problems with weighted contributions
+
+  # convergence-summary:
+  #   description: Show which items rose or fell in importance during iterative refinement
+
+  # # Structure & Process
+  # problem-need-separation:
+  #   description: Forces explicit distinction between what's wrong (problems) and what's needed (capabilities)
+
+  # network-effect-revelation:
+  #   description: Surface how features gain importance through multiple interconnected needs rather than single strong links
+
+  # strategic-conversation-framework:
+  #   description: Structured format for teams to align mental models and challenge assumptions
+
+  # assumption-documentation:
+  #   description: CSV comments and YAML structure create audit trail of what was modeled
+
+  # # Extensibility
+  # reusable-scripts:
+  #   description: Python tools that can be copied and adapted to different domains and contexts
+
+  # open-calculation-logic:
+  #   description: Transparent algorithm that can be inspected, debugged, and modified

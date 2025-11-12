@@ -1,0 +1,11 @@
+# Feature Mapping:
+# F00: relationship-scoring - 5/3/1 strength indicators to quantify problem-need-feature connections
+# F01: flat-relationship-scoring - Only use a strength indicator of 1 to quantify problem-need-feature connections
+#
+# Interaction strength values: 5 (strong), 3 (medium), 1 (weak), --- (none/unknown)
+#
+F00,F01,NEED
+ 1 , 1 ,evidence-based-scoring
+ 1 , ~ ,diverse-perspectives
+ 1 , 1 ,dependency-mapping
+ 1 , 1 ,feedback-loop-awareness

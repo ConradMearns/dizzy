@@ -1,0 +1,20 @@
+# Need Mapping:
+# N00: evidence-based-scoring - Relationship strengths grounded in data, metrics, and measurable outcomes rather than opinions
+# N01: diverse-perspectives - Input from varied stakeholders, domains, and roles to surface blind spots
+# N02: dependency-mapping - Model prerequisites, sequences, and which features enable or block others
+# N03: feedback-loop-awareness - Consider second-order effects, emergent behaviors, and how solutions interact
+#
+# Interaction strength values: 5 (strong), 3 (medium), 1 (weak), --- (none/unknown)
+#
+N00,N01,N02,N03,PROBLEM
+ ~ , ~ , ~ , 1 ,aggregation-paradox
+ ~ , ~ , ~ , ~ ,missing-customer-voice
+ ~ , ~ , 1 , ~ ,cost-blindness
+ ~ , ~ , 1 , ~ ,time-blindness
+ ~ , ~ , ~ , ~ ,risk-ignorance
+ ~ , ~ , ~ , ~ ,competitive-blindness
+ 1 , ~ , ~ , ~ ,scoring-subjectivity
+ 1 , ~ , ~ , ~ ,cognitive-biases
+ ~ , ~ , ~ , ~ ,static-analysis
+ ~ , ~ , ~ , ~ ,feedback-loop-gaps
+ ~ , ~ , ~ , ~ ,garbage-in-garbage-out

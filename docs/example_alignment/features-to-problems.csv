@@ -1,0 +1,18 @@
+# Problem Mapping:
+# P00: aggregation-paradox - Collective preference aggregation is logically inconsistent - team scoring produces mathematically invalid rankings
+# P01: missing-customer-voice - System captures team assumptions about problems/needs, not validated customer behavior or willingness to pay
+# P02: cost-blindness - Ranks by strategic importance but ignores implementation cost, time, budget, and opportunity cost
+# P03: time-blindness - Treats features as independent choices, ignoring prerequisites, sequences, lock-ins, and time-sensitive windows
+# P04: risk-ignorance - All relationships scored as if outcomes were known, no modeling of execution risk or market uncertainty
+# P05: competitive-blindness - No awareness of competitors, table stakes, first-mover advantage, or commoditization pressure
+# P06: scoring-subjectivity - Relationship scores are fuzzy opinions that can be gamed or manipulated for political purposes
+# P07: cognitive-biases - Recency, availability, confirmation, and anchoring biases distort scoring without awareness
+# P08: static-analysis - Analysis becomes outdated as customer needs, problems, technology, and market conditions change
+# P09: feedback-loop-gaps - Can't predict how solving problems changes behavior, creates new problems, or enables compound effects
+# P10: garbage-in-garbage-out - Bad problem definitions, inaccurate scores, missing perspectives, or homogeneous teams produce confidently wrong answers
+#
+# Interaction strength values: 5 (strong), 3 (medium), 1 (weak), --- (none/unknown)
+#
+P00,P01,P02,P03,P04,P05,P06,P07,P08,P09,P10,FEATURE
+ 1 ,-1 ,-1 ,-1 , ~ , ~ , 1 , 1 , 1 , ~ , 1 ,relationship-scoring
+ ~ , 1 , 1 , 1 , ~ , ~ ,-1 , ~ , 1 , ~ , 1 ,flat-relationship-scoring
