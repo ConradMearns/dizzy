@@ -1,17 +1,11 @@
 [project]
-name = "dizzy-workspace"
+name = "dizzy-root"
 version = "0.1.0"
-description = "Dizzy monorepo workspace"
+description = "Dizzy monorepo root"
 requires-python = ">=3.11"
 dependencies = [
     "plotext>=5.3.2",
 ]
-
-[tool.uv.workspace]
-members = ["pkg/dizzy", "app/*"]
-
-[tool.uv.sources]
-dizzy = { workspace = true }
 
 [dependency-groups]
 dev = [
