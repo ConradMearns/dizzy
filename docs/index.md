@@ -4,11 +4,11 @@
 
 There isn't one particular goal with this project, this repository is meant to serve as a piece of living proof of failure and progress.
 
-We are engine building - bootstrapping a patradigm for processing that can survive shifting paradigms, requirements, domains, whim and fancy alike. It is the bastard child of many problems:
+We are engine building - bootstrapping a paradigm for processing that can survive shifting paradigms, requirements, domains, whim and fancy alike. It is the bastard child of many problems:
 
 - Contract work typically demands a new bespoke system be created every 1-3 years. This is fun - but not sustainable. What if we could carry over the largest least-interesting piece of technology every time to provide a backbone for developing and exploring new paradigms instead of re-inventing the wheel every time?
 
-- Questions of which database are best suited for the user, what UI JS frontend is coolest, what programming language is most likely to provide job stability are tired. _It should not matter_ what of these desicions we make now, because we are more likely to be wrong than right anyway. Therefor - we would be better equipped for these questions if we had an archuitecture that granted us the grace of making these mistakes and correcting them - rather than living with the pain of our ignorance forever.
+- Questions of which database are best suited for the user, what UI JS frontend is coolest, what programming language is most likely to provide job stability are tired. _It should not matter_ what of these decisions we make now, because we are more likely to be wrong than right anyway. Therefor - we would be better equipped for these questions if we had an architecture that granted us the grace of making these mistakes and correcting them - rather than living with the pain of our ignorance forever.
 
 Besides these burning problems - we also have a general burning desire that we share. _Surely some things could be better_.
 
@@ -16,7 +16,7 @@ The architecture we build here is intended not to be the best - but to be as fle
 
 # What the heck is this for
 
-- Running interruptable pipelines that can be resumed later
+- Running pipelines that can be resumed later
 	- Let me write a quick script that will never be used for production workflows real quick...
 - Replacing Jupyter as a scientific processing tool to accelerate TRL
 	- DAG's are everywhere and in-memory objects are not to be trusted

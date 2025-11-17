@@ -11,6 +11,9 @@ dependencies = [
     "uvicorn>=0.32.0",
 ]
 
+[tool.uv.sources]
+dizzy = { path = "../../dizzy", editable = true }
+
 [dependency-groups]
 dev = [
     "pytest>=8.4.2",
