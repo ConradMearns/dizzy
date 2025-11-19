@@ -15,10 +15,10 @@ gen:
     uv run python -m dizzy.utils.generate_procedure_contexts def/procedures.d.yaml gen/procedures.py procedures/interfaces.py
 
 check:
-    uv run ty check queries/
+    uv run ty check
 
 test:
     uv run pytest tests/
 
 serve:
-    uv run python web/server.py
+    uv run python todo/web/server.py

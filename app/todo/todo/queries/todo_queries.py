@@ -6,13 +6,13 @@ HIDDEN DEPENDENCIES:
 """
 
 from typing import Dict
-from gen.queries import (
+from todo.gen.queries import (
     ListTodosInput,
     ListTodos,
     GetTodoInput,
     GetTodo,
 )
-from gen.models import Todo
+from todo.gen.models import Todo
 
 
 class TodoStore:
@@ -55,7 +55,7 @@ class ListTodosQuery:
         """Execute the ListTodos query."""
         include_completed = query_input.include_completed if query_input.include_completed is not None else True
         todos = self.store.list_all(include_completed=include_completed)
-        return ListTodos(todos=todos)
+        return ListTodos(todos=[todo.id for todo in todos])
 
 
 class GetTodoQuery:
@@ -67,4 +67,4 @@ class GetTodoQuery:
     def execute(self, query_input: GetTodoInput) -> GetTodo:
         """Execute the GetTodo query."""
         todo = self.store.get(query_input.todo_id)
-        return GetTodo(todo=todo)
+        return GetTodo(todo=todo.id if todo else None)
