@@ -28,6 +28,8 @@ from pydantic import (
     model_serializer
 )
 
+from todo.gen.models import Todo as TodoModel
+
 
 metamodel_version = "None"
 version = "None"
@@ -141,7 +143,7 @@ class ListTodos(Query):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/todo/queries'})
 
-    todos: list[str] = Field(default=..., description="""List of all todos""", json_schema_extra = { "linkml_meta": {'domain_of': ['ListTodos']} })
+    todos: list[TodoModel] = Field(default=..., description="""List of all todos""", json_schema_extra = { "linkml_meta": {'domain_of': ['ListTodos']} })
 
 
 class GetTodoInput(QueryInput):
@@ -159,7 +161,7 @@ class GetTodo(Query):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/todo/queries'})
 
-    todo: Optional[str] = Field(default=None, description="""The requested todo""", json_schema_extra = { "linkml_meta": {'domain_of': ['GetTodo']} })
+    todo: Optional[TodoModel] = Field(default=None, description="""The requested todo""", json_schema_extra = { "linkml_meta": {'domain_of': ['GetTodo']} })
 
 
 # Model rebuild
