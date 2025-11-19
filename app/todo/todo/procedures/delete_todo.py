@@ -2,11 +2,11 @@
 Procedure for deleting a todo item.
 """
 
-from procedures.interfaces import DeleteTodoProcedureProtocol
-from gen.procedures import DeleteTodoContext
-from gen.commands import DeleteTodo
-from gen.queries import GetTodoInput
-from gen.events import TodoDeleted
+from todo.procedures.interfaces import DeleteTodoProcedureProtocol
+from todo.gen.procedures import DeleteTodoContext
+from todo.gen.commands import DeleteTodo
+from todo.gen.queries import GetTodoInput
+from todo.gen.events import TodoDeleted
 
 
 class DeleteTodoProcedure:

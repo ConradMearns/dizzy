@@ -6,7 +6,7 @@ Generated from queries.yaml by dizzy.utils.generate_query_interfaces
 """
 
 from typing import Protocol
-from gen.queries import (
+from todo.gen.queries import (
     ListTodosInput,
     ListTodos,
     GetTodoInput,

@@ -18,9 +18,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 # Generated types
-from gen.commands import AddTodo, CompleteTodo, DeleteTodo
-from gen.events import TodoAdded, TodoCompleted, TodoDeleted
-from gen.procedures import (
+from todo.gen.commands import AddTodo, CompleteTodo, DeleteTodo
+from todo.gen.events import TodoAdded, TodoCompleted, TodoDeleted
+from todo.gen.procedures import (
     AddTodoContext,
     AddTodoEmitters,
     AddTodoQueries,
@@ -33,10 +33,10 @@ from gen.procedures import (
 )
 
 # Implementations
-from procedures.add_todo import AddTodoProcedure
-from procedures.complete_todo import CompleteTodoProcedure
-from procedures.delete_todo import DeleteTodoProcedure
-from queries.todo_queries import TodoStore, ListTodosQuery, GetTodoQuery
+from todo.procedures.add_todo import AddTodoProcedure
+from todo.procedures.complete_todo import CompleteTodoProcedure
+from todo.procedures.delete_todo import DeleteTodoProcedure
+from todo.queries.todo_queries import TodoStore, ListTodosQuery, GetTodoQuery
 
 app = FastAPI(title="Dizzy Todo App")
 
@@ -181,7 +181,7 @@ class TodoService:
         """Apply event to update the in-memory store (event sourcing)."""
         if isinstance(event, TodoAdded):
             # Reconstruct Todo object from event data
-            from gen.models import Todo
+            from todo.gen.models import Todo
             todo = Todo(
                 id=event.todo_id,
                 text=event.text,
@@ -274,16 +274,26 @@ async def stream_events():
 
     async def event_generator():
         try:
-            while True:
-                # Wait for next event
-                event = await queue.get()
+            # Send initial connection message
+            yield ": connected\n\n"
 
-                # Send as SSE format: "data: {json}\n\n"
-                yield f"data: {json.dumps(event)}\n\n"
-        except asyncio.CancelledError:
+            while True:
+                # Wait for next event with timeout for heartbeat
+                try:
+                    event = await asyncio.wait_for(queue.get(), timeout=15.0)
+                    # Send as SSE format: "data: {json}\n\n"
+                    yield f"data: {json.dumps(event)}\n\n"
+                except asyncio.TimeoutError:
+                    # Send heartbeat comment to keep connection alive
+                    yield ": heartbeat\n\n"
+        except (asyncio.CancelledError, GeneratorExit):
             pass
+        except Exception as e:
+            print(f"Error in SSE stream: {e}")
         finally:
-            service.sse_subscribers.remove(queue)
+            # Safely remove subscriber
+            if queue in service.sse_subscribers:
+                service.sse_subscribers.remove(queue)
 
     return StreamingResponse(
         event_generator(),
@@ -298,7 +308,7 @@ async def stream_events():
 @app.get("/")
 async def serve_index():
     """Serve the main HTML page."""
-    return FileResponse("web/static/index.html")
+    return FileResponse("todo/web/static/index.html")
 
 
 if __name__ == "__main__":

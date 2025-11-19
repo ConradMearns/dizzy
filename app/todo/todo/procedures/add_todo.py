@@ -4,12 +4,12 @@ Procedure for adding a new todo item.
 
 import uuid
 from datetime import datetime, timezone
-from procedures.interfaces import AddTodoProcedureProtocol
-from gen.procedures import AddTodoContext
-from gen.commands import AddTodo
-from gen.queries import ListTodosInput
-from gen.events import TodoAdded
-from gen.models import Todo
+from todo.procedures.interfaces import AddTodoProcedureProtocol
+from todo.gen.procedures import AddTodoContext
+from todo.gen.commands import AddTodo
+from todo.gen.queries import ListTodosInput
+from todo.gen.events import TodoAdded
+from todo.gen.models import Todo
 
 
 class AddTodoProcedure:

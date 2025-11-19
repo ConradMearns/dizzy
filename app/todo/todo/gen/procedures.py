@@ -9,14 +9,14 @@ from dataclasses import dataclass
 from typing import Callable
 
 # Import event types
-from gen.events import (
+from todo.gen.events import (
     TodoAdded,
     TodoCompleted,
     TodoDeleted,
 )
 
 # Import query types
-from gen.queries import (
+from todo.gen.queries import (
     GetTodo,
     GetTodoInput,
     ListTodos,

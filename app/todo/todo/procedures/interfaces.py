@@ -6,13 +6,13 @@ Generated from procedures.d.yaml by dizzy.utils.generate_procedure_contexts
 """
 
 from typing import Protocol
-from gen.procedures import (
+from todo.gen.procedures import (
     AddTodoContext,
     CompleteTodoContext,
     DeleteTodoContext,
 )
 
-from gen.commands import (
+from todo.gen.commands import (
     AddTodo,
     CompleteTodo,
     DeleteTodo,

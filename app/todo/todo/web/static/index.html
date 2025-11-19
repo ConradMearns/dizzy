@@ -314,14 +314,28 @@
 
         // Initialize SSE connection
         function connectSSE() {
+            if (evtSource) {
+                evtSource.close();
+            }
+
             evtSource = new EventSource("/events");
 
             evtSource.onopen = () => {
                 updateStatus("Connected", "connected");
             };
 
-            evtSource.onerror = () => {
-                updateStatus("Disconnected - Reconnecting...", "disconnected");
+            evtSource.onerror = (e) => {
+                console.error("SSE error:", e);
+
+                // Check if connection is permanently closed
+                if (evtSource.readyState === EventSource.CLOSED) {
+                    updateStatus("Connection closed - Reconnecting in 3s...", "disconnected");
+                    // Manually reconnect after delay
+                    setTimeout(connectSSE, 3000);
+                } else {
+                    // EventSource is auto-reconnecting (CONNECTING state)
+                    updateStatus("Reconnecting...", "disconnected");
+                }
             };
 
             evtSource.onmessage = (e) => {

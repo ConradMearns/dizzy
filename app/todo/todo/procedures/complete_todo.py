@@ -3,11 +3,11 @@ Procedure for marking a todo item as completed.
 """
 
 from datetime import datetime, timezone
-from procedures.interfaces import CompleteTodoProcedureProtocol
-from gen.procedures import CompleteTodoContext
-from gen.commands import CompleteTodo
-from gen.queries import GetTodoInput
-from gen.events import TodoCompleted
+from todo.procedures.interfaces import CompleteTodoProcedureProtocol
+from todo.gen.procedures import CompleteTodoContext
+from todo.gen.commands import CompleteTodo
+from todo.gen.queries import GetTodoInput
+from todo.gen.events import TodoCompleted
 
 
 class CompleteTodoProcedure:
