@@ -274,16 +274,26 @@ async def stream_events():
 
     async def event_generator():
         try:
-            while True:
-                # Wait for next event
-                event = await queue.get()
+            # Send initial connection message
+            yield ": connected\n\n"
 
-                # Send as SSE format: "data: {json}\n\n"
-                yield f"data: {json.dumps(event)}\n\n"
-        except asyncio.CancelledError:
+            while True:
+                # Wait for next event with timeout for heartbeat
+                try:
+                    event = await asyncio.wait_for(queue.get(), timeout=15.0)
+                    # Send as SSE format: "data: {json}\n\n"
+                    yield f"data: {json.dumps(event)}\n\n"
+                except asyncio.TimeoutError:
+                    # Send heartbeat comment to keep connection alive
+                    yield ": heartbeat\n\n"
+        except (asyncio.CancelledError, GeneratorExit):
             pass
+        except Exception as e:
+            print(f"Error in SSE stream: {e}")
         finally:
-            service.sse_subscribers.remove(queue)
+            # Safely remove subscriber
+            if queue in service.sse_subscribers:
+                service.sse_subscribers.remove(queue)
 
     return StreamingResponse(
         event_generator(),
