@@ -9,16 +9,17 @@ Current Efforts:
 - DIZZY STORM (V->P): A handbook for Software Development
 - DIZZY DISCO (N->V): A DIZZY infrastructure compiler
 
-Current DIZZY projects:
+Current DIZZY apps:
 
 - DIZZY DEDUPE: An example application
+- DIZZY TODO: An example application for observing UI interactions
 
 ## Project Structure
 
 This is a **monorepo** organized as follows:
 
-- **`pkg/`** - Core DIZZY package and framework
-- **`app/`** - Test applications demonstrating DIZZY patterns (e.g., `app/dedupe/`)
+- **`dizzy/`** - Core DIZZY package and framework
+- **`app/`** - Test applications demonstrating DIZZY patterns
 
 The project uses a **uv monorepo** for packaging and **justfiles** to record common commands.
 
@@ -30,12 +31,13 @@ DIZZY applications are structured around **4 Flow Components** that form a conti
 
 This architecture leverages **CQRS (Command Query Responsibility Segregation)**:
 
-- **Queriers**: Read-only operations consumed by Procedures and Policies
-- **Mutators**: Write operations that operate on various Models
 - **Commands**: Trigger actions in the system
 - **Procedures**: Execute business logic and emit Events
 - **Events**: Capture state changes
 - **Policies**: React to Events and may trigger new Commands
+
+- **Queriers**: Read-only operations consumed by Procedures and Policies
+- **Mutators**: Write operations that operate on various Models
 
 ## Application Structure
 
