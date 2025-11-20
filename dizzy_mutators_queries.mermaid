@@ -1,0 +1,13 @@
+flowchart LR
+
+        %% Core relationships
+        Commands --> Procedures
+        Procedures --> Events
+        Events --> Policies
+        Policies --> Commands
+
+        %% New relationships: Procedures and Policies can call Queriers
+        Procedures -->|call| Queriers
+        %%Policies -->|call| Queriers
+        Policies -->|call| Mutators
+

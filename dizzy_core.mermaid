@@ -1,0 +1,5 @@
+graph LR
+    Commands -->|execute| Procedures
+    Procedures -->|emit| Events
+    Events -->|trigger| Policies
+    Policies -->|invoke| Commands
