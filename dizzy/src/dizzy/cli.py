@@ -1,8 +1,8 @@
 """CLI for dizzy code generation."""
 
-import typer
+import argparse
+import sys
 from pathlib import Path
-from typing import Optional
 import subprocess
 
 from dizzy.utils.generate_query_interfaces import generate_query_interfaces
@@ -11,65 +11,64 @@ from dizzy.utils.generate_procedure_contexts import generate_procedure_contexts
 from dizzy.utils.generate_policy_contexts import generate_policy_contexts
 from dizzy.utils.fix_event_types import fix_event_types, fix_command_types, fix_mutation_types
 
-app = typer.Typer()
+
+# Define all generation steps declaratively
+GENERATORS = [
+    {
+        "name": "Query interfaces",
+        "schema": "queries.yaml",
+        "output": "query_interfaces.py",
+        "func": generate_query_interfaces,
+        "extra_args": {"gen_import_path": "gen.queries"}
+    },
+    {
+        "name": "Mutation interfaces",
+        "schema": "mutations.yaml",
+        "output": "mutation_interfaces.py",
+        "func": generate_mutation_interfaces,
+        "extra_args": {"gen_import_path": "gen.mutations"}
+    },
+    {
+        "name": "Procedure contexts",
+        "schema": "procedures.d.yaml",
+        "output": ["procedures.py", "procedure_interfaces.py"],
+        "func": generate_procedure_contexts,
+    },
+    {
+        "name": "Policy contexts",
+        "schema": "policies.d.yaml",
+        "output": ["policies.py", "policy_interfaces.py"],
+        "func": generate_policy_contexts,
+    },
+]
 
 
-def run_gen_pydantic(schema_file: Path, output_file: Path) -> bool:
+def run_gen_pydantic(schema_file: Path, output_file: Path):
     """Run gen-pydantic to generate Pydantic models from LinkML schema."""
-    try:
-        result = subprocess.run(
-            ["gen-pydantic", str(schema_file)],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        
-        output_file.parent.mkdir(parents=True, exist_ok=True)
-        output_file.write_text(result.stdout)
-        
-        print(f"✓ {output_file.name}")
-        return True
-        
-    except subprocess.CalledProcessError as e:
-        print(f"✗ {output_file.name}: {e.stderr}")
-        return False
-    except FileNotFoundError:
-        print("✗ gen-pydantic not found. Install linkml: uv add linkml")
-        return False
+    result = subprocess.run(
+        ["gen-pydantic", str(schema_file)],
+        capture_output=True,
+        text=True,
+        check=True
+    )
+
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    output_file.write_text(result.stdout)
+
+    print(f"✓ {output_file.name}")
 
 
-@app.command()
-def gen(
-    def_dir: Path = typer.Option(
-        "def",
-        "--def-dir",
-        help="Directory containing LinkML schema files"
-    ),
-    gen_dir: Path = typer.Option(
-        "gen",
-        "--gen-dir",
-        help="Output directory for all generated code"
-    ),
-):
+def gen(def_dir: Path, gen_dir: Path):
     """Generate code from LinkML schemas."""
     def_dir = def_dir.resolve()
     gen_dir = gen_dir.resolve()
 
-    # Calculate base directory from def_dir parent
-    base_dir = def_dir.parent
-    queries_dir = base_dir / "queries"
-    mutations_dir = base_dir / "mutations"
-    procedures_dir = base_dir / "procedures"
-    policies_dir = base_dir / "policies"
-
     if not def_dir.exists():
         print(f"✗ def/ directory not found at {def_dir}")
-        raise typer.Exit(1)
+        sys.exit(1)
 
     print(f"Generating from {def_dir}/ to {gen_dir}/\n")
-    
-    success = True
-    
+
     # Generate Pydantic models
     print("Pydantic models:")
     schemas = [
@@ -79,14 +78,13 @@ def gen(
         ("events.yaml", "events.py"),
         ("mutations.yaml", "mutations.py"),
     ]
-    
+
     for schema_name, output_name in schemas:
         schema_file = def_dir / schema_name
         output_file = gen_dir / output_name
 
         if schema_file.exists():
-            if not run_gen_pydantic(schema_file, output_file):
-                success = False
+            run_gen_pydantic(schema_file, output_file)
 
     # Apply custom fixes
     print("\nCustom fixes:")
@@ -111,70 +109,35 @@ def gen(
     if not fixes_applied:
         print("  No fixes needed")
 
-    # Query interfaces
-    print("\nQuery interfaces:")
-    queries_yaml = def_dir / "queries.yaml"
-    if queries_yaml.exists():
-        try:
-            generate_query_interfaces(
-                queries_yaml,
-                queries_dir / "interfaces.py",
-                gen_import_path="gen.queries"
-            )
-        except Exception as e:
-            print(f"✗ queries/interfaces.py: {e}")
-            success = False
-    
-    # Mutation interfaces
-    print("\nMutation interfaces:")
-    mutations_yaml = def_dir / "mutations.yaml"
-    if mutations_yaml.exists():
-        try:
-            generate_mutation_interfaces(
-                mutations_yaml,
-                mutations_dir / "interfaces.py",
-                gen_import_path="gen.mutations"
-            )
-        except Exception as e:
-            print(f"✗ mutations/interfaces.py: {e}")
-            success = False
-    
-    # Procedure contexts
-    print("\nProcedure contexts:")
-    procedures_yaml = def_dir / "procedures.d.yaml"
-    if procedures_yaml.exists():
-        try:
-            generate_procedure_contexts(
-                procedures_yaml,
-                gen_dir / "procedures.py",
-                procedures_dir / "interfaces.py",
-            )
-        except Exception as e:
-            print(f"✗ procedures: {e}")
-            success = False
+    # Run all generators
+    for generator in GENERATORS:
+        schema_file = def_dir / generator["schema"]
+        if not schema_file.exists():
+            continue
 
-    # Policy contexts
-    print("\nPolicy contexts:")
-    policies_yaml = def_dir / "policies.d.yaml"
-    if policies_yaml.exists():
-        try:
-            generate_policy_contexts(
-                policies_yaml,
-                gen_dir / "policies.py",
-                policies_dir / "interfaces.py",
-            )
-        except Exception as e:
-            print(f"✗ policies: {e}")
-            success = False
+        print(f"\n{generator['name']}:")
 
-    print()
-    if success:
-        print("✨ Done")
-        raise typer.Exit(0)
-    else:
-        print("⚠️  Completed with errors")
-        raise typer.Exit(1)
+        # Handle single or multiple outputs
+        outputs = generator["output"]
+        if isinstance(outputs, str):
+            outputs = [outputs]
+        output_paths = [gen_dir / output for output in outputs]
+
+        # Call generator with extra args if provided
+        extra_args = generator.get("extra_args", {})
+        generator["func"](schema_file, *output_paths, **extra_args)
+
+    print("\n✨ Done")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Generate code from LinkML schemas")
+    parser.add_argument("def_dir", type=Path, help="Directory containing LinkML schema files")
+    parser.add_argument("gen_dir", type=Path, help="Output directory for all generated code")
+
+    args = parser.parse_args()
+    gen(args.def_dir, args.gen_dir)
 
 
 if __name__ == "__main__":
-    app()
+    main()
