@@ -13,7 +13,7 @@ default_range: string
 
 imports:
   - linkml:types
-  - ../../../pkg/dizzy/src/dizzy/def/queries
+  - ../../../dizzy/src/dizzy/def/queries
   - models
 
 classes:

@@ -31,13 +31,13 @@ GENERATORS = [
     {
         "name": "Procedure contexts",
         "schema": "procedures.d.yaml",
-        "output": ["procedures.py", "procedure_interfaces.py"],
+        "output": ["procedures.py", "procedures.py"],
         "func": generate_procedure_contexts,
     },
     {
         "name": "Policy contexts",
         "schema": "policies.d.yaml",
-        "output": ["policies.py", "policy_interfaces.py"],
+        "output": ["policies.py", "policies.py"],
         "func": generate_policy_contexts,
     },
 ]
@@ -45,17 +45,27 @@ GENERATORS = [
 
 def run_gen_pydantic(schema_file: Path, output_file: Path):
     """Run gen-pydantic to generate Pydantic models from LinkML schema."""
-    result = subprocess.run(
-        ["gen-pydantic", str(schema_file)],
-        capture_output=True,
-        text=True,
-        check=True
-    )
+    try:
+        result = subprocess.run(
+            ["gen-pydantic", str(schema_file)],
+            capture_output=True,
+            text=True,
+            check=True
+        )
 
-    output_file.parent.mkdir(parents=True, exist_ok=True)
-    output_file.write_text(result.stdout)
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        output_file.write_text(result.stdout)
 
-    print(f"✓ {output_file.name}")
+        print(f"✓ {output_file.name}")
+    except subprocess.CalledProcessError as e:
+        print(f"✗ Failed to generate {output_file.name} from {schema_file.name}")
+        print(f"\nCommand: {' '.join(e.cmd)}")
+        print(f"Exit code: {e.returncode}")
+        if e.stdout:
+            print(f"\nStdout:\n{e.stdout}")
+        if e.stderr:
+            print(f"\nStderr:\n{e.stderr}")
+        raise
 
 
 def gen(def_dir: Path, gen_dir: Path):
@@ -81,10 +91,12 @@ def gen(def_dir: Path, gen_dir: Path):
 
     for schema_name, output_name in schemas:
         schema_file = def_dir / schema_name
-        output_file = gen_dir / output_name
+        assert schema_file.exists(), f"{schema_file} does not exist"
 
-        if schema_file.exists():
-            run_gen_pydantic(schema_file, output_file)
+    for schema_name, output_name in schemas:
+        schema_file = def_dir / schema_name
+        output_file = gen_dir / output_name
+        run_gen_pydantic(schema_file, output_file)
 
     # Apply custom fixes
     print("\nCustom fixes:")
@@ -93,21 +105,14 @@ def gen(def_dir: Path, gen_dir: Path):
     mutations_file = gen_dir / "mutations.py"
     models_file = gen_dir / "models.py"
 
-    fixes_applied = False
-    if events_file.exists() and fix_event_types(events_file, models_file):
-        print("✓ Fixed event type annotations")
-        fixes_applied = True
+    fix_event_types(events_file, models_file)
+    print("✓ Fixed event type annotations")
 
-    if commands_file.exists() and fix_command_types(commands_file, models_file):
-        print("✓ Fixed command type annotations")
-        fixes_applied = True
+    fix_command_types(commands_file, models_file)
+    print("✓ Fixed command type annotations")
 
-    if mutations_file.exists() and fix_mutation_types(mutations_file, models_file):
-        print("✓ Fixed mutation type annotations")
-        fixes_applied = True
-
-    if not fixes_applied:
-        print("  No fixes needed")
+    fix_mutation_types(mutations_file, models_file)
+    print("✓ Fixed mutation type annotations")
 
     # Run all generators
     for generator in GENERATORS:
@@ -126,6 +131,11 @@ def gen(def_dir: Path, gen_dir: Path):
         # Call generator with extra args if provided
         extra_args = generator.get("extra_args", {})
         generator["func"](schema_file, *output_paths, **extra_args)
+
+    init_file  = gen_dir / '__init__.py'
+    init_file.touch()
+    print("✓ __init__.py")
+
 
     print("\n✨ Done")
 

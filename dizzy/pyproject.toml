@@ -5,12 +5,13 @@ description = "Dizzy core library"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "linkml>=1.9.5",
     "pyyaml>=6.0",
     "typer[all]>=0.20.0",
 ]
 
 [project.scripts]
-dizzy = "dizzy.cli:app"
+dizzy = "dizzy.cli:main"
 
 [dependency-groups]
 dev = [

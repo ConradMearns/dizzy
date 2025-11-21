@@ -20,7 +20,7 @@ def parse_mutations_yaml(yaml_path: Path) -> Dict:
 
 def find_mutation_pairs(schema: Dict) -> List[Tuple[str, str]]:
     """Find pairs of Input/Output mutation classes."""
-    classes = schema.get('classes', {})
+    classes = schema.get('classes') or {}
     pairs = []
 
     for class_name in classes:

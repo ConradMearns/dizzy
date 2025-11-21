@@ -1,4 +1,4 @@
-id: https://example.org/todo/commands
+id: ./todo/commands
 name: todo-commands-schema
 title: Todo Commands Data Model
 description: >-
@@ -7,14 +7,14 @@ description: >-
 
 prefixes:
   linkml: https://w3id.org/linkml/
-  todo: https://example.org/todo/
+  dizzy: ../../../dizzy/src/dizzy/def/
 
 default_prefix: todo
 default_range: string
 
 imports:
   - linkml:types
-  - ../../../pkg/dizzy/src/dizzy/def/commands
+  - dizzy:commands
   - models
 
 classes:

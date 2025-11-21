@@ -14,7 +14,7 @@ default_range: string
 
 imports:
   - linkml:types
-  - ../../../pkg/dizzy/src/dizzy/def/events
+  - ../../../dizzy/src/dizzy/def/events
   - models
 
 classes:
