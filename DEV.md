@@ -113,7 +113,25 @@ uv run python run_procedure.py \
   --command '{"path": "/home/conrad/Pictures/xperia-iii"}'
 ```
 
+# 7a testing
 
+```bash
+
+uv run python run_procedure.py \
+  --feature app/dedupe/scan_and_upload.feat.yaml \
+  --procedure-name partition_scan \
+  --procedure app/dedupe/scan_and_upload/src/procedure/lcpc_b_py/partition_scan.py \
+  --command '{"path": "/home/conrad/Pictures/xperia-iii"}'
+```
+
+> as a note, sha256 took
+> real    0m17.608s
+> user    0m14.956s
+> sys     0m2.405s
+> as a note, xxhash took
+> real    0m5.311s
+> user    0m2.487s
+> sys     0m2.131s
 
 # 8. generate events for event-less procedure
 
