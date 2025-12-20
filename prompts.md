@@ -14,13 +14,35 @@ And anytime there is a, like, business level error, they record events.
 
 You're goal is to read the command LinkML, procedure protocol and context and generate an implementation of the procedure.
 
-Keep it simple - no bullshit
+The dizzy runtime will wrap all procedure calls in error handling.
+Your implementation should focus solely on the success case and the explicit events supported by the context.
+If anything fails, let the exception propagate and the runtime will handle it.
 
-This is a first pass - so forgo all Event Emits - instead, just debug log effects
+This is a first pass - so forgo all Event Emits - instead, just log around effects at the debug level
+
+Procedure:
+```yaml
+commands:
+  start_scan: Initiates a scan to discover files
+
+events:
+  scan_item_found: Found a file (not folder) while scanning
+  scan_complete: Finished scanning
+  scan_item_failed: Something went reading a single item
+
+procedures:
+  partition_scan:
+    description: Scans partition for items, does the work of discovery
+    command: start_scan
+    emits:
+      - scan_item_found
+      - scan_complete
+      - scan_failed
+```
 
 @app/dedupe/scan_and_upload/def/commands/start_scan.yaml
 @app/dedupe/scan_and_upload/gen/procedure/py/partition_scan_protocol.py
 @app/dedupe/scan_and_upload/gen/procedure/py/partition_scan_context.py
 ->
-app/dedupe/scan_and_upload/src/procedure/lcpc_py/start_scan.py 
+app/dedupe/scan_and_upload/src/procedure/lcpc_a_py/start_scan.py
 ```

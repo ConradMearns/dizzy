@@ -13,13 +13,9 @@ imports:
 classes:
   scan_item_found:
     description: We found a file (not folder) on the partition
-    is_a: DomainEvent
+    is_a: Event
     attributes:
       event_id:
         description: Unique identifier for this scan_item_found event
         required: true
         range: string
-      occurred_at:
-        description: Timestamp when this event occurred
-        required: true
-        range: datetime

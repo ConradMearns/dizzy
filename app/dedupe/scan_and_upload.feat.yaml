@@ -5,14 +5,14 @@ description: |
   Flow: scan partition → find items → create priority manifest → upload blobs
 
 commands:
-  start_scan: Initiates partition scan to discover files
+  start_scan: Initiates a scan to discover files
   create_image_priority_manifest: Creates prioritized manifest for upload
   upload_blob_using_manifest: Uploads a blob using manifest information
 
 events:
-  scan_item_found: We found a file (not folder) on the partition
-  scan_complete: Finished iterating through entire partition
-  scan_failed: Something went wrong and we gave up scanning
+  scan_item_found: Found a file (not folder) while scanning
+  scan_complete: Finished scanning
+  scan_item_failed: Something went reading a single item
   priority_manifest_created: Prioritized manifest successfully created
   manifest_upload_started: Upload has started for a manifest item
 

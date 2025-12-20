@@ -1,5 +1,5 @@
 # Auto generated from start_scan.yaml by pythongen.py version: 0.0.1
-# Generation date: 2025-12-20T10:56:44
+# Generation date: 2025-12-20T13:02:31
 # Schema: dedupe-start_scan-command
 #
 # id: https://example.org/dedupe/commands/start_scan

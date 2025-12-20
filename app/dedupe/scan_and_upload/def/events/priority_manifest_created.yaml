@@ -13,13 +13,9 @@ imports:
 classes:
   priority_manifest_created:
     description: Prioritized manifest successfully created
-    is_a: DomainEvent
+    is_a: Event
     attributes:
       event_id:
         description: Unique identifier for this priority_manifest_created event
         required: true
         range: string
-      occurred_at:
-        description: Timestamp when this event occurred
-        required: true
-        range: datetime

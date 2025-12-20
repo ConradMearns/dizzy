@@ -13,13 +13,9 @@ imports:
 classes:
   scan_complete:
     description: Finished iterating through entire partition
-    is_a: DomainEvent
+    is_a: Event
     attributes:
       event_id:
         description: Unique identifier for this scan_complete event
         required: true
         range: string
-      occurred_at:
-        description: Timestamp when this event occurred
-        required: true
-        range: datetime

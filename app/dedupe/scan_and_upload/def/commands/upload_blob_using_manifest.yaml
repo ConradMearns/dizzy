@@ -13,7 +13,7 @@ imports:
 classes:
   upload_blob_using_manifest:
     description: Uploads a blob using manifest information
-    is_a: DomainCommand
+    is_a: Command
     attributes:
       command_id:
         description: Unique identifier for this upload_blob_using_manifest command

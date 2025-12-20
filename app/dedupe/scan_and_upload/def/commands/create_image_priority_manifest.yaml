@@ -13,7 +13,7 @@ imports:
 classes:
   create_image_priority_manifest:
     description: Creates prioritized manifest for upload
-    is_a: DomainCommand
+    is_a: Command
     attributes:
       command_id:
         description: Unique identifier for this create_image_priority_manifest command

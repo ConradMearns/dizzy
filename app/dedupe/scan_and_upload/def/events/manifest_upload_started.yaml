@@ -13,13 +13,9 @@ imports:
 classes:
   manifest_upload_started:
     description: Upload has started for a manifest item
-    is_a: DomainEvent
+    is_a: Event
     attributes:
       event_id:
         description: Unique identifier for this manifest_upload_started event
         required: true
         range: string
-      occurred_at:
-        description: Timestamp when this event occurred
-        required: true
-        range: datetime
