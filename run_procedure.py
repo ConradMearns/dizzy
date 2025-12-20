@@ -54,15 +54,6 @@ def load_procedure_module(procedure_path: str):
     return module
 
 
-def find_procedure_function(module):
-    """Find the procedure function in the module (ends with _procedure)."""
-    for attr_name in dir(module):
-        if attr_name.endswith('_procedure') and callable(getattr(module, attr_name)):
-            return getattr(module, attr_name)
-
-    raise ValueError(f"No procedure function found in module {module.__name__}")
-
-
 def create_mock_emitter(event_name: str) -> Callable:
     """Create a mock emitter function that logs events."""
     def mock_emit(event: Any) -> None:
@@ -175,9 +166,17 @@ def main():
         if str(app_root) not in sys.path:
             sys.path.insert(0, str(app_root))
 
+        # Get procedure name from CLI argument
+        procedure_name = args.procedure_name
+        logger.info(f"Procedure name: {procedure_name}")
+
         # Load the procedure module
         procedure_module = load_procedure_module(args.procedure)
-        procedure_function = find_procedure_function(procedure_module)
+
+        # Get the procedure function directly by name
+        procedure_function = getattr(procedure_module, procedure_name, None)
+        if procedure_function is None or not callable(procedure_function):
+            raise ValueError(f"No procedure function named '{procedure_name}' found in module {procedure_module.__name__}")
 
         logger.info(f"Found procedure function: {procedure_function.__name__}")
 
@@ -191,10 +190,6 @@ def main():
 
         context_class = params[0].annotation
         logger.info(f"Context type: {context_class.__name__}")
-
-        # Get procedure name from CLI argument
-        procedure_name = args.procedure_name
-        logger.info(f"Procedure name: {procedure_name}")
 
         # Look up the procedure in the feature YAML
         procedures = feature_data.get('procedures', {})

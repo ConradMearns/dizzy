@@ -18,7 +18,7 @@ events:
 
 procedures:
   partition_scan:
-    description: Scans partition for items, does the work of discovery
+    description: Scans partition for items, does the work of discovery. Hashes items to ensure referential integrity
     command: start_scan
     emits:
       - scan_item_found
