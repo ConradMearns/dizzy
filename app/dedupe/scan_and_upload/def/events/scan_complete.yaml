@@ -1,0 +1,25 @@
+id: https://example.org/dedupe/events/scan_complete
+name: dedupe-scan_complete-event
+title: scan_complete Event
+description: Finished iterating through entire partition
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dedupe: https://example.org/dedupe/
+default_prefix: dedupe
+default_range: string
+imports:
+- linkml:types
+- ../../../../../dizzy/src/dizzy/def/events
+classes:
+  scan_complete:
+    description: Finished iterating through entire partition
+    is_a: DomainEvent
+    attributes:
+      event_id:
+        description: Unique identifier for this scan_complete event
+        required: true
+        range: string
+      occurred_at:
+        description: Timestamp when this event occurred
+        required: true
+        range: datetime

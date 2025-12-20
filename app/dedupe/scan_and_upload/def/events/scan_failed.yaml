@@ -1,0 +1,25 @@
+id: https://example.org/dedupe/events/scan_failed
+name: dedupe-scan_failed-event
+title: scan_failed Event
+description: Something went wrong and we gave up scanning
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dedupe: https://example.org/dedupe/
+default_prefix: dedupe
+default_range: string
+imports:
+- linkml:types
+- ../../../../../dizzy/src/dizzy/def/events
+classes:
+  scan_failed:
+    description: Something went wrong and we gave up scanning
+    is_a: DomainEvent
+    attributes:
+      event_id:
+        description: Unique identifier for this scan_failed event
+        required: true
+        range: string
+      occurred_at:
+        description: Timestamp when this event occurred
+        required: true
+        range: datetime

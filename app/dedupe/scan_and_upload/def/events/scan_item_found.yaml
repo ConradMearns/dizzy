@@ -1,0 +1,25 @@
+id: https://example.org/dedupe/events/scan_item_found
+name: dedupe-scan_item_found-event
+title: scan_item_found Event
+description: We found a file (not folder) on the partition
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dedupe: https://example.org/dedupe/
+default_prefix: dedupe
+default_range: string
+imports:
+- linkml:types
+- ../../../../../dizzy/src/dizzy/def/events
+classes:
+  scan_item_found:
+    description: We found a file (not folder) on the partition
+    is_a: DomainEvent
+    attributes:
+      event_id:
+        description: Unique identifier for this scan_item_found event
+        required: true
+        range: string
+      occurred_at:
+        description: Timestamp when this event occurred
+        required: true
+        range: datetime

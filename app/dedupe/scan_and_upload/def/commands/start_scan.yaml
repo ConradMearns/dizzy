@@ -1,0 +1,22 @@
+id: https://example.org/dedupe/commands/start_scan
+name: dedupe-start_scan-command
+title: start_scan Command
+description: Initiates partition scan to discover files
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dedupe: https://example.org/dedupe/
+default_prefix: dedupe
+default_range: string
+imports:
+- linkml:types
+- ../../../../../dizzy/src/dizzy/def/commands
+classes:
+
+  start_scan:
+    description: Initiates partition scan to discover files
+    is_a: Command
+    attributes:
+      path:
+        description: The filesystem path to scan
+        required: true
+        range: string
