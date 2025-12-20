@@ -38,7 +38,7 @@ procedures:
     emits:
       - scan_item_found
       - scan_complete
-      - scan_failed
+      - scan_item_failed
 ```
 
 @app/dedupe/scan_and_upload/def/commands/start_scan.yaml
@@ -51,13 +51,10 @@ app/dedupe/scan_and_upload/src/procedure/lcpc_a_py/start_scan.py
 # 7 testing
 
 ```bash
-uv run python run_procedure.py \
-    --feature app/dedupe/scan_and_upload.feat.yaml \
-    --procedure app/dedupe/scan_and_upload/src/procedure/lcpc_a_py/start_scan.py \
-    --command '{"path": "/tmp/test"}'
 
 uv run python run_procedure.py \
   --feature app/dedupe/scan_and_upload.feat.yaml \
+  --procedure-name partition_scan \
   --procedure app/dedupe/scan_and_upload/src/procedure/lcpc_a_py/start_scan.py \
   --command '{"path": "/home/conrad/Pictures/xperia-iii"}'
 ```

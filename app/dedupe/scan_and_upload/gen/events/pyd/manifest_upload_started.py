@@ -1,5 +1,5 @@
 # Auto generated from manifest_upload_started.yaml by pythongen.py version: 0.0.1
-# Generation date: 2025-12-20T14:15:08
+# Generation date: 2025-12-20T14:24:04
 # Schema: dedupe-manifest_upload_started-event
 #
 # id: https://example.org/dedupe/events/manifest_upload_started

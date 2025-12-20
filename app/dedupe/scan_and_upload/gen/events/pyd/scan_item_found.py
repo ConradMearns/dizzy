@@ -1,9 +1,9 @@
 # Auto generated from scan_item_found.yaml by pythongen.py version: 0.0.1
-# Generation date: 2025-12-20T14:15:10
+# Generation date: 2025-12-20T14:24:06
 # Schema: dedupe-scan_item_found-event
 #
 # id: https://example.org/dedupe/events/scan_item_found
-# description: We found a file (not folder) on the partition
+# description: Found a file (not folder) while scanning
 # license: https://creativecommons.org/publicdomain/zero/1.0/
 
 import dataclasses
@@ -90,7 +90,7 @@ class Event(YAMLRoot):
 @dataclass(repr=False)
 class ScanItemFound(Event):
     """
-    We found a file (not folder) on the partition
+    Found a file (not folder) while scanning
     """
     _inherited_slots: ClassVar[list[str]] = []
 

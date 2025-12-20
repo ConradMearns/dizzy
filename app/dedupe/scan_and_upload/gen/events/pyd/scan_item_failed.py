@@ -1,5 +1,5 @@
 # Auto generated from scan_item_failed.yaml by pythongen.py version: 0.0.1
-# Generation date: 2025-12-20T14:15:10
+# Generation date: 2025-12-20T14:24:05
 # Schema: dedupe-scan_item_failed-event
 #
 # id: https://example.org/dedupe/events/scan_item_failed

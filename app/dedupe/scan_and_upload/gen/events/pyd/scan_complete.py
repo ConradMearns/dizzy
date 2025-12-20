@@ -1,9 +1,9 @@
 # Auto generated from scan_complete.yaml by pythongen.py version: 0.0.1
-# Generation date: 2025-12-20T14:15:09
+# Generation date: 2025-12-20T14:24:05
 # Schema: dedupe-scan_complete-event
 #
 # id: https://example.org/dedupe/events/scan_complete
-# description: Finished iterating through entire partition
+# description: Finished scanning
 # license: https://creativecommons.org/publicdomain/zero/1.0/
 
 import dataclasses
@@ -90,7 +90,7 @@ class Event(YAMLRoot):
 @dataclass(repr=False)
 class ScanComplete(Event):
     """
-    Finished iterating through entire partition
+    Finished scanning
     """
     _inherited_slots: ClassVar[list[str]] = []
 

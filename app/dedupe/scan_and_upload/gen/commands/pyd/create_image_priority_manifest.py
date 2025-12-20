@@ -1,5 +1,5 @@
 # Auto generated from create_image_priority_manifest.yaml by pythongen.py version: 0.0.1
-# Generation date: 2025-12-20T14:15:06
+# Generation date: 2025-12-20T14:24:02
 # Schema: dedupe-create_image_priority_manifest-command
 #
 # id: https://example.org/dedupe/commands/create_image_priority_manifest

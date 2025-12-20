@@ -11,7 +11,7 @@ from typing import Callable
 # Import event types
 from gen.events.pyd import (
     scan_complete,
-    scan_failed,
+    scan_item_failed,
     scan_item_found,
 )
 
@@ -21,7 +21,7 @@ class start_scan_emitters:
     """Emitters for start_scan procedure (partition_scan)."""
     scan_item_found: Callable[[scan_item_found], None]
     scan_complete: Callable[[scan_complete], None]
-    scan_failed: Callable[[scan_failed], None]
+    scan_item_failed: Callable[[scan_item_failed], None]
 
 
 @dataclass

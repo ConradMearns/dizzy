@@ -3,12 +3,13 @@
 Generic test script for running dizzy procedures.
 
 Usage:
-    python run_procedure.py --feature <feature.yaml> --procedure <path/to/procedure.py> --command <json_command>
+    python run_procedure.py --feature <feature.yaml> --procedure <path/to/procedure.py> --procedure-name <name> --command <json_command>
 
 Example:
     python run_procedure.py \\
         --feature app/dedupe/scan_and_upload.feat.yaml \\
         --procedure app/dedupe/scan_and_upload/src/procedure/lcpc_a_py/start_scan.py \\
+        --procedure-name partition_scan \\
         --command '{"path": "/tmp/test"}'
 """
 
@@ -145,6 +146,11 @@ def main():
         help='Path to the procedure Python file'
     )
     parser.add_argument(
+        '--procedure-name',
+        required=True,
+        help='Name of the procedure from the feature YAML (e.g., partition_scan)'
+    )
+    parser.add_argument(
         '--command',
         required=True,
         help='JSON command to execute'
@@ -175,7 +181,7 @@ def main():
 
         logger.info(f"Found procedure function: {procedure_function.__name__}")
 
-        # Get the function signature to determine command and context types
+        # Get the function signature to determine context type
         import inspect
         sig = inspect.signature(procedure_function)
         params = list(sig.parameters.values())
@@ -184,25 +190,44 @@ def main():
             raise ValueError("Procedure must accept at least 2 parameters (context, command)")
 
         context_class = params[0].annotation
-        command_class = params[1].annotation
-
         logger.info(f"Context type: {context_class.__name__}")
-        logger.info(f"Command type: {command_class.__name__}")
 
-        # Extract procedure name from function name (e.g., start_scan_procedure -> partition_scan)
-        # Actually, we need to map command to procedure name from the feature YAML
-        # Let's find which procedure handles this command type
-        command_type_name = command_class.__name__.lower()
-        procedure_name = None
-        for proc_name, proc_def in feature_data.get('procedures', {}).items():
-            if proc_def.get('command', '').lower() == command_type_name:
-                procedure_name = proc_name
+        # Get procedure name from CLI argument
+        procedure_name = args.procedure_name
+        logger.info(f"Procedure name: {procedure_name}")
+
+        # Look up the procedure in the feature YAML
+        procedures = feature_data.get('procedures', {})
+        if procedure_name not in procedures:
+            raise ValueError(f"Procedure '{procedure_name}' not found in feature YAML")
+
+        procedure_def = procedures[procedure_name]
+        command_type_name = procedure_def.get('command')
+
+        if not command_type_name:
+            raise ValueError(f"Procedure '{procedure_name}' does not specify a command in feature YAML")
+
+        logger.info(f"Command type from feature YAML: {command_type_name}")
+
+        # Dynamically import the command class based on the YAML
+        # Import the module and find the class with matching class_name
+        import importlib
+        command_module = importlib.import_module(f"gen.commands.pyd.{command_type_name}")
+
+        # Find the class in the module that has class_name matching our command type
+        command_class = None
+        for attr_name in dir(command_module):
+            attr = getattr(command_module, attr_name)
+            if (isinstance(attr, type) and
+                hasattr(attr, 'class_name') and
+                attr.class_name == command_type_name):
+                command_class = attr
                 break
 
-        if not procedure_name:
-            raise ValueError(f"Could not find procedure for command type: {command_type_name}")
+        if command_class is None:
+            raise ValueError(f"Could not find command class for '{command_type_name}' in module")
 
-        logger.info(f"Procedure name from feature YAML: {procedure_name}")
+        logger.info(f"Command class: {command_class.__name__}")
 
         # Get the events this procedure emits
         event_names = get_procedure_events(feature_data, procedure_name)

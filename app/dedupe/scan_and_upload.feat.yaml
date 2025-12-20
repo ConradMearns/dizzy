@@ -23,7 +23,7 @@ procedures:
     emits:
       - scan_item_found
       - scan_complete
-      - scan_failed
+      - scan_item_failed
   
   filter_manifest_by_path_type:
     description: Filters manifest by path type to create image priority manifest
