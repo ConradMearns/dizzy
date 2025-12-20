@@ -1,9 +1,9 @@
-# Auto generated from start_scan.yaml by pythongen.py version: 0.0.1
+# Auto generated from create_image_priority_manifest.yaml by pythongen.py version: 0.0.1
 # Generation date: 2025-12-20T14:15:06
-# Schema: dedupe-start_scan-command
+# Schema: dedupe-create_image_priority_manifest-command
 #
-# id: https://example.org/dedupe/commands/start_scan
-# description: Initiates partition scan to discover files
+# id: https://example.org/dedupe/commands/create_image_priority_manifest
+# description: Creates prioritized manifest for upload
 # license: https://creativecommons.org/publicdomain/zero/1.0/
 
 import dataclasses
@@ -88,24 +88,24 @@ class Command(YAMLRoot):
 
 
 @dataclass(repr=False)
-class StartScan(Command):
+class CreateImagePriorityManifest(Command):
     """
-    Initiates partition scan to discover files
+    Creates prioritized manifest for upload
     """
     _inherited_slots: ClassVar[list[str]] = []
 
-    class_class_uri: ClassVar[URIRef] = DEDUPE["StartScan"]
-    class_class_curie: ClassVar[str] = "dedupe:StartScan"
-    class_name: ClassVar[str] = "start_scan"
-    class_model_uri: ClassVar[URIRef] = DEDUPE.StartScan
+    class_class_uri: ClassVar[URIRef] = DEDUPE["CreateImagePriorityManifest"]
+    class_class_curie: ClassVar[str] = "dedupe:CreateImagePriorityManifest"
+    class_name: ClassVar[str] = "create_image_priority_manifest"
+    class_model_uri: ClassVar[URIRef] = DEDUPE.CreateImagePriorityManifest
 
-    path: str = None
+    command_id: str = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
-        if self._is_empty(self.path):
-            self.MissingRequiredField("path")
-        if not isinstance(self.path, str):
-            self.path = str(self.path)
+        if self._is_empty(self.command_id):
+            self.MissingRequiredField("command_id")
+        if not isinstance(self.command_id, str):
+            self.command_id = str(self.command_id)
 
         super().__post_init__(**kwargs)
 
@@ -117,6 +117,6 @@ class StartScan(Command):
 class slots:
     pass
 
-slots.startScan__path = Slot(uri=DEDUPE.path, name="startScan__path", curie=DEDUPE.curie('path'),
-                   model_uri=DEDUPE.startScan__path, domain=None, range=str)
+slots.createImagePriorityManifest__command_id = Slot(uri=DEDUPE.command_id, name="createImagePriorityManifest__command_id", curie=DEDUPE.curie('command_id'),
+                   model_uri=DEDUPE.createImagePriorityManifest__command_id, domain=None, range=str)
 

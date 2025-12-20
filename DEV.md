@@ -1,6 +1,7 @@
-# `lcpc_a_py`
+# 6. generate procedure without events 
 
-```
+## `lcpc_a_py`
+
 dizzy is a methodology for writing software
 
 Built out of composable pieces:
@@ -45,4 +46,49 @@ procedures:
 @app/dedupe/scan_and_upload/gen/procedure/py/partition_scan_context.py
 ->
 app/dedupe/scan_and_upload/src/procedure/lcpc_a_py/start_scan.py
+
+
+# 7 testing
+
+```bash
+uv run python run_procedure.py \
+    --feature app/dedupe/scan_and_upload.feat.yaml \
+    --procedure app/dedupe/scan_and_upload/src/procedure/lcpc_a_py/start_scan.py \
+    --command '{"path": "/tmp/test"}'
+
+uv run python run_procedure.py \
+  --feature app/dedupe/scan_and_upload.feat.yaml \
+  --procedure app/dedupe/scan_and_upload/src/procedure/lcpc_a_py/start_scan.py \
+  --command '{"path": "/home/conrad/Pictures/xperia-iii"}'
 ```
+
+
+
+# xxx. generate events for event-less procedure
+
+after building / manipulating the start of the procedure, we can make event definitions
+then we can go back and finish the procedure
+
+## event definitions
+
+dizzy is a methodology for writing software
+
+Built out of composable pieces:
+2 types of data: commands and events. 
+2 types of functions: procedures and policies.
+
+You're goal is to read a fresh procedure and write the LinkML definitions for the relevant Events.
+
+Events:
+```yaml
+events:
+  scan_item_found: Found a file (not folder) while scanning
+  scan_complete: Finished scanning
+  scan_item_failed: Something went reading a single item
+```
+
+@app/dedupe/scan_and_upload/def/commands/start_scan.yaml
+@app/dedupe/scan_and_upload/gen/procedure/py/partition_scan_protocol.py
+@app/dedupe/scan_and_upload/gen/procedure/py/partition_scan_context.py
+->
+app/dedupe/scan_and_upload/src/procedure/lcpc_a_py/start_scan.py

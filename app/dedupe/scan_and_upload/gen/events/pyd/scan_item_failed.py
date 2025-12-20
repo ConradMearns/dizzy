@@ -1,9 +1,9 @@
-# Auto generated from start_scan.yaml by pythongen.py version: 0.0.1
-# Generation date: 2025-12-20T14:15:06
-# Schema: dedupe-start_scan-command
+# Auto generated from scan_item_failed.yaml by pythongen.py version: 0.0.1
+# Generation date: 2025-12-20T14:15:10
+# Schema: dedupe-scan_item_failed-event
 #
-# id: https://example.org/dedupe/commands/start_scan
-# description: Initiates partition scan to discover files
+# id: https://example.org/dedupe/events/scan_item_failed
+# description: Something went reading a single item
 # license: https://creativecommons.org/publicdomain/zero/1.0/
 
 import dataclasses
@@ -74,38 +74,38 @@ DEFAULT_ = DEDUPE
 
 
 
-class Command(YAMLRoot):
+class Event(YAMLRoot):
     """
-    Base class for all commands that can be executed. This is an abstract class that should be extended by concrete
-    command types.
+    Base class for all domain events - immutable facts about what happened. This is an abstract class that should be
+    extended by concrete event types.
     """
     _inherited_slots: ClassVar[list[str]] = []
 
-    class_class_uri: ClassVar[URIRef] = DIZZY["Command"]
-    class_class_curie: ClassVar[str] = "dizzy:Command"
-    class_name: ClassVar[str] = "Command"
-    class_model_uri: ClassVar[URIRef] = DEDUPE.Command
+    class_class_uri: ClassVar[URIRef] = DIZZY["Event"]
+    class_class_curie: ClassVar[str] = "dizzy:Event"
+    class_name: ClassVar[str] = "Event"
+    class_model_uri: ClassVar[URIRef] = DEDUPE.Event
 
 
 @dataclass(repr=False)
-class StartScan(Command):
+class ScanItemFailed(Event):
     """
-    Initiates partition scan to discover files
+    Something went reading a single item
     """
     _inherited_slots: ClassVar[list[str]] = []
 
-    class_class_uri: ClassVar[URIRef] = DEDUPE["StartScan"]
-    class_class_curie: ClassVar[str] = "dedupe:StartScan"
-    class_name: ClassVar[str] = "start_scan"
-    class_model_uri: ClassVar[URIRef] = DEDUPE.StartScan
+    class_class_uri: ClassVar[URIRef] = DEDUPE["ScanItemFailed"]
+    class_class_curie: ClassVar[str] = "dedupe:ScanItemFailed"
+    class_name: ClassVar[str] = "scan_item_failed"
+    class_model_uri: ClassVar[URIRef] = DEDUPE.ScanItemFailed
 
-    path: str = None
+    event_id: str = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
-        if self._is_empty(self.path):
-            self.MissingRequiredField("path")
-        if not isinstance(self.path, str):
-            self.path = str(self.path)
+        if self._is_empty(self.event_id):
+            self.MissingRequiredField("event_id")
+        if not isinstance(self.event_id, str):
+            self.event_id = str(self.event_id)
 
         super().__post_init__(**kwargs)
 
@@ -117,6 +117,6 @@ class StartScan(Command):
 class slots:
     pass
 
-slots.startScan__path = Slot(uri=DEDUPE.path, name="startScan__path", curie=DEDUPE.curie('path'),
-                   model_uri=DEDUPE.startScan__path, domain=None, range=str)
+slots.scanItemFailed__event_id = Slot(uri=DEDUPE.event_id, name="scanItemFailed__event_id", curie=DEDUPE.curie('event_id'),
+                   model_uri=DEDUPE.scanItemFailed__event_id, domain=None, range=str)
 

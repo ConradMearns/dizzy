@@ -32,8 +32,20 @@ gen-dedupe: dizzy-linkml
     # 4. gen from hlv+fm+ecls
     rm app/dedupe/scan_and_upload/gen/ -rf
     mkdir -p app/dedupe/scan_and_upload/gen/commands/pyd/
-    uvx --from linkml gen-python app/dedupe/scan_and_upload/def/commands/start_scan.yaml > app/dedupe/scan_and_upload/gen/commands/pyd/start_scan.py
+    mkdir -p app/dedupe/scan_and_upload/gen/events/pyd/
+    
+    # commands
     # uvx --from linkml gen-python app/dedupe/scan_and_upload/def/commands/start_scan.yaml > app/dedupe/scan_and_upload/gen/commands/dataclasses/start_scan.py # example
+    uvx --from linkml gen-python app/dedupe/scan_and_upload/def/commands/create_image_priority_manifest.yaml > app/dedupe/scan_and_upload/gen/commands/pyd/create_image_priority_manifest.py
+    uvx --from linkml gen-python app/dedupe/scan_and_upload/def/commands/start_scan.yaml > app/dedupe/scan_and_upload/gen/commands/pyd/start_scan.py
+    uvx --from linkml gen-python app/dedupe/scan_and_upload/def/commands/upload_blob_using_manifest.yaml > app/dedupe/scan_and_upload/gen/commands/pyd/upload_blob_using_manifest.py
+
+    # events
+    uvx --from linkml gen-python app/dedupe/scan_and_upload/def/events/manifest_upload_started.yaml > app/dedupe/scan_and_upload/gen/events/pyd/manifest_upload_started.py
+    uvx --from linkml gen-python app/dedupe/scan_and_upload/def/events/priority_manifest_created.yaml > app/dedupe/scan_and_upload/gen/events/pyd/priority_manifest_created.py
+    uvx --from linkml gen-python app/dedupe/scan_and_upload/def/events/scan_complete.yaml > app/dedupe/scan_and_upload/gen/events/pyd/scan_complete.py
+    uvx --from linkml gen-python app/dedupe/scan_and_upload/def/events/scan_item_failed.yaml > app/dedupe/scan_and_upload/gen/events/pyd/scan_item_failed.py
+    uvx --from linkml gen-python app/dedupe/scan_and_upload/def/events/scan_item_found.yaml > app/dedupe/scan_and_upload/gen/events/pyd/scan_item_found.py
 
     # 5 generate protocols gen+hlv+fm+ecls -> language protocols
     # Generate procedure contexts and protocol interfaces

@@ -1,5 +1,5 @@
 # Auto generated from feature_schema.yaml by pythongen.py version: 0.0.1
-# Generation date: 2025-12-20T13:02:30
+# Generation date: 2025-12-20T14:15:05
 # Schema: dizzy-feature-schema
 #
 # id: https://w3id.org/dizzy/feature-schema

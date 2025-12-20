@@ -16,7 +16,7 @@ imports:
   - linkml:types
 
 classes:
-  DomainEvent:
+  Event:
     description: >-
       Base class for all domain events - immutable facts about what happened.
       This is an abstract class that should be extended by concrete event types.
