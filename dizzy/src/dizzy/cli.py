@@ -146,7 +146,9 @@ def main():
     parser.add_argument("gen_dir", type=Path, help="Output directory for all generated code")
 
     args = parser.parse_args()
-    gen(args.def_dir, args.gen_dir)
+    # gen(args.def_dir, args.gen_dir)
+
+    
 
 
 if __name__ == "__main__":

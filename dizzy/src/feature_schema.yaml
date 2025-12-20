@@ -1,0 +1,114 @@
+id: https://w3id.org/dizzy/feature-schema
+name: dizzy-feature-schema
+title: Dizzy Feature Schema
+description: |-
+  LinkML schema for defining Dizzy features with commands, events, procedures, and policies
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dizzy: https://w3id.org/dizzy/
+
+default_prefix: dizzy
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  Feature:
+    description: A complete feature definition with commands, events, procedures, and policies
+    attributes:
+      description:
+        description: Human-readable description of the feature and its purpose
+        range: string
+        required: true
+      commands:
+        description: Available commands that can be issued
+        range: Command
+        multivalued: true
+        inlined: true
+        inlined_as_list: false
+      events:
+        description: Events that can be emitted during feature execution
+        range: Event
+        multivalued: true
+        inlined: true
+        inlined_as_list: false
+      procedures:
+        description: Procedures that execute commands and emit events
+        range: Procedure
+        multivalued: true
+        inlined: true
+        inlined_as_list: false
+      policies:
+        description: Policies that react to events and may issue commands
+        range: Policy
+        multivalued: true
+        inlined: true
+        inlined_as_list: false
+
+  Command:
+    description: A command that can be issued to trigger a procedure
+    attributes:
+      name:
+        description: Unique identifier for the command
+        range: string
+        required: true
+        identifier: true
+      description:
+        description: Human-readable description of what the command does
+        range: string
+
+  Event:
+    description: An event that can be emitted during execution
+    attributes:
+      name:
+        description: Unique identifier for the event
+        range: string
+        required: true
+        identifier: true
+      description:
+        description: Human-readable description of what the event represents
+        range: string
+
+  Procedure:
+    description: A procedure that executes in response to a command
+    attributes:
+      name:
+        description: Unique identifier for the procedure
+        range: string
+        required: true
+        identifier: true
+      description:
+        description: Human-readable description of what the procedure does
+        range: string
+        required: true
+      command:
+        description: The command that triggers this procedure
+        range: string
+        required: true
+      emits:
+        description: List of events that this procedure can emit
+        range: string
+        multivalued: true
+
+  Policy:
+    description: A policy that reacts to events and may issue commands
+    attributes:
+      name:
+        description: Unique identifier for the policy
+        range: string
+        required: true
+        identifier: true
+      description:
+        description: Human-readable description of what the policy does
+        range: string
+        required: true
+      event:
+        description: The event that triggers this policy
+        range: string
+        required: true
+      emits:
+        description: List of commands that this policy can issue in response
+        range: string
+        multivalued: true

@@ -1,0 +1,55 @@
+description: |
+  Scan and Upload Feature
+  
+  User inserts SD card and wants to scan for images/documents to upload to personal cloud storage.
+  Flow: scan partition → find items → create priority manifest → upload blobs
+
+commands:
+  start_scan: Initiates partition scan to discover files
+  create_image_priority_manifest: Creates prioritized manifest for upload
+  upload_blob_using_manifest: Uploads a blob using manifest information
+
+events:
+  scan_item_found: We found a file (not folder) on the partition
+  scan_complete: Finished iterating through entire partition
+  scan_failed: Something went wrong and we gave up scanning
+  priority_manifest_created: Prioritized manifest successfully created
+  manifest_upload_started: Upload has started for a manifest item
+
+procedures:
+  partition_scan:
+    description: Scans partition for items, does the work of discovery
+    command: start_scan
+    emits:
+      - scan_item_found
+      - scan_complete
+      - scan_failed
+  
+  filter_manifest_by_path_type:
+    description: Filters manifest by path type to create image priority manifest
+    command: create_image_priority_manifest
+    emits:
+      - priority_manifest_created
+  
+  begin_manifest_upload:
+    description: Actually does the uploading, records that upload started
+    command: upload_blob_using_manifest
+    emits:
+      - manifest_upload_started
+
+policies:
+  update_partition_manifest:
+    description: Updates partition manifest when scan items are found
+    event: scan_item_found
+
+  create_image_priority_manifest:
+    description: Issues command to create image priority manifest when scan completes
+    event: scan_complete
+    emits:
+      - create_image_priority_manifest
+
+  start_manifest_upload:
+    description: Unwraps manifest list and generates upload commands for each item
+    event: priority_manifest_created
+    emits:
+      - upload_blob_using_manifest
