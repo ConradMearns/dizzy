@@ -151,72 +151,112 @@ your goal is to create an example Events based on our Command definition and Pro
 explain your reasoning afterwards
 
 @PRINCIPALS_EVENTS.md
-@app/dedupe/scan_and_upload/def/commands/start_scan.yaml  
-
-Display result as YAML
+@app/dedupe/scan_and_upload/def/commands/start_scan.yaml
+Procedure:
+  PROCEDURE partition_scan(context, command):
+  1. Get the scan path from the command
+  2. Log that scan is starting
+  3. FOR EACH item in the directory tree (recursively):
+      IF item is a file (not a directory):
+          TRY:
+              - Hash the file using SHA256
+              - Log the found file with its hash
+          CATCH any errors:
+              - Log the failure with error details
+  4. Log that scan is complete
 
 ## response:
 
 ```markdown
-Looking at the start_scan command and the principles, I'll create example events that would result from executing this command during a scan operation.
+Based on the start_scan command, the procedure description, and the event principles, here are the example events that should be generated:
 
-  # Event 1: Scan session started
-  - event_type: scan_started
-    session_id: 550e8400-e29b-41d4-a716-446655440000
-    command_id: start_scan
-    scan_path: /media/photos/2023
-    started_at: "2023-06-15T14:30:00Z"
-    device_id: laptop-01
+  # Event 1: Scan Session Started
+  ---
+  type: scan_started
+  session_id: "550e8400-e29b-41d4-a716-446655440000"  # Groups all events from this scan
+  path: "/media/photos/vacation2024"
+  started_at: "2024-11-20T14:32:15Z"  # When scan actually started
+  source_device: "workstation-01"
 
-  # Event 2: File discovered during scan
-  - event_type: file_discovered
-    session_id: 550e8400-e29b-41d4-a716-446655440000
-    content_hash: sha256:a3b5c7d9e1f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b4
-    file_path: /media/photos/2023/IMG_001.jpg
-    file_size_bytes: 2458624
-    file_mtime: "2023-06-10T08:15:23Z"
-    file_ctime: "2023-06-10T08:15:23Z"
-    discovered_at: "2023-06-15T14:30:01Z"
-    metadata:
-      mime_type: image/jpeg
-      exif_date_taken: "2023-06-10T08:15:23Z"
-      exif_camera: Canon EOS R5
+  # Event 2: File Discovered (successful)
+  ---
+  type: file_discovered
+  session_id: "550e8400-e29b-41d4-a716-446655440000"
+  file_path: "/media/photos/vacation2024/IMG_0001.jpg"
+  content_hash: "sha256:a3b2c1d4e5f6789012345678901234567890abcdef1234567890abcdef123456"
+  discovered_at: "2024-11-20T14:32:16Z"
+  metadata:
+    size_bytes: 2547891
+    modified_time: "2024-07-15T10:23:45Z"  # Original file timestamp
+    created_time: "2024-07-15T10:23:45Z"
+    exif_date: "2024-07-15T10:23:45Z"
 
-  # Event 3: Another file discovered (duplicate content)
-  - event_type: file_discovered
-    session_id: 550e8400-e29b-41d4-a716-446655440000
-    content_hash: sha256:a3b5c7d9e1f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b4
-    file_path: /media/photos/2023/backup/IMG_001_copy.jpg
-    file_size_bytes: 2458624
-    file_mtime: "2023-06-12T19:45:00Z"
-    file_ctime: "2023-06-12T19:45:00Z"
-    discovered_at: "2023-06-15T14:30:02Z"
-    metadata:
-      mime_type: image/jpeg
-      exif_date_taken: "2023-06-10T08:15:23Z"
-      exif_camera: Canon EOS R5
+  # Event 3: File Discovered (another file)
+  ---
+  type: file_discovered
+  session_id: "550e8400-e29b-41d4-a716-446655440000"
+  file_path: "/media/photos/vacation2024/IMG_0002.jpg"
+  content_hash: "sha256:b4c3d2e1f5a6789012345678901234567890bcdef1234567890bcdef234567"
+  discovered_at: "2024-11-20T14:32:17Z"
+  metadata:
+    size_bytes: 3124567
+    modified_time: "2024-07-15T11:45:12Z"
+    created_time: "2024-07-15T11:45:12Z"
+    exif_date: "2024-07-15T11:45:12Z"
 
-  # Event 4: Scan completed
-  - event_type: scan_completed
-    session_id: 550e8400-e29b-41d4-a716-446655440000
-    scan_path: /media/photos/2023
-    completed_at: "2023-06-15T14:32:15Z"
-    files_discovered: 142
-    total_bytes: 1847293824
-    unique_content_hashes: 138
+  # Event 4: File Scan Failed
+  ---
+  type: file_scan_failed
+  session_id: "550e8400-e29b-41d4-a716-446655440000"
+  file_path: "/media/photos/vacation2024/corrupt.jpg"
+  failed_at: "2024-11-20T14:32:18Z"
+  error_type: "PermissionError"
+  error_message: "Permission denied: unable to read file"
+  metadata:
+    size_bytes: 0  # What we could determine without reading
+
+  # Event 5: Duplicate Content (same hash, different path)
+  ---
+  type: file_discovered
+  session_id: "550e8400-e29b-41d4-a716-446655440000"
+  file_path: "/media/photos/vacation2024/copies/IMG_0001_copy.jpg"
+  content_hash: "sha256:a3b2c1d4e5f6789012345678901234567890abcdef1234567890abcdef123456"  # Same as IMG_0001.jpg
+  discovered_at: "2024-11-20T14:32:19Z"
+  metadata:
+    size_bytes: 2547891
+    modified_time: "2024-08-01T09:12:33Z"  # Different timestamp than original
+    created_time: "2024-08-01T09:12:33Z"
+
+  # Event 6: Scan Completed
+  ---
+  type: scan_completed
+  session_id: "550e8400-e29b-41d4-a716-446655440000"
+  path: "/media/photos/vacation2024"
+  completed_at: "2024-11-20T14:35:42Z"
+  summary:
+    files_discovered: 247
+    files_failed: 1
+    unique_content_hashes: 246  # One duplicate detected
+    total_bytes: 1547892345
 
   Reasoning
 
-  Content-Based Identity: Each file_discovered event includes a content_hash (SHA256) as the primary identifier. Notice events 2 and 3 have the same hash despite different paths—the content defines identity.
+  Content-Based Identity: Each file_discovered event includes a SHA256 content_hash as the primary identifier. Notice that IMG_0001.jpg and IMG_0001_copy.jpg share the same hash—the content defines their identity, not their paths.
 
-  Session Scoping: All events share session_id: 550e8400-e29b-41d4-a716-446655440000. If the same start_scan command runs again on the same path, it gets a new session_id, making operations distinguishable.
+  Session Scoping: All events share the same session_id to group them as one logical scan operation. If we ran the same scan again tomorrow, it would get a different session_id even if the content was identical.
 
-  Deterministic Attributes:
-  - file_mtime and file_ctime reflect when the file was modified/created, not when we scanned it
-  - exif_date_taken is from the file itself
-  - Non-deterministic attributes like discovered_at are clearly labeled as observation timestamps
+  Deterministic Attributes Only:
+  - Timestamps (discovered_at, started_at, etc.) reflect when things actually happened, not when events were created
+  - The session_id is a UUID for this specific execution instance
+  - Content hashes are deterministic—same content always produces the same hash
 
-  Metadata Enrichment: Beyond just the hash, we capture file timestamps, EXIF data, MIME type, and device context. This lets policies distinguish between "same photo taken once" vs "same photo copied multiple times."
+  Metadata Enrichment: Events include file timestamps, sizes, and EXIF data alongside hashes. This allows policies to distinguish between "same content uploaded at different times" vs "same content that was always there."
 
-  Let Policies Handle Duplication: Events 2 and 3 honestly report both files were discovered, even though they're duplicates (same hash). A policy can then decide: import both? Skip the second? Flag for user review? The events don't presume the answer.
+  Let Policies Handle Duplication: The procedure honestly reports both files with their hashes, even though they're duplicates. A policy can then decide whether to:
+  - Skip the duplicate import
+  - Flag it for user review
+  - Import both with different metadata
+  - Trigger an error
+
+  The events are immutable facts about what was found—policies make the decisions about what to do with those facts.
 ```
