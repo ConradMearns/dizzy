@@ -18,7 +18,18 @@ events:
 
 procedures:
   partition_scan:
-    description: Scans partition for items, does the work of discovery. Hashes items to ensure referential integrity
+    description: >
+      PROCEDURE partition_scan(context, command):
+      1. Get the scan path from the command
+      2. Log that scan is starting
+      3. FOR EACH item in the directory tree (recursively):
+          IF item is a file (not a directory):
+              TRY:
+                  - Hash the file using SHA256
+                  - Log the found file with its hash
+              CATCH any errors:
+                  - Log the failure with error details
+      4. Log that scan is complete
     command: start_scan
     emits:
       - scan_item_found
