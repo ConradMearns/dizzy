@@ -12,3 +12,10 @@ Include contextual metadata (source device, file timestamps, EXIF data) alongsid
 
 Let Policies Handle Duplication
 Events should be honest about what was scanned/found. Let policies decide whether duplicate content triggers import, skip, or error commands.
+
+Durable Execution
+Procedures may fail and restart. Session identifiers must be deterministic and derived from the command that initiated the work. 
+Same command replayed = same session_id. This enables:
+- Deduplication of events from retries
+- Recognition of partial work
+- Idempotent replay of failed operations

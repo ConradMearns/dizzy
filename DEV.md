@@ -147,10 +147,11 @@ Built out of composable pieces:
 2 types of data: commands and events. 
 2 types of functions: procedures and policies.
 
-your goal is to create an example Events based on our Command definition and Procedure description
+your goal is to create an Event definition based on our Command definition and Procedure description
 explain your reasoning afterwards
 
 @PRINCIPALS_EVENTS.md
+@PRINCIPALS_COMMANDS.md
 @app/dedupe/scan_and_upload/def/commands/start_scan.yaml
 Procedure:
   PROCEDURE partition_scan(context, command):
@@ -167,96 +168,148 @@ Procedure:
 
 ## response:
 
-```markdown
-Based on the start_scan command, the procedure description, and the event principles, here are the example events that should be generated:
+Looking at the command, procedure, and principles, I need to create Event definitions for the lifecycle of a partition scan. Let me create a comprehensive event schema:
 
-  # Event 1: Scan Session Started
-  ---
-  type: scan_started
-  session_id: "550e8400-e29b-41d4-a716-446655440000"  # Groups all events from this scan
-  path: "/media/photos/vacation2024"
-  started_at: "2024-11-20T14:32:15Z"  # When scan actually started
-  source_device: "workstation-01"
+  id: https://example.org/dedupe/events/scan_events
+  name: dedupe-scan-events
+  title: Partition Scan Events
+  description: Events emitted during partition scanning operations
+  prefixes:
+    linkml: https://w3id.org/linkml/
+    dedupe: https://example.org/dedupe/
+  default_prefix: dedupe
+  default_range: string
+  imports:
+  - linkml:types
+  - ../../../../../dizzy/src/dizzy/def/events
+  classes:
 
-  # Event 2: File Discovered (successful)
-  ---
-  type: file_discovered
-  session_id: "550e8400-e29b-41d4-a716-446655440000"
-  file_path: "/media/photos/vacation2024/IMG_0001.jpg"
-  content_hash: "sha256:a3b2c1d4e5f6789012345678901234567890abcdef1234567890abcdef123456"
-  discovered_at: "2024-11-20T14:32:16Z"
-  metadata:
-    size_bytes: 2547891
-    modified_time: "2024-07-15T10:23:45Z"  # Original file timestamp
-    created_time: "2024-07-15T10:23:45Z"
-    exif_date: "2024-07-15T10:23:45Z"
+    scan_started:
+      description: Emitted when partition scan begins
+      is_a: Event
+      attributes:
+        session_id:
+          description: Deterministic session identifier derived from command_id
+          required: true
+          range: string
+        command_id:
+          description: ID of the start_scan command that initiated this scan
+          required: true
+          range: string
+        path:
+          description: The filesystem path being scanned
+          required: true
+          range: string
+        started_at:
+          description: Timestamp when scan actually began
+          required: true
+          range: datetime
 
-  # Event 3: File Discovered (another file)
-  ---
-  type: file_discovered
-  session_id: "550e8400-e29b-41d4-a716-446655440000"
-  file_path: "/media/photos/vacation2024/IMG_0002.jpg"
-  content_hash: "sha256:b4c3d2e1f5a6789012345678901234567890bcdef1234567890bcdef234567"
-  discovered_at: "2024-11-20T14:32:17Z"
-  metadata:
-    size_bytes: 3124567
-    modified_time: "2024-07-15T11:45:12Z"
-    created_time: "2024-07-15T11:45:12Z"
-    exif_date: "2024-07-15T11:45:12Z"
+    file_discovered:
+      description: Emitted when a file is found and successfully hashed
+      is_a: Event
+      attributes:
+        session_id:
+          description: Session identifier linking to scan_started
+          required: true
+          range: string
+        command_id:
+          description: ID of the originating start_scan command
+          required: true
+          range: string
+        file_path:
+          description: Full path to the discovered file
+          required: true
+          range: string
+        content_hash:
+          description: SHA256 hash of file content (content-based identity)
+          required: true
+          range: string
+        file_size:
+          description: File size in bytes
+          required: true
+          range: integer
+        modified_at:
+          description: File system modification timestamp (metadata enrichment)
+          required: true
+          range: datetime
+        discovered_at:
+          description: Timestamp when file was discovered during this scan
+          required: true
+          range: datetime
 
-  # Event 4: File Scan Failed
-  ---
-  type: file_scan_failed
-  session_id: "550e8400-e29b-41d4-a716-446655440000"
-  file_path: "/media/photos/vacation2024/corrupt.jpg"
-  failed_at: "2024-11-20T14:32:18Z"
-  error_type: "PermissionError"
-  error_message: "Permission denied: unable to read file"
-  metadata:
-    size_bytes: 0  # What we could determine without reading
+    file_scan_failed:
+      description: Emitted when file hashing or processing fails
+      is_a: Event
+      attributes:
+        session_id:
+          description: Session identifier linking to scan_started
+          required: true
+          range: string
+        command_id:
+          description: ID of the originating start_scan command
+          required: true
+          range: string
+        file_path:
+          description: Path to the file that failed to process
+          required: true
+          range: string
+        error_type:
+          description: Classification of error (permission_denied, io_error, etc)
+          required: true
+          range: string
+        error_message:
+          description: Detailed error message
+          required: true
+          range: string
+        failed_at:
+          description: Timestamp when failure occurred
+          required: true
+          range: datetime
 
-  # Event 5: Duplicate Content (same hash, different path)
-  ---
-  type: file_discovered
-  session_id: "550e8400-e29b-41d4-a716-446655440000"
-  file_path: "/media/photos/vacation2024/copies/IMG_0001_copy.jpg"
-  content_hash: "sha256:a3b2c1d4e5f6789012345678901234567890abcdef1234567890abcdef123456"  # Same as IMG_0001.jpg
-  discovered_at: "2024-11-20T14:32:19Z"
-  metadata:
-    size_bytes: 2547891
-    modified_time: "2024-08-01T09:12:33Z"  # Different timestamp than original
-    created_time: "2024-08-01T09:12:33Z"
+    scan_completed:
+      description: Emitted when partition scan finishes
+      is_a: Event
+      attributes:
+        session_id:
+          description: Session identifier linking to scan_started
+          required: true
+          range: string
+        command_id:
+          description: ID of the originating start_scan command
+          required: true
+          range: string
+        files_discovered:
+          description: Count of successfully hashed files
+          required: true
+          range: integer
+        files_failed:
+          description: Count of files that failed to process
+          required: true
+          range: integer
+        completed_at:
+          description: Timestamp when scan completed
+          required: true
+          range: datetime
 
-  # Event 6: Scan Completed
-  ---
-  type: scan_completed
-  session_id: "550e8400-e29b-41d4-a716-446655440000"
-  path: "/media/photos/vacation2024"
-  completed_at: "2024-11-20T14:35:42Z"
-  summary:
-    files_discovered: 247
-    files_failed: 1
-    unique_content_hashes: 246  # One duplicate detected
-    total_bytes: 1547892345
+  Reasoning:
 
-  Reasoning
+  Content-Based Identity (Principle 1): The file_discovered event includes content_hash as the SHA256 of file content. This is the immutable identity—even if files move or are renamed, the hash remains constant.
 
-  Content-Based Identity: Each file_discovered event includes a SHA256 content_hash as the primary identifier. Notice that IMG_0001.jpg and IMG_0001_copy.jpg share the same hash—the content defines their identity, not their paths.
+  Session Scoping (Principle 2): All events share a session_id that groups this particular execution of the scan. Multiple scans of the same path would produce different sessions.
 
-  Session Scoping: All events share the same session_id to group them as one logical scan operation. If we ran the same scan again tomorrow, it would get a different session_id even if the content was identical.
+  Deterministic Attributes (Principle 3):
+  - session_id is deterministically derived from command_id (not a random UUID)
+  - Timestamps like started_at, discovered_at, failed_at, completed_at reflect when things actually happened, not when events were created
+  - No creation timestamps or submission times in the events
 
-  Deterministic Attributes Only:
-  - Timestamps (discovered_at, started_at, etc.) reflect when things actually happened, not when events were created
-  - The session_id is a UUID for this specific execution instance
-  - Content hashes are deterministic—same content always produces the same hash
+  Metadata Enrichment (Principle 4): The file_discovered event includes modified_at (filesystem timestamp), file_size, and file_path alongside the content hash. This allows policies to distinguish between "same content uploaded twice intentionally" vs "same file scanned twice accidentally."
 
-  Metadata Enrichment: Events include file timestamps, sizes, and EXIF data alongside hashes. This allows policies to distinguish between "same content uploaded at different times" vs "same content that was always there."
+  Honest Event Reporting (Principle 5): Every file discovered produces a file_discovered event, even if it's a duplicate hash. Policies downstream can decide whether to import, skip, or error on duplicates.
 
-  Let Policies Handle Duplication: The procedure honestly reports both files with their hashes, even though they're duplicates. A policy can then decide whether to:
-  - Skip the duplicate import
-  - Flag it for user review
-  - Import both with different metadata
-  - Trigger an error
+  Durable Execution (Principle 6):
+  - session_id is derived from command_id, so if the procedure fails and restarts with the same command, it produces the same session_id
+  - This enables deduplication: if we've already emitted file_discovered events for certain hashes in this session, we can skip or recognize partial work
+  - Idempotent replay is possible because events are deterministic
 
-  The events are immutable facts about what was found—policies make the decisions about what to do with those facts.
-```
+  Command Linkage: Every event includes command_id to trace back to the originating start_scan command, enabling span tracking and observability.
