@@ -1,1 +1,0 @@
-# File scanner query implementations
