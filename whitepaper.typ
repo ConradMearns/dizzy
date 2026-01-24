@@ -15,30 +15,6 @@
   leading: 0.65em,
 )
 
-// Title
-#align(center)[
-  #text(24pt, weight: "bold")[D I Z Z Y]
-  
-  #text(12pt, weight: "bold")[
-    A Software Philosophy for Event Driven Architectures with Decoupled Infrastructure
-  ]
-
-  #v(0.5em)
-
-  #text(12pt)[Conrad Mearns]
-  // #text(11pt)[#datetime.today().display()]
-]
-
-// Enable section numbering
-#set heading(numbering: "1.1")
-
-// Table of Contents
-#outline(
-  title: [Table of Contents],
-  indent: auto,
-)
-
-#pagebreak()
 
 #let flow = diagram(
   spacing: (1em, 1em),
@@ -65,9 +41,42 @@
   edge((5,1), (1,2), "<-->", $$, bend: 20deg),
 )
 
-#figure(
-  flow
+
+// Title
+#align(center)[
+  #text(24pt, weight: "bold")[D I Z Z Y]
+  
+  #text(12pt, weight: "bold")[
+    A Software Philosophy for Event Driven Architectures with Decoupled Infrastructure
+  ]
+
+  #v(0.5em)
+
+  #text(12pt)[Conrad Mearns]
+  // #text(11pt)[#datetime.today().display()]
+]
+
+#figure(flow)
+
+#quote(block: true, attribution: [Edsger W. Dijkstra, 2000])[
+  "The required techniques of effective reasoning are pretty formal, but as long as programming is done by people that don't master them, the software crisis will remain with us and will be considered an incurable disease."
+  // https://www.cs.utexas.edu/~EWD/transcriptions/EWD13xx/EWD1305.html
+]
+
+
+
+// Enable section numbering
+#set heading(numbering: "1.1")
+
+#pagebreak()
+
+// Table of Contents
+#outline(
+  title: [Table of Contents],
+  indent: auto,
 )
+
+#pagebreak()
 
 
 // = Problems and Needs
@@ -265,10 +274,7 @@ Instead of relying on return codes, everything looks like a callback. How this c
 
 In most cases, the callback is a simple `put` onto a queue.
 
-<<<<<<< HEAD
-=======
 #box[
->>>>>>> wp
 ```python
 @dataclass
 class Context:
@@ -278,10 +284,7 @@ def process(input: Input, context: Context):
   baz = foo(input.bar, context.query.search("fubar term history"))
   context.emit(BazCrunched(baz))
 ```
-<<<<<<< HEAD
-=======
 ]
->>>>>>> wp
 
 ==== procedures
 
