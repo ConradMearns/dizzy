@@ -29,6 +29,17 @@
   // #text(11pt)[#datetime.today().display()]
 ]
 
+// Enable section numbering
+#set heading(numbering: "1.1")
+
+// Table of Contents
+#outline(
+  title: [Table of Contents],
+  indent: auto,
+)
+
+#pagebreak()
+
 #let flow = diagram(
   spacing: (1em, 1em),
 
@@ -60,20 +71,82 @@
 
 abstract
 
-= Problems and Needs
+// = Problems and Needs
 
-== No One Best architecture / cloud provider
-- aws cost, lambda vs ec2, serverless, microservice, monolith
-== Conway's Law
-== No One Best Serialization format
-== Need to Know vs Need to Share -> some things must be shared
-== Managing risk and legacy applications with slow procedural drift
-== where does risk lie in software development / scaling
-- nvpsm
-- Reliable Software Development
-== Provenance
-== Architecture for cost optimization, batching, and distribution
-== Agentic Workflows -> terminal's have been crushing the game, how do we scale
+// == No One Best architecture / cloud provider
+// - aws cost, lambda vs ec2, serverless, microservice, monolith
+
+// #quote(block: true, attribution: [Martin Fowler, "Monolith First"])[
+//   "As I hear stories about teams using a microservices architecture, I've noticed a common pattern: almost all the successful microservice stories have started with a monolith that got too big and was broken up."
+// ]
+
+// _See:_ Martin Fowler on Microservices (martinfowler.com/microservices) \
+// _See also:_ "The Cost of Cloud: A Trillion Dollar Paradox" - Andreessen Horowitz (a16z.com)
+
+// == Conway's Law
+
+// #quote(block: true, attribution: [Melvin Conway, 1967])[
+//   "Any organization that designs a system (defined broadly) will produce a design whose structure is a copy of the organization's communication structure."
+// ]
+
+// _Original paper:_ "How Do Committees Invent?" - Melvin E. Conway (melconway.com/Home/Committees_Paper.html)
+
+// == No One Best Serialization format
+
+// The choice between JSON, Protocol Buffers, MessagePack, Avro, Thrift, and countless others depends on your specific requirements: schema evolution, performance, human readability, language support, and ecosystem maturity.
+
+// _See:_ "Serialization formats comparison" - gRPC documentation (grpc.io) \
+// _See also:_ "The Evolution of Data Serialization" - Apache Kafka blog
+
+// == Need to Know vs Need to Share -> some things must be shared
+
+// Information compartmentalization protects against security breaches, but excessive siloing prevents effective collaboration and creates knowledge bottlenecks.
+
+// _See:_ "The Cathedral and the Bazaar" - Eric S. Raymond \
+// _See also:_ "The Mythical Man-Month" - Fred Brooks on communication overhead
+
+// == Managing risk and legacy applications with slow procedural drift
+
+// #quote(block: true, attribution: [Michael Feathers, "Working Effectively with Legacy Code"])[
+//   "Legacy code is code without tests... Code without tests is bad code. It doesn't matter how well written it is."
+// ]
+
+// _See:_ "The Legacy Code Programmer's Toolbox" - Jonathan Boccara \
+// _See also:_ "Technical Debt Quadrant" - Martin Fowler (martinfowler.com/bliki/TechnicalDebtQuadrant.html)
+
+// == where does risk lie in software development / scaling
+// - nvpsm
+// - Reliable Software Development
+
+// Risk manifests at every layer: infrastructure failures, data corruption, security vulnerabilities, scaling bottlenecks, and organizational coordination failures.
+
+// _See:_ "Site Reliability Engineering" - Google (sre.google/books) \
+// _See also:_ "Release It!" - Michael Nygard on production-ready software
+
+// == Provenance
+
+// #quote(block: true, attribution: [Data Provenance: A Survey, IEEE Transactions])[
+//   "Data provenance describes the origins, custody, and transformations of data as it moves through systems."
+// ]
+
+// _See:_ "The Case for Data Provenance" - USENIX ;login: \
+// _See also:_ W3C PROV Data Model (w3.org/TR/prov-dm)
+
+// == Architecture for cost optimization, batching, and distribution
+
+// Balancing latency, throughput, and cost requires careful consideration of batch sizes, processing windows, and geographic distribution.
+
+// _See:_ "Designing Data-Intensive Applications" - Martin Kleppmann \
+// _See also:_ "The Datacenter as a Computer" - Google (research.google/pubs/datacenter-as-a-computer)
+
+// == Agentic Workflows -> terminal's have been crushing the game, how do we scale
+
+// #quote(block: true, attribution: [Anthropic, "Building Effective Agents"])[
+//   "The future of software involves systems that can autonomously plan, execute, and adapt workflows through tool use and decision-making."
+// ]
+
+// _See:_ "AI Agents That Matter" - Stanford HAI \
+// _See also:_ "The Rise of Agentic AI" - OpenAI (openai.com/research)
 
 // arge amounts of legacy and proprietary equipment for which automation is desirable, but access to an API isn't possible
 
@@ -111,6 +184,10 @@ How do we teach the philosophy?
   - The spectrum of Change Data Capture $<-->$ Event Sourcing
 - How do we communicate how "good" a software is?
 - In a future where writing software is 10000x cheaper, how do we structure the work?
+
+== Support (almost) Any Programming Language
+== Deferring Decisions
+== Architecting for Reversibility
 
 = DIZZY
 
@@ -170,7 +247,16 @@ database primitives; linkml
 
 functional; procedures, policies, projections; execution context;
 
-==== context
+Processes are the opinionated wrappers of library code that preforms work,
+executes algorithms, crunches numbers, sorts data, and everything in between.
+
+Processes are mostly intended to be fire-and-forget.
+Some single input arrives, work is done, and the function exits.
+DIZZY breaks from other conventions by omitting `return` statements completely. Instead, processes use dependency injection to acquire callback functions which are defined at deployment time. 
+
+
+
+==== Context
 
 The general design philosophy of a process is that we don't want to wait to inform other components of the work we've completed.
 
@@ -178,6 +264,7 @@ Instead of relying on return codes, everything looks like a callback. How this c
 
 In most cases, the callback is a simple `put` onto a queue.
 
+#box[
 ```python
 @dataclass
 class Context:
@@ -187,6 +274,7 @@ def process(input: Input, context: Context):
   baz = foo(input.bar, context.query.search("fubar term history"))
   context.emit(BazCrunched(baz))
 ```
+]
 
 ==== procedures
 
