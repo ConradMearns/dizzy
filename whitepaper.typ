@@ -1,4 +1,5 @@
 #import "@preview/fletcher:0.5.8" as fletcher: diagram, node, edge
+#import "figures.typ": flow
 
 // Whitepaper Configuration
 #set page(
@@ -14,33 +15,6 @@
   justify: true,
   leading: 0.65em,
 )
-
-
-#let flow = diagram(
-  spacing: (1em, 1em),
-
-  node((0,1), $c$),
-  node((1,0), $d$),
-  node((2,1), $e$),
-  node((1,2), $y$),
-  
-  edge((0,1), (1,0), "->", $$),
-  edge((1,0), (2,1), "->", $$),
-  edge((2,1), (1,2), "->", $$),
-  edge((1,2), (0,1), "->", $$),
-
-  node((3,1), $j$),
-  node((4,1), $m$),
-  node((5,1), $Q$),
-
-  edge((2,1), (3,1), "->", $$),
-  edge((3,1), (4,1), "->", $$),
-  edge((4,1), (5,1), "->", $$),
-
-  edge((5,1), (1,0), "<-->", $$, bend: -20deg),
-  edge((5,1), (1,2), "<-->", $$, bend: 20deg),
-)
-
 
 // Title
 #align(center)[
@@ -63,10 +37,13 @@
   // https://www.cs.utexas.edu/~EWD/transcriptions/EWD13xx/EWD1305.html
 ]
 
+= Abstract
 
+This document specifies DIZZY, a software architecture framework for building event-driven systems with decoupled infrastructure. DIZZY implements Command Query Responsibility Separation (CQRS) with Event Sourcing using language-agnostic schemas and a code generation pipeline. The architecture enables reversible decisions, supports multiple programming languages, and provides infrastructure independence through strict separation of concerns.
 
 // Enable section numbering
-#set heading(numbering: "1.1")
+#set heading(numbering: "1a1a1a1a")
+// #set heading(numbering: "1.1")
 
 #pagebreak()
 
@@ -79,123 +56,44 @@
 #pagebreak()
 
 
-// = Problems and Needs
+// = Guiding Principals
 
-// == No One Best architecture / cloud provider
-// - aws cost, lambda vs ec2, serverless, microservice, monolith
+// Everything in computing changes, it's just a matter of _when_.
+// Many systems are implemented to solve for specific problems in software development,
+// only to be usurped and made obsolete by advances in hardware development, 
+// or algorithms that change the objective completely.
 
-// #quote(block: true, attribution: [Martin Fowler, "Monolith First"])[
-//   "As I hear stories about teams using a microservices architecture, I've noticed a common pattern: almost all the successful microservice stories have started with a monolith that got too big and was broken up."
-// ]
+// The real issue with modern architectures is not whether Monoliths or Microservices are better;
+// it's that we force that decision upon ourselves and become shackled to its consequences for decades.
 
-// _See:_ Martin Fowler on Microservices (martinfowler.com/microservices) \
-// _See also:_ "The Cost of Cloud: A Trillion Dollar Paradox" - Andreessen Horowitz (a16z.com)
+// Truly modular software should work across
+// disciplines, languages, networks, and hardware.
 
-// == Conway's Law
+// What if we could rewrite _just_ the critical path in rust?
+// What if we could swap databases in and out of our system as easily as a feature flag?
 
-// #quote(block: true, attribution: [Melvin Conway, 1967])[
-//   "Any organization that designs a system (defined broadly) will produce a design whose structure is a copy of the organization's communication structure."
-// ]
+// We can accomplish this with existing disciplines
 
-// _Original paper:_ "How Do Committees Invent?" - Melvin E. Conway (melconway.com/Home/Committees_Paper.html)
+// - Command Query Responsibility Separation
+// - Command Queuing
+// - Event Storming
+// - Event Sourcing
+// - Functional Programming
+// - Dependency Injection
+// - #strike[Infrastructure as Code] $->$ Infrastructure _from_ Code
 
-// == No One Best Serialization format
+// How do we teach the philosophy?
 
-// The choice between JSON, Protocol Buffers, MessagePack, Avro, Thrift, and countless others depends on your specific requirements: schema evolution, performance, human readability, language support, and ecosystem maturity.
+// - How do we know we understand the problem well enough to model it?
+//   - The Map is Not the Territory
+// - Structured Logging is for more than just debugging
+//   - The spectrum of Change Data Capture $<-->$ Event Sourcing
+// - How do we communicate how "good" a software is?
+// - In a future where writing software is 10000x cheaper, how do we structure the work?
 
-// _See:_ "Serialization formats comparison" - gRPC documentation (grpc.io) \
-// _See also:_ "The Evolution of Data Serialization" - Apache Kafka blog
-
-// == Need to Know vs Need to Share -> some things must be shared
-
-// Information compartmentalization protects against security breaches, but excessive siloing prevents effective collaboration and creates knowledge bottlenecks.
-
-// _See:_ "The Cathedral and the Bazaar" - Eric S. Raymond \
-// _See also:_ "The Mythical Man-Month" - Fred Brooks on communication overhead
-
-// == Managing risk and legacy applications with slow procedural drift
-
-// #quote(block: true, attribution: [Michael Feathers, "Working Effectively with Legacy Code"])[
-//   "Legacy code is code without tests... Code without tests is bad code. It doesn't matter how well written it is."
-// ]
-
-// _See:_ "The Legacy Code Programmer's Toolbox" - Jonathan Boccara \
-// _See also:_ "Technical Debt Quadrant" - Martin Fowler (martinfowler.com/bliki/TechnicalDebtQuadrant.html)
-
-// == where does risk lie in software development / scaling
-// - nvpsm
-// - Reliable Software Development
-
-// Risk manifests at every layer: infrastructure failures, data corruption, security vulnerabilities, scaling bottlenecks, and organizational coordination failures.
-
-// _See:_ "Site Reliability Engineering" - Google (sre.google/books) \
-// _See also:_ "Release It!" - Michael Nygard on production-ready software
-
-// == Provenance
-
-// #quote(block: true, attribution: [Data Provenance: A Survey, IEEE Transactions])[
-//   "Data provenance describes the origins, custody, and transformations of data as it moves through systems."
-// ]
-
-// _See:_ "The Case for Data Provenance" - USENIX ;login: \
-// _See also:_ W3C PROV Data Model (w3.org/TR/prov-dm)
-
-// == Architecture for cost optimization, batching, and distribution
-
-// Balancing latency, throughput, and cost requires careful consideration of batch sizes, processing windows, and geographic distribution.
-
-// _See:_ "Designing Data-Intensive Applications" - Martin Kleppmann \
-// _See also:_ "The Datacenter as a Computer" - Google (research.google/pubs/datacenter-as-a-computer)
-
-// == Agentic Workflows -> terminal's have been crushing the game, how do we scale
-
-// #quote(block: true, attribution: [Anthropic, "Building Effective Agents"])[
-//   "The future of software involves systems that can autonomously plan, execute, and adapt workflows through tool use and decision-making."
-// ]
-
-// _See:_ "AI Agents That Matter" - Stanford HAI \
-// _See also:_ "The Rise of Agentic AI" - OpenAI (openai.com/research)
-
-// arge amounts of legacy and proprietary equipment for which automation is desirable, but access to an API isn't possible
-
-= Guiding Principals
-
-Everything in computing changes, it's just a matter of _when_.
-Many systems are implemented to solve for specific problems in software development,
-only to be usurped and made obsolete by advances in hardware development, 
-or algorithms that change the objective completely.
-
-The real issue with modern architectures is not whether Monoliths or Microservices are better;
-it's that we force that decision upon ourselves and become shackled to its consequences for decades.
-
-Truly modular software should work across
-disciplines, languages, networks, and hardware.
-
-What if we could rewrite _just_ the critical path in rust?
-What if we could swap databases in and out of our system as easily as a feature flag?
-
-We can accomplish this with existing disciplines
-
-- Command Query Responsibility Separation
-- Command Queuing
-- Event Storming
-- Event Sourcing
-- Functional Programming
-- Dependency Injection
-- #strike[Infrastructure as Code] $->$ Infrastructure _from_ Code
-
-How do we teach the philosophy?
-
-- How do we know we understand the problem well enough to model it?
-  - The Map is Not the Territory
-- Structured Logging is for more than just debugging
-  - The spectrum of Change Data Capture $<-->$ Event Sourcing
-- How do we communicate how "good" a software is?
-- In a future where writing software is 10000x cheaper, how do we structure the work?
-
-== Support (almost) Any Programming Language
-== Deferring Decisions
-== Architecting for Reversibility
+// == Support (almost) Any Programming Language
+// == Deferring Decisions
+// == Architecting for Reversibility
 
 = DIZZY
 
@@ -230,245 +128,541 @@ In the general flow diagram, this is denoted with the dashed line as shorthand.
 // === The Database is an optimization
 
 
-== components
-=== data
+== Component Specifications
 
-why data; how data; LinkML + Katai schemas; semantics; transport
+=== Commands
 
-==== commands
+Commands MUST be
+- *Imperative*: Express intent (e.g., "StartScan", "CalculateHash")
+- *Ephemeral*: Not persisted long-term
+- *Unique*: Identified by a unique `command_id`
 
-imperative;
-ephemeral;
+Commands SHOULD:
+- Use present tense naming
+- Include all parameters needed for execution
+- Be idempotent when possible
 
-==== events
+1. Command is created (by user, policy, or external system)
+2. Command is validated against schema
+3. Command is routed to exactly one Procedure
+4. Command is processed
+5. Command is discarded (not stored long-term)
 
-immutable;
-durable;
-past tense;
-data;
+=== Events
 
-==== models
+Events MUST be:
+- *Immutable*: Never modified after creation
+- *Durable*: Stored permanently in Event Store
+- *Factual*: Describe what happened (past tense)
+- *Unique*: Identified by unique `event_id`
 
-database primitives; linkml
+Events SHOULD:
+- Use past tense naming (e.g., "ScanCompleted", "HashCalculated")
+- Include timestamp
+- Include sufficient context for projections
+- Be granular (one fact per event)
 
-=== processes
-
-functional; procedures, policies, projections; execution context;
-
-==== context
-=======
-Processes are the opinionated wrappers of library code that preforms work,
-executes algorithms, crunches numbers, sorts data, and everything in between.
-
-Processes are mostly intended to be fire-and-forget.
-Some single input arrives, work is done, and the function exits.
-DIZZY breaks from other conventions by omitting `return` statements completely. Instead, processes use dependency injection to acquire callback functions which are defined at deployment time. 
-
+1. Event is emitted by Procedure
+2. Event is validated against schema
+3. Event is appended to Event Store
+4. Event triggers zero or more Policies
+5. Event triggers zero or more Projections
+6. Event is retained indefinitely
 
 
-==== Context
+=== Procedures
 
-The general design philosophy of a process is that we don't want to wait to inform other components of the work we've completed.
+Procedures MUST:
+- Accept exactly one Command type as input
+- Receive a Context with emitters and queries
+- Return nothing (use emitters for output)
+- Be deterministic given same inputs and query results
 
-Instead of relying on return codes, everything looks like a callback. How this callback is implemented is up to the deployment code. // TODO link to deployment section
+Procedures MAY:
+- Perform side effects (I/O, external API calls)
+- Read from Models via queries
+- Emit multiple Events
+- Emit different Events based on execution results
 
-In most cases, the callback is a simple `put` onto a queue.
+Procedures SHOULD:
+- Emit error events rather than raising exceptions for domain errors
+- Only raise exceptions for infrastructure failures
+- Include error context in error events
 
-#box[
-```python
-@dataclass
-class Context:
-    emit: BazCrunchedEmitter # Callable[[BazCrunched], None]
-    query: BazQueriers # assuming has a .search(str) query
-def process(input: Input, context: Context):
-  baz = foo(input.bar, context.query.search("fubar term history"))
-  context.emit(BazCrunched(baz))
+=== Policies
+
+Policies MUST:
+- React to exactly one Event type
+- Receive a Context with emitters and queries
+- Return nothing (use emitters for output)
+- Be side-effect free (read-only operations)
+
+Policies MAY:
+- Emit zero or more Commands
+- Read from Models via queries
+- Implement complex business logic
+- Emit different Commands based on query results
+
+Policies SHOULD:
+- Encode business rules, not technical operations
+- Be testable with mock queries
+- Avoid complex state management
+- Make decisions based on current Model state
+
+
+=== Projections
+
+Projections MUST:
+- Be idempotent (replay safe)
+- Be deterministic (same Event produces same Model update)
+- Handle Event ordering issues gracefully
+
+Projections MAY:
+- Update multiple Models per Event
+- Ignore Events that don't affect their Model
+- Maintain internal state for aggregation
+
+Projections MUST support full Model rebuild:
+1. Clear existing Model
+2. Replay all Events from Event Store
+3. Apply each Event to Model
+4. Resulting Model MUST match production Model
+
+
+=== Models
+
+Models:
+- Represent derived state (not source of truth)
+- Optimize specific query patterns
+- Can be rebuilt from Events at any time
+- MAY use any database technology
+
+Models MUST:
+- Eventually consistent with Event Store
+- Support concurrent updates if multiple instances exist
+- Handle duplicate Events idempotently
+
+=== Queries
+
+Queries MUST:
+- Read from Models (not Event Store)
+- Be side-effect free
+- Define typed inputs and outputs
+
+Queries MAY:
+- Join multiple Models
+- Implement caching
+- Use any database query language
+
+Queries consist of three components:
+
+1. *Query Input* ($q_i$): Parameters defining what to retrieve
+2. *Query Process* ($q_p$): Logic for retrieving data from Models
+3. *Query Output* ($q_o$): Structured result data
+
+
+// ==== context
+// =======
+// Processes are the opinionated wrappers of library code that preforms work,
+// executes algorithms, crunches numbers, sorts data, and everything in between.
+
+// Processes are mostly intended to be fire-and-forget.
+// Some single input arrives, work is done, and the function exits.
+// DIZZY breaks from other conventions by omitting `return` statements completely. Instead, processes use dependency injection to acquire callback functions which are defined at deployment time. 
+
+
+
+// ==== Context
+
+// The general design philosophy of a process is that we don't want to wait to inform other components of the work we've completed.
+
+// Instead of relying on return codes, everything looks like a callback. How this callback is implemented is up to the deployment code. // TODO link to deployment section
+
+// In most cases, the callback is a simple `put` onto a queue.
+
+// #box[
+// ```python
+// @dataclass
+// class Context:
+//     emit: BazCrunchedEmitter # Callable[[BazCrunched], None]
+//     query: BazQueriers # assuming has a .search(str) query
+// def process(input: Input, context: Context):
+//   baz = foo(input.bar, context.query.search("fubar term history"))
+//   context.emit(BazCrunched(baz))
+// ```
+// ]
+
+
+== Data Flow Specifications
+
+=== Event Loop Flow
+
+1. Command arrives (from user, policy, or external system)
+2. System validates Command against schema
+3. System routes Command to registered Procedure
+4. Procedure executes with provided Context
+5. Procedure emits Events via context.emit
+6. Events are validated and appended to Event Store
+7. Events trigger registered Policies
+8. Policies execute and emit new Commands
+9. Loop continues from step 1
+
+
+=== Model Loop Flow
+
+1. Event is appended to Event Store
+2. Event triggers registered Projections
+3. Projections update Models
+4. Models become available for Queries
+5. Procedures/Policies use Queries via Context
+6. Query results influence future Commands/Events
+
+// == modelling recommendations
+
+// durable execution; sagas; identity;
+
+// == development recommendations
+
+// unit testing; chaos testing; 
+
+// def; gen; src; bin;
+
+// == deployment recommendations
+
+// event sourcing; queues; 
+
+// == user interfaces
+
+// similarities to model view controller; $c->d->Q$
+
+// == examples
+
+// todo with ui; rtos; k8s web app; etl;
+
+
+
+
+
+== Code Generation Pipeline
+
+=== Overview
+
+DIZZY uses a multi-stage code generation pipeline to maintain type safety while preserving implementation flexibility.
+
+A DIZZY feature MUST follow this structure:
+
 ```
-]
+{feature}/
+├── def/                  # LinkML schemas (edit after generation)
+│   ├── commands/
+│   └── events/
+├── gen/                  # Generated code (DO NOT EDIT)
+│   └── pyd/
+│       ├── commands/
+│       ├── events/
+│       ├── procedure/
+│       └── policy/
+├── src/                  # Implementations (EDIT HERE)
+│   ├── procedure/
+│   └── policy/
+├── result/               # Deployment artifacts
+├── {feature}.feat.yaml   # Feature Definition
+└── impl.yaml             # Implementation manifest
+```
 
-==== procedures
+=== Pipeline Stages
 
-can emit any number of events; meaningful work; at least 1 per command; R/W; effects
+==== Stage 1: Feature Definition
 
-==== policies
+*Input*: Domain knowledge
+*Output*: `{feature}.feat.yaml`
+*Tool*: Manual editing
 
-can emit any number of commands; workflow logic; at least 1 per event; R/O
+Feature Definition MUST declare:
+- All Commands with descriptions
+- All Events with descriptions
+- All Procedures with command mappings, emits lists, and contexts
+- All Policies with event mappings, emits lists, and contexts
+- All Projections (Models) with attributes
+- All Queries with parameters and return types
 
-==== projections
+=== Stage 2: Schema Generation
 
-model mapping; deployment location; api; crud; at least 1 per event;
+*Input*: `{feature}.feat.yaml`
+*Output*: LinkML schemas in `def/commands/` and `def/events/`
+*Tool*: `dizzy gen init`
 
-=== queries
+Generated schemas:
+- MUST include unique IDs and namespaces
+- MUST import base Command or Event types
+- MUST include placeholder attributes
+- SHOULD be edited to add domain-specific attributes
 
-deployment location; database as an optimization; no one best storage solution; graphql query input; combination of processes and data
+==== Stage 3: Model Generation
 
-== event loop
-== model loop
-// === ecs
+*Input*: LinkML schemas from `def/`
+*Output*: Pydantic models in `gen/pyd/commands/` and `gen/pyd/events/`
+*Tool*: `dizzy gen init` (uses `linkml-gen-pydantic`)
 
-== context
-== modelling recommendations
+Generated models:
+- MUST include type hints
+- MUST include validation logic
+- MUST NOT be manually edited
+- MUST be regenerated when schemas change
 
-durable execution; sagas; identity;
+==== Stage 4: Protocol Generation
 
-== development recommendations
+*Input*: `{feature}.feat.yaml` and generated models
+*Output*: Context and Protocol files in `gen/pyd/procedure/` and `gen/pyd/policy/`
+*Tool*: `dizzy gen src`
 
-unit testing; chaos testing; 
+Generated protocols:
+- MUST define type-safe interfaces
+- MUST include Context with emitters and queries
+- MUST NOT be manually edited
+- MUST be regenerated when Feature Definition changes
 
-def; gen; src; bin;
+==== Stage 5: Implementation
 
-== deployment recommendations
+*Input*: Generated protocols
+*Output*: Implementation files in `src/procedure/` and `src/policy/`
+*Tool*: Manual development or `dizzy gen src` scaffolding
 
-event sourcing; queues; 
+Implementations:
+- MUST match Protocol signatures
+- MUST be manually edited
+- MUST NOT be overwritten by regeneration
+- SHOULD include unit tests
 
-== user interfaces
+==== Stage 6: Deployment
 
-similarities to model view controller; $c->d->Q$
+*Input*: Implementations and `impl.yaml` manifest
+*Output*: Deployment-specific artifacts in `result/`
+*Tool*: Deployment-specific tooling
 
-== examples
+Deployment artifacts:
+- MUST wire emitters to infrastructure (queues, lambdas, etc.)
+- MUST wire queries to database implementations
+- MAY use different strategies per environment
 
-todo with ui; rtos; k8s web app; etl;
+=== Regeneration Rules
 
+==== Safe Regeneration
 
-= Figures
+The following operations are safe:
+- Regenerating `gen/` after schema changes
+- Regenerating protocols after Feature Definition changes
+- Adding new Commands/Events/Procedures/Policies
 
-adjust:
+==== Manual Intervention Required
 
-#diagram(
-  node-corner-radius: 4pt,
+The following require manual updates:
+- Schema changes affecting existing implementations
+- Adding new attributes to Commands/Events
+- Changing Procedure/Policy signatures
 
-  // Event space elements
-  node((0,0), $e_1$),
-  node((0,1), $e_2$),
-  node((0,2), $e_3$),
-  node((0,3), $e_4$),
-  node((0,4), $e_5$),
-  node((0,5), $e_6$),
+==== Files Never Touched by Generator
 
-  // Model space elements
-  node((3,0), $m_1$),
-  node((3,1), $m_2$),
-  node((3,2), $m_3$),
+The generator MUST NEVER modify:
+- Files in `src/` (implementations)
+- Tests
+- Deployment configurations
+- Documentation
 
-  {
-    let tint(c) = (stroke: c, fill: rgb(..c.components().slice(0,3), 5%), inset: 8pt)
-    node(enclose: ((0,0), (0,5)), ..tint(blue), name: <e>)
-    node(enclose: ((3,0), (3,2)), ..tint(green), name: <m>)
-  },
-
-  edge(<e>, <m>, "->", $j$, stroke: 2pt),
-)
-
-#diagram(
-  node-corner-radius: 4pt,
-
-  // Event space elements (on top)
-  node((0,0), $e_1$),
-  node((1,0), $e_2$),
-  node((2,0), $e_3$),
-  node((3,0), $e_4$),
-  node((4,0), $e_5$),
-  node((5,0), $e_6$),
-
-  // Model space elements (on bottom)
-  node((0,3), $m_1$),
-  node((1,3), $m_2$),
-  node((2,3), $m_3$),
-
-  {
-    let tint(c) = (stroke: c, fill: rgb(..c.components().slice(0,3), 5%), inset: 8pt)
-    node(enclose: ((0,0), (5,0)), ..tint(blue), name: <e>)
-    node(enclose: ((0,3), (2,3)), ..tint(green), name: <m>)
-  },
-
-  // Complex mapping between events and models
-  edge((0,0), (0,3), "->", stroke: .5pt),
-  edge((0,0), (1,3), "->", stroke: .5pt),
-  edge((1,0), (1,3), "->", stroke: .5pt),
-  edge((2,0), (0,3), "->", stroke: .5pt),
-  edge((2,0), (2,3), "->", stroke: .5pt),
-  edge((3,0), (2,3), "->", stroke: .5pt),
-  edge((4,0), (0,3), "->", stroke: .5pt),
-  edge((4,0), (1,3), "->", stroke: .5pt),
-  edge((4,0), (2,3), "->", stroke: .5pt),
-  edge((5,0), (1,3), "->", stroke: .5pt),
-)
-
-#diagram(
-  node-corner-radius: 4pt,
-  spacing: (2em, 1.5em),
-
-  // Event space elements with examples
-  node((0,0), [$e_1$: ItemAddedToCart]),
-  node((0,1), [$e_2$: ItemRemovedFromCart]),
-  node((0,2), [$e_3$: OrderPlaced]),
-  node((0,3), [$e_4$: PaymentReceived]),
-  node((0,4), [$e_5$: ItemShipped]),
-
-  // Model space elements (database tables)
-  node((3,0), [$m_1$: CartItems]),
-  node((3,1), [$m_2$: Orders]),
-  node((3,2), [$m_3$: Inventory]),
-  node((3,3), [$m_4$: Analytics]),
-
-  {
-    let tint(c) = (stroke: c, fill: rgb(..c.components().slice(0,3), 5%), inset: 8pt)
-    node(enclose: ((0,0), (0,4)), ..tint(blue), name: <e>)
-    node(enclose: ((3,0), (3,3)), ..tint(green), name: <m>)
-  },
-
-  // Complex mapping between events and models
-  edge((0,0), (3,0), "->", stroke: .5pt),
-  edge((0,0), (3,2), "->", stroke: .5pt),
-  edge((0,0), (3,3), "->", stroke: .5pt),
-  edge((0,1), (3,0), "->", stroke: .5pt),
-  edge((0,1), (3,2), "->", stroke: .5pt),
-  edge((0,1), (3,3), "->", stroke: .5pt),
-  edge((0,2), (3,0), "->", stroke: .5pt),
-  edge((0,2), (3,1), "->", stroke: .5pt),
-  edge((0,2), (3,3), "->", stroke: .5pt),
-  edge((0,3), (3,1), "->", stroke: .5pt),
-  edge((0,3), (3,3), "->", stroke: .5pt),
-  edge((0,4), (3,1), "->", stroke: .5pt),
-  edge((0,4), (3,2), "->", stroke: .5pt),
-  edge((0,4), (3,3), "->", stroke: .5pt),
-)
-
-template:
+== Testing
+=== Model Tests
+- cardinality
+=== Other Data Tests?
+=== Projections
+=== Queries
+=== Procedures
+=== Chaos Testing
 
 
 
-#diagram(
-  node-corner-radius: 4pt,
-  node((0,0), $S a$),
-  node((1,0), $T b$),
-  node((0,1), $S a'$),
-  node((1,1), $T b'$),
-  edge((0,0), (1,0), "->", $f$),
-  edge((0,1), (1,1), "->", $f'$),
-  edge((0,0), (0,1), "->", $alpha$),
-  edge((1,0), (1,1), "->", $beta$),
+// ## 11. References
 
-  node((2,0), $(a, b, f)$),
-  edge("->", text(0.8em, $(alpha, beta)$)),
-  node((2,1), $(a', b', f')$),
+// ### 11.1 Normative References
 
-  node((0,2), $S a$),
-  edge("->", $f$),
-  node((1,2), $T b$),
+// [RFC2119] Bradner, S., "Key words for use in RFCs to Indicate Requirement Levels", BCP 14, RFC 2119, March 1997.
 
-  node((2,2), $(a, b, f)$),
+// [LinkML] "Linked Data Modeling Language", https://linkml.io/
 
-  {
-      let tint(c) = (stroke: c, fill: rgb(..c.components().slice(0,3), 5%), inset: 8pt)
-      node(enclose: ((0,0), (1,1)), ..tint(teal), name: <big>)
-      node(enclose: ((2,0), (2,1)), ..tint(teal), name: <tall>)
-      node(enclose: ((0,2), (1,2)), ..tint(green), name: <wide>)
-      node(enclose: ((2,2),), ..tint(green), name: <small>)
-  },
+// [CQRS] Fowler, M., "CQRS", https://martinfowler.com/bliki/CQRS.html
 
-  edge(<big>, <tall>, "<==>", stroke: teal + .75pt),
-  edge(<wide>, <small>, "<==>", stroke: green + .75pt),
-  edge(<big>, <wide>, "<=>", stroke: .75pt),
-  edge(<tall>, <small>, "<=>", stroke: .75pt),
-)
+// [EventSourcing] Fowler, M., "Event Sourcing", https://martinfowler.com/eaaDev/EventSourcing.html
+
+// ### 11.2 Informative References
+
+// [DDD] Evans, E., "Domain-Driven Design: Tackling Complexity in the Heart of Software", Addison-Wesley, 2003.
+
+// [CosmicPython] Percival, H. and Gregory, B., "Architecture Patterns with Python", O'Reilly, 2020, https://www.cosmicpython.com/
+
+// [Conway] Conway, M., "How Do Committees Invent?", 1968, http://www.melconway.com/Home/Committees_Paper.html
+
+// [Dijkstra] Dijkstra, E., "The Humble Programmer", ACM Turing Lecture, 1972.
+
+// [Feathers] Feathers, M., "Working Effectively with Legacy Code", Prentice Hall, 2004.
+
+// [Kleppmann] Kleppmann, M., "Designing Data-Intensive Applications", O'Reilly, 2017.
+
+// ### 11.3 Project References
+
+// [CLAUDE.md] "DIZZY Documentation Index", /CLAUDE.md
+
+// [Concepts] "DIZZY Core Concepts", /docs/concepts.md
+
+// [BuildOrder] "DIZZY Build Order", /docs/build-order.md
+
+// [Testing] "DIZZY Testing Guide", /docs/testing.md
+
+// [Pipeline] "DIZZY Code Generation Pipeline", /docs/analysis.md
+
+// [Whitepaper] "DIZZY Whitepaper", /whitepaper.typ
+
+
+
+
+
+
+// = Figures
+
+
+// #diagram(
+//   node-corner-radius: 4pt,
+
+//   // Event space elements
+//   node((0,0), $e_1$),
+//   node((0,1), $e_2$),
+//   node((0,2), $e_3$),
+//   node((0,3), $e_4$),
+//   node((0,4), $e_5$),
+//   node((0,5), $e_6$),
+
+//   // Model space elements
+//   node((3,0), $m_1$),
+//   node((3,1), $m_2$),
+//   node((3,2), $m_3$),
+
+//   {
+//     let tint(c) = (stroke: c, fill: rgb(..c.components().slice(0,3), 5%), inset: 8pt)
+//     node(enclose: ((0,0), (0,5)), ..tint(blue), name: <e>)
+//     node(enclose: ((3,0), (3,2)), ..tint(green), name: <m>)
+//   },
+
+//   edge(<e>, <m>, "->", $j$, stroke: 2pt),
+// )
+
+// #diagram(
+//   node-corner-radius: 4pt,
+
+//   // Event space elements (on top)
+//   node((0,0), $e_1$),
+//   node((1,0), $e_2$),
+//   node((2,0), $e_3$),
+//   node((3,0), $e_4$),
+//   node((4,0), $e_5$),
+//   node((5,0), $e_6$),
+
+//   // Model space elements (on bottom)
+//   node((0,3), $m_1$),
+//   node((1,3), $m_2$),
+//   node((2,3), $m_3$),
+
+//   {
+//     let tint(c) = (stroke: c, fill: rgb(..c.components().slice(0,3), 5%), inset: 8pt)
+//     node(enclose: ((0,0), (5,0)), ..tint(blue), name: <e>)
+//     node(enclose: ((0,3), (2,3)), ..tint(green), name: <m>)
+//   },
+
+//   // Complex mapping between events and models
+//   edge((0,0), (0,3), "->", stroke: .5pt),
+//   edge((0,0), (1,3), "->", stroke: .5pt),
+//   edge((1,0), (1,3), "->", stroke: .5pt),
+//   edge((2,0), (0,3), "->", stroke: .5pt),
+//   edge((2,0), (2,3), "->", stroke: .5pt),
+//   edge((3,0), (2,3), "->", stroke: .5pt),
+//   edge((4,0), (0,3), "->", stroke: .5pt),
+//   edge((4,0), (1,3), "->", stroke: .5pt),
+//   edge((4,0), (2,3), "->", stroke: .5pt),
+//   edge((5,0), (1,3), "->", stroke: .5pt),
+// )
+
+// #diagram(
+//   node-corner-radius: 4pt,
+//   spacing: (2em, 1.5em),
+
+//   // Event space elements with examples
+//   node((0,0), [$e_1$: ItemAddedToCart]),
+//   node((0,1), [$e_2$: ItemRemovedFromCart]),
+//   node((0,2), [$e_3$: OrderPlaced]),
+//   node((0,3), [$e_4$: PaymentReceived]),
+//   node((0,4), [$e_5$: ItemShipped]),
+
+//   // Model space elements (database tables)
+//   node((3,0), [$m_1$: CartItems]),
+//   node((3,1), [$m_2$: Orders]),
+//   node((3,2), [$m_3$: Inventory]),
+//   node((3,3), [$m_4$: Analytics]),
+
+//   {
+//     let tint(c) = (stroke: c, fill: rgb(..c.components().slice(0,3), 5%), inset: 8pt)
+//     node(enclose: ((0,0), (0,4)), ..tint(blue), name: <e>)
+//     node(enclose: ((3,0), (3,3)), ..tint(green), name: <m>)
+//   },
+
+//   // Complex mapping between events and models
+//   edge((0,0), (3,0), "->", stroke: .5pt),
+//   edge((0,0), (3,2), "->", stroke: .5pt),
+//   edge((0,0), (3,3), "->", stroke: .5pt),
+//   edge((0,1), (3,0), "->", stroke: .5pt),
+//   edge((0,1), (3,2), "->", stroke: .5pt),
+//   edge((0,1), (3,3), "->", stroke: .5pt),
+//   edge((0,2), (3,0), "->", stroke: .5pt),
+//   edge((0,2), (3,1), "->", stroke: .5pt),
+//   edge((0,2), (3,3), "->", stroke: .5pt),
+//   edge((0,3), (3,1), "->", stroke: .5pt),
+//   edge((0,3), (3,3), "->", stroke: .5pt),
+//   edge((0,4), (3,1), "->", stroke: .5pt),
+//   edge((0,4), (3,2), "->", stroke: .5pt),
+//   edge((0,4), (3,3), "->", stroke: .5pt),
+// )
+
+// template:
+
+
+
+// #diagram(
+//   node-corner-radius: 4pt,
+//   node((0,0), $S a$),
+//   node((1,0), $T b$),
+//   node((0,1), $S a'$),
+//   node((1,1), $T b'$),
+//   edge((0,0), (1,0), "->", $f$),
+//   edge((0,1), (1,1), "->", $f'$),
+//   edge((0,0), (0,1), "->", $alpha$),
+//   edge((1,0), (1,1), "->", $beta$),
+
+//   node((2,0), $(a, b, f)$),
+//   edge("->", text(0.8em, $(alpha, beta)$)),
+//   node((2,1), $(a', b', f')$),
+
+//   node((0,2), $S a$),
+//   edge("->", $f$),
+//   node((1,2), $T b$),
+
+//   node((2,2), $(a, b, f)$),
+
+//   {
+//       let tint(c) = (stroke: c, fill: rgb(..c.components().slice(0,3), 5%), inset: 8pt)
+//       node(enclose: ((0,0), (1,1)), ..tint(teal), name: <big>)
+//       node(enclose: ((2,0), (2,1)), ..tint(teal), name: <tall>)
+//       node(enclose: ((0,2), (1,2)), ..tint(green), name: <wide>)
+//       node(enclose: ((2,2),), ..tint(green), name: <small>)
+//   },
+
+//   edge(<big>, <tall>, "<==>", stroke: teal + .75pt),
+//   edge(<wide>, <small>, "<==>", stroke: green + .75pt),
+//   edge(<big>, <wide>, "<=>", stroke: .75pt),
+//   edge(<tall>, <small>, "<=>", stroke: .75pt),
+// )
