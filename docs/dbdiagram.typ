@@ -9,7 +9,7 @@
 
   table(
     columns: 1,
-    stroke: none,
+    // stroke: none,
 
     table.header(
       [
@@ -27,22 +27,31 @@
 = Database Diagram: Cart System
 
 #diagram(
+  node-shape: rect,
+  node(circle(stroke: white, text(white, $Delta$)), name: <A>, fill: navy),
+  node(<A.north-east>, circle(fill: white, radius: 6pt, $ plus.o $)),
+  edge((<A.north-west>, 25%, <A.south-west>,), "l,u,l", "-O"),
+  edge((<A.north-west>, 50%, <A.south-west>), "l,l", "-@"),
+  edge((<A.north-west>, 75%, <A.south-west>), "l,d", "-O"),
+  edge((<A.north-west>, 2%, <A.south-west>), "r,r,dr", "-O"),
+)
+
+#diagram(
   spacing: (3cm, 2.5cm),
   node-stroke: 1pt,
   edge-stroke: 1pt,
   node-inset: 0pt,
 
-  // Row 1: Users, Carts, Products
   node((0, 0),
     db-table("Users", (
-      "PK: user_id",
+      "user_id",
       "username",
       "email",
       "password_hash",
       "created_at"
     )),
     shape: rect,
-    width: 3cm,
+    // width: 3cm,
     name: <users>
   ),
 

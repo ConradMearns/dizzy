@@ -121,12 +121,6 @@ In order for procedures and policies to effectively query from the domain model,
 
 In the general flow diagram, this is denoted with the dashed line as shorthand.
 
-// == concepts
-// === CQRS
-// - command query responsibility separation
-// === Event Sourcing
-// === The Database is an optimization
-
 
 == Component Specifications
 
@@ -349,7 +343,9 @@ Queries consist of three components:
 
 DIZZY uses a multi-stage code generation pipeline to maintain type safety while preserving implementation flexibility.
 
-A DIZZY feature MUST follow this structure:
+// A DIZZY feature MUST follow this structure:
+
+
 
 ```
 {feature}/
