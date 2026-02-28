@@ -112,6 +112,28 @@ Monolith vs. Microservice
 // making it nearly impossible to change later.
 
 
+== The Same Data, Described a Dozen Times
+
+// TODO: The same domain primitives (a user, an order, a transaction) get
+// redefined in Pydantic, SQL Alchemy, Protobuf, Rust structs, JSON schemas --
+// each slightly different, each drifting out of sync. This isn't just tedious;
+// it's a breeding ground for subtle bugs. And the underlying data types are
+// often wrong too -- doubles for currency, 64-bit integers for 8-bit port numbers.
+// The tooling doesn't prevent this; it multiplies it.
+// (See transcript 34:18 - 35:36)
+
+== Applications as Islands
+
+// TODO: Even within a single team, applications can't easily share data or
+// compose into larger systems. You build a recipe app and a photo-sharing app
+// separately, then realize they should interoperate -- but there's no seam
+// where they can join. Programs can't talk to each other without bespoke
+// integration work every time.
+// (See transcript 07:21 - 07:36)
+// 
+// https://maggieappleton.com/garden-history
+// https://veilid.com/Launch-Slides-Veilid.pdf
+
 == The Map Grossly Mislabels the Territory
 
 The Map is Not the Territory. The map usually hardly comes close to the territory.
@@ -180,6 +202,25 @@ Truly modular software should work across disciplines, languages, networks, and 
 
 // The domain model is defined once; implementations can be generated for
 // any target language. A Python policy can emit a command handled by a Rust procedure.
+
+== Separate Data from Behavior
+
+// TODO: DIZZY is intentionally functional-forward. Data (commands, events, models)
+// and behavior (procedures, policies) live in different places. No objects in
+// the C++/Java sense. This is what makes procedures deployable independently of
+// the queues that transport their data. State is the enemy of this portability.
+// (See transcript 40:41 - 41:35)
+
+== Enumerate, Don't Encapsulate
+
+// TODO: Events emitted by procedures should be explicitly listed, not hidden
+// inside opaque wrappers. DIZZY needs to see the branching logic to reason
+// about the system. Encapsulation "obfuscates the package in a way that's
+// counterproductive and the package itself isn't something that Dizzy cares
+// about." The car analogy: engine (procedure), accelerator (command), and the
+// possible outcomes -- left wheel, right wheel, engine exploding -- are all
+// separate, named events.
+// (See transcript 10:36 - 11:11, 20:06 - 20:13)
 
 == Infrastructure _from_ Code
 
@@ -253,6 +294,25 @@ Any external systems they connect to - API's, exteneral databases, etc - must be
 
 This is what makes them portable across languages and deployable in any topology.
 
+== The Context Object: Callbacks, Queries, and Injection
+
+// TODO: Procedures and policies don't return values. They emit events via
+// callback functions injected through a "context" object. This same context
+// provides query access to projections. This is what decouples business logic
+// from transport -- at deployment time, those callbacks can route to an
+// in-process queue, ZeroMQ, Kafka, gRPC, or be ignored entirely.
+// No return statements. The context IS the seam between logic and infrastructure.
+// (See transcript 48:24 - 49:31)
+
+== Projections as the Bridge from Events to Models
+
+// TODO: Events are truth but you can't query a raw event log efficiently.
+// Projections are the processes that consume events and build queryable models.
+// The Bitcoin analogy: the ledger is the event store, but "how much money do I
+// have?" needs a projection that maintains a running balance. Without this
+// concept, event sourcing is academically correct but practically useless.
+// (See transcript 50:04 - 51:33)
+
 == Models as Disposable Views
 
 TODO: Models are derived and rebuildable.
@@ -261,6 +321,49 @@ You can have as many models as you have questions to answer,
 backed by whatever database technology makes sense for each question.
 
 Connect to the Projection concept as the bridge from events to models.
+
+= From Description to Deployment: The Generation Pipeline
+
+// TODO: This section covers the practical workflow -- how a DIZZY application
+// goes from an idea in your head to running code. This is the layered pipeline
+// that the transcript spends significant time on (22:46 - 36:08). Each layer
+// generates or constrains the next.
+
+== The Feature File as System Blueprint
+
+// TODO: The entry point to DIZZY. A high-level document (currently YAML, possibly
+// SQL-backed later) that names every component: procedures, commands, events,
+// policies. No implementation details -- just "the outside of the black box."
+// This is highly relational, not just hierarchical. Features can import from
+// other features for cross-application composability.
+// (See transcript 05:06 - 06:25, 07:47 - 08:03, 22:46 - 23:03)
+
+== Schemas that Cross Language Boundaries
+
+// TODO: LinkML as the schema language for definitions. Define your data model
+// once and generate Pydantic, SQL Alchemy, Protobuf, Rust structs, etc.
+// Kaitai for binary/embedded schemas. The step from Feature File to initial
+// definitions is algorithmic; an agent then helps flesh out the details.
+// "The capability is just easy interop between languages and data definitions."
+// (See transcript 23:11 - 23:52, 26:30 - 31:01)
+
+== Generated Interfaces as the Only Contract
+
+// TODO: From the definitions, DIZZY generates interface/protocol files -- one
+// per language per component. These define the type signature that source code
+// must match. "All of this is here just to make the type checker happy." The
+// interface is the ONLY contract between generated infrastructure and
+// human-written code.
+// (See transcript 36:18 - 38:16)
+
+== Source Code: Where the Logic Lives
+
+// TODO: The developer writes business logic that matches the generated interface
+// signature. That's the only requirement. Multiple implementations can exist for
+// the same interface (e.g., two SHA-256 implementations), enabling A/B testing
+// and platform-specific optimization. The same DIZZY app compiled for ARM vs x86
+// might choose different implementations automatically.
+// (See transcript 45:26 - 47:44)
 
 = Existing Disciplines, New Composition
 
@@ -419,6 +522,15 @@ DIZZY is nothing new.
 // What does it leave to the infrastructure? How should teams reason about
 // causal ordering vs. total ordering?
 
+
+// == Change Propagation: The Arrows Point Backwards
+// TODO: When you modify a component (add a field to a command, change an event),
+// the ripple effects propagate backwards through the dependency graph. DIZZY
+// tracks these relationships so you get an explicit list of everything affected.
+// "The arrows propagate backwards when you add code elements or functionalities
+// to your feature. And that's where that like high relational aspect comes in."
+// This is the concrete mechanism behind "making changes responsibly."
+// (See transcript 42:12 - 42:43)
 
 // == Sagas and Long-Running Processes
 // TODO: Some business processes span multiple commands and events over time.
