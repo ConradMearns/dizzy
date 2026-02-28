@@ -19,7 +19,7 @@
 // Title
 #align(center)[
   #text(24pt, weight: "bold")[D I Z Z Y]
-  
+
   #text(12pt, weight: "bold")[
     A Software Philosophy for Event Driven Architectures with Decoupled Infrastructure
   ]
@@ -39,15 +39,14 @@
 
 = Abstract
 
-This document specifies DIZZY, a software architecture framework for building event-driven systems with decoupled infrastructure. DIZZY implements Command Query Responsibility Separation (CQRS) with Event Sourcing using language-agnostic schemas and a code generation pipeline. The architecture enables reversible decisions, supports multiple programming languages, and provides infrastructure independence through strict separation of concerns.
+// TODO: Write a whitepaper abstract that focuses on the philosophy and motivation,
+// not the technical specification. What problem does DIZZY solve for the reader?
+// Why should they care? What will they take away?
 
-// Enable section numbering
 #set heading(numbering: "1a1a1a1a")
-// #set heading(numbering: "1.1")
 
 #pagebreak()
 
-// Table of Contents
 #outline(
   title: [Table of Contents],
   indent: auto,
@@ -55,610 +54,400 @@ This document specifies DIZZY, a software architecture framework for building ev
 
 #pagebreak()
 
+= The Burden of Software Architecture is
 
-// = Guiding Principals
+== The Irreversibility of Poor Decisions
 
+Everything in computing changes - it's just a matter of _when_ the change occurs. Our demands change, our platforms, capabilities, problems, fashions, and scale all change too.
+
+We often see, especially in the most cursed software projects, that poor decisions will rear their heads to haunt us again later on.
+
+Decisions that seemed either well intentioned, necessary, critical, or even genuinely brilliant can all turn into a curse when the conditions are right. And truly - I don't know what is worse: the number of projects people have retained as sunk costs, due to pride or politics - or the number of people who seemingly have no awareness of the curses they write. 
+
+(Though, hindsight punishes the early architects all too often. 
+There are too many such cases, when a developer succumbs to the pressures of the labor. When they break, integrity breaks too. We see mitigations, shortcuts, hacks and sloppy writing apparent as the evidence of such mental slips and burnouts.)
+
+A decent Software Architecture is a ward against such curses. It is the draft of constraints that prevent the workarounds, the dirty hacks, and the "clever" tricks that inevitably cause confusion and harm later. A decent architecture promotes modularity for the sake of repairability.
+
+Poor Architectures are those that attract curses rather than features. They are those whose structure itself is vile physarum of traces that span dozens of files, and couples itself to hardcoded strings, special conditionals, and ancient rituals of practices and patterns of by-gone develoeprs.
+
+We call this "Coupling"
+
+// consider moving into 1.1
+
+// TODO: What happens when your database choice, your deployment model, your
+// programming language, and your business logic are all entangled?
+// Give concrete examples of real-world pain:
+// - "We can't migrate off Postgres because our business logic is in stored procedures"
+// - "We can't rewrite the hot path in Rust because our types are Python-only"
+// - "We can't split this monolith because the modules share a database"
+// Each of these represents an irreversible decision that constrains all future decisions.
+
+
+// Key points to develop:
 // Everything in computing changes, it's just a matter of _when_.
 // Many systems are implemented to solve for specific problems in software development,
-// only to be usurped and made obsolete by advances in hardware development, 
+// only to be usurped and made obsolete by advances in hardware development,
 // or algorithms that change the objective completely.
 
-// The real issue with modern architectures is not whether Monoliths or Microservices are better;
-// it's that we force that decision upon ourselves and become shackled to its consequences for decades.
+// 
 
-// Truly modular software should work across
-// disciplines, languages, networks, and hardware.
+https://longnow.org/ideas/pace-layers/
 
-// What if we could rewrite _just_ the critical path in rust?
-// What if we could swap databases in and out of our system as easily as a feature flag?
 
-// We can accomplish this with existing disciplines
+== The False Dichotomies of Deployment Solutions
 
-// - Command Query Responsibility Separation
-// - Command Queuing
-// - Event Storming
-// - Event Sourcing
-// - Functional Programming
-// - Dependency Injection
-// - #strike[Infrastructure as Code] $->$ Infrastructure _from_ Code
+Monolith vs. Microservice
 
-// How do we teach the philosophy?
+// Paradigm	Memory Mapping	Mechanism	Key Limitation/Feature
+// C Model	The Stack	Spilled to RAM in "frames"	Efficient, supports recursion.
+// Static Model	Fixed Addresses	Every variable has a permanent home	Fastest, but no recursion.
+// Heap Model	Linked Lists	Scopes are objects in RAM	Supports Closures & GC; slower.
+// Forth Model	Dual Stacks	Data stack vs. Return stack	Extremely tiny footprint; hard to read.
 
-// - How do we know we understand the problem well enough to model it?
-//   - The Map is Not the Territory
-// - Structured Logging is for more than just debugging
-//   - The spectrum of Change Data Capture $<-->$ Event Sourcing
-// - How do we communicate how "good" a software is?
-// - In a future where writing software is 10000x cheaper, how do we structure the work?
+// TODO: Argue that the real issue with modern architectures is not whether
+// Monoliths or Microservices are better — it's that we force that decision
+// upon ourselves and become shackled to its consequences for decades.
+// The choice of deployment topology becomes load-bearing for the entire codebase,
+// making it nearly impossible to change later.
 
-// == Support (almost) Any Programming Language
-// == Deferring Decisions
-// == Architecting for Reversibility
 
-= DIZZY
-
-#figure(
-  flow
-) <fig-flow>
-
-The general flow for execution flow in dizzy is represented similarly to traditional DDD EDA.
-Commands ($c$) describe an imperative intent. 
-Events ($e$) record immutable facts about our system, and external effects.
-Procedures ($d$) 
-Policies ($y$) 
+== The Map Grossly Mislabels the Territory
 
-Event's are all you need to record and query for information with an Event Sourcing paradigm,
-but queries grow slower as the Event Store grows; read's are unoptimized.
-In general, we want to enable faster time to action by careful design of queries that answer specific questions about the world.
-We can accomplish this by using events to inform a World Model ($m$).
+The Map is Not the Territory. The map usually hardly comes close to the territory.
 
-We can generally support any number Models, utilizing any number of databases and database platforms. As long as we can guarantee that databases can be managed solely through Events,
-then we can always rebuild deterministic state.
+When leadership and business stakeholders make decisions about their software, it's critical that they understand the system. We still rely on slide decks, books of documentation, and tribal knowledge over code in many instance.
 
-Since the number of events in our system $|e|$ is uncoupled from the number of unique model elements $|m|$ - we need a map from events to model elements. Projections ($j$) serve as the software component to resolve this mapping.
+Why? Because the code teaches us nothing about how the code works, why the code works, and what decisions led to the code being created.
 
-In order for procedures and policies to effectively query from the domain model, We specify a schema for all Queries ($Q$). Queries are represented by a double-arrow dashed line to show That they are bidirectional flow: Request and Response.  Each query element may be instead represented by 3 subcomponents. Query inputs ($q_i$), Query outputs ($q_o$), And the query process ($q_p$).
 
-In the general flow diagram, this is denoted with the dashed line as shorthand.
-
-
-== Component Specifications
+// == Most Architecture is Bespoke, Vernacular, or simple Mimicry
 
-=== Commands
+// Software Architecture is largely vernacular because we simply don't have the tools to define and discuss the larger and larger systems we consider builder. Vernacular, because even though many Developers lack formal training, many can still write better software than industry "professionals" given certain tasks. They learn through communities and helpful eyes how to build systems that last - systems that scale - and systems that solve problems.
 
-Commands MUST be
-- *Imperative*: Express intent (e.g., "StartScan", "CalculateHash")
-- *Ephemeral*: Not persisted long-term
-- *Unique*: Identified by a unique `command_id`
+// Without the journeyman approach to pair programming, many can only rely on mimicry - which is typically enough. Copy and Paste is often joked to be the only necessary keyboard shortcuts needed to write most software. If you're goal is to pick [LAMP | MEAN | WISA] Stack, then you likely can get by with a lot of copy and paste.
 
-Commands SHOULD:
-- Use present tense naming
-- Include all parameters needed for execution
-- Be idempotent when possible
+// Mimicry fails when we cannot copy someone else's solution to our problem.
 
-1. Command is created (by user, policy, or external system)
-2. Command is validated against schema
-3. Command is routed to exactly one Procedure
-4. Command is processed
-5. Command is discarded (not stored long-term)
+// Vernacular Architecture fails when the practices and rituals of building no longer align with shift in culture, scale, and practices required in our solutions.
 
-=== Events
+// Every so often, I am reminded that Roller Coatser Tycoon was designed and compiled with MS Macro Assembler V6.11c.
 
-Events MUST be:
-- *Immutable*: Never modified after creation
-- *Durable*: Stored permanently in Event Store
-- *Factual*: Describe what happened (past tense)
-- *Unique*: Identified by unique `event_id`
+// Few today would attempt a similar feat, simply because the language of Assembly does not align with the language of high performance game design, or roller coasters.
 
-Events SHOULD:
-- Use past tense naming (e.g., "ScanCompleted", "HashCalculated")
-- Include timestamp
-- Include sufficient context for projections
-- Be granular (one fact per event)
+// Today, many would choose an efficient language intended to solve data problems, access and allocation problems, or visualization problems. Like C, or Rust.
 
-1. Event is emitted by Procedure
-2. Event is validated against schema
-3. Event is appended to Event Store
-4. Event triggers zero or more Policies
-5. Event triggers zero or more Projections
-6. Event is retained indefinitely
+// Some - like NaughtyDog - would choose a LISP-Like language to build their DSL's within their target language itself.
 
+// A solution like this is vernacular still - but bespoke and artful too. The problem is not so much an obstacle, but a conversation.
 
-=== Procedures
 
-Procedures MUST:
-- Accept exactly one Command type as input
-- Receive a Context with emitters and queries
-- Return nothing (use emitters for output)
-- Be deterministic given same inputs and query results
+= Guiding Principles
 
-Procedures MAY:
-- Perform side effects (I/O, external API calls)
-- Read from Models via queries
-- Emit multiple Events
-- Emit different Events based on execution results
+// TODO: Introduce the philosophical foundation. These aren't just technical
+// patterns — they're design values that inform every decision in DIZZY.
+//   
 
-Procedures SHOULD:
-- Emit error events rather than raising exceptions for domain errors
-- Only raise exceptions for infrastructure failures
-- Include error context in error events
+== Deferring Decisions
 
-=== Policies
+The best decision is often the one you don't have to make yet.
 
-Policies MUST:
-- React to exactly one Event type
-- Receive a Context with emitters and queries
-- Return nothing (use emitters for output)
-- Be side-effect free (read-only operations)
+// DIZZY is designed so that infrastructure choices (which database, which
+// message broker, monolith vs. microservice, which language for which component)
+// can be deferred until you have enough information to choose well —
+// and reversed when that information changes.
 
-Policies MAY:
-- Emit zero or more Commands
-- Read from Models via queries
-- Implement complex business logic
-- Emit different Commands based on query results
+== Architecting for Reversibility
 
-Policies SHOULD:
-- Encode business rules, not technical operations
-- Be testable with mock queries
-- Avoid complex state management
-- Make decisions based on current Model state
+// TODO: What if we could rewrite _just_ the critical path in Rust?
+- What if we could swap databases in and out of our system as easily as a feature flag?
+- What if our database vendor contract has to be abandoned?
+- What if we chose the wrong query model for our data?
+- What if the deployment paradigm is generating too high of an operational cost?
 
+Reversibility is not about being indecisive — it's about maintaining the freedom to respond to new information. 
 
-=== Projections
+DIZZY should not only empower modularization of our system, it should naturally enable A/B testing and hotswapping so that reversing decisions becomes a standard practice, rather than a hail mary.
 
-Projections MUST:
-- Be idempotent (replay safe)
-- Be deterministic (same Event produces same Model update)
-- Handle Event ordering issues gracefully
+// Describe what "reversible" means concretely:
+// - Swap a Postgres-backed model for Redis without touching business logic
+// - Move from monolith to microservice deployment without changing procedure code
+// - Rewrite a procedure in a different language while keeping the same schema contract
 
-Projections MAY:
-- Update multiple Models per Event
-- Ignore Events that don't affect their Model
-- Maintain internal state for aggregation
+== Support (Almost) Any Programming Language
 
-Projections MUST support full Model rebuild:
-1. Clear existing Model
-2. Replay all Events from Event Store
-3. Apply each Event to Model
-4. Resulting Model MUST match production Model
+Truly modular software should work across disciplines, languages, networks, and hardware. DIZZY should achieve language independence through language-agnostic schemas and code generation.
 
+// The domain model is defined once; implementations can be generated for
+// any target language. A Python policy can emit a command handled by a Rust procedure.
 
-=== Models
+== Infrastructure _from_ Code
 
-Models:
-- Represent derived state (not source of truth)
-- Optimize specific query patterns
-- Can be rebuilt from Events at any time
-- MAY use any database technology
+// TODO: Expand on the idea of #strike[Infrastructure as Code] -> Infrastructure _from_ Code.
+// Rather than separately defining infrastructure and hoping it matches your code,
 
-Models MUST:
-- Eventually consistent with Event Store
-- Support concurrent updates if multiple instances exist
-- Handle duplicate Events idempotently
+DIZZY derives infrastructure requirements from the domain model itself.
 
-=== Queries
+Just as Programming Languages translate human intent to machine code - so too should DIZZY translate business intent to infrastructure. Automatically, with optimizations for infrastructure that can be refined out of phase with business needs - just as GCC can improve compilation and optimizations without requiring changes to C.
 
-Queries MUST:
-- Read from Models (not Event Store)
-- Be side-effect free
-- Define typed inputs and outputs
+Interstitial Infrastructure
 
-Queries MAY:
-- Join multiple Models
-- Implement caching
-- Use any database query language
+// The feature definition _is_ the source of truth for what queues, stores,
+// and connections are needed.
 
-Queries consist of three components:
+Commands, Events, and Models are data. They can be communicated over amny number or combinations of message passing channels, such as ZeroMQ, Kafka, HTTP, WebSocket, gRPC, etc.
 
-1. *Query Input* ($q_i$): Parameters defining what to retrieve
-2. *Query Process* ($q_p$): Logic for retrieving data from Models
-3. *Query Output* ($q_o$): Structured result data
+= The DIZZY Architecture at a Glance
 
+// TODO: High-level conceptual overview of the architecture — NOT the spec-level
+// detail. Introduce the core loop (Command -> Procedure -> Event -> Policy -> Command)
+// and the read side (Event -> Projection -> Model -> Query) with the flow diagram.
+// Explain what each component _means_ philosophically, not its MUST/SHOULD/MAY rules.
+// Reference the spec for formal definitions.
+
+#figure(flow)
 
-// ==== context
-// =======
-// Processes are the opinionated wrappers of library code that preforms work,
-// executes algorithms, crunches numbers, sorts data, and everything in between.
-
-// Processes are mostly intended to be fire-and-forget.
-// Some single input arrives, work is done, and the function exits.
-// DIZZY breaks from other conventions by omitting `return` statements completely. Instead, processes use dependency injection to acquire callback functions which are defined at deployment time. 
-
-
-
-// ==== Context
-
-// The general design philosophy of a process is that we don't want to wait to inform other components of the work we've completed.
-
-// Instead of relying on return codes, everything looks like a callback. How this callback is implemented is up to the deployment code. // TODO link to deployment section
-
-// In most cases, the callback is a simple `put` onto a queue.
-
-// #box[
-// ```python
-// @dataclass
-// class Context:
-//     emit: BazCrunchedEmitter # Callable[[BazCrunched], None]
-//     query: BazQueriers # assuming has a .search(str) query
-// def process(input: Input, context: Context):
-//   baz = foo(input.bar, context.query.search("fubar term history"))
-//   context.emit(BazCrunched(baz))
-// ```
-// ]
-
-
-== Data Flow Specifications
-
-=== Event Loop Flow
-
-1. Command arrives (from user, policy, or external system)
-2. System validates Command against schema
-3. System routes Command to registered Procedure
-4. Procedure executes with provided Context
-5. Procedure emits Events via context.emit
-6. Events are validated and appended to Event Store
-7. Events trigger registered Policies
-8. Policies execute and emit new Commands
-9. Loop continues from step 1
-
-
-=== Model Loop Flow
-
-1. Event is appended to Event Store
-2. Event triggers registered Projections
-3. Projections update Models
-4. Models become available for Queries
-5. Procedures/Policies use Queries via Context
-6. Query results influence future Commands/Events
-
-// == modelling recommendations
-
-// durable execution; sagas; identity;
-
-// == development recommendations
-
-// unit testing; chaos testing; 
-
-// def; gen; src; bin;
-
-// == deployment recommendations
-
-// event sourcing; queues; 
-
-// == user interfaces
-
-// similarities to model view controller; $c->d->Q$
-
-// == examples
-
-// todo with ui; rtos; k8s web app; etl;
-
-
-
-
-
-== Code Generation Pipeline
-
-=== Overview
-
-DIZZY uses a multi-stage code generation pipeline to maintain type safety while preserving implementation flexibility.
-
-// A DIZZY feature MUST follow this structure:
-
-
-
-```
-{feature}/
-├── def/                  # LinkML schemas (edit after generation)
-│   ├── commands/
-│   └── events/
-├── gen/                  # Generated code (DO NOT EDIT)
-│   └── pyd/
-│       ├── commands/
-│       ├── events/
-│       ├── procedure/
-│       └── policy/
-├── src/                  # Implementations (EDIT HERE)
-│   ├── procedure/
-│   └── policy/
-├── result/               # Deployment artifacts
-├── {feature}.feat.yaml   # Feature Definition
-└── impl.yaml             # Implementation manifest
-```
-
-=== Pipeline Stages
-
-==== Stage 1: Feature Definition
-
-*Input*: Domain knowledge
-*Output*: `{feature}.feat.yaml`
-*Tool*: Manual editing
-
-Feature Definition MUST declare:
-- All Commands with descriptions
-- All Events with descriptions
-- All Procedures with command mappings, emits lists, and contexts
-- All Policies with event mappings, emits lists, and contexts
-- All Projections (Models) with attributes
-- All Queries with parameters and return types
-
-=== Stage 2: Schema Generation
-
-*Input*: `{feature}.feat.yaml`
-*Output*: LinkML schemas in `def/commands/` and `def/events/`
-*Tool*: `dizzy gen init`
-
-Generated schemas:
-- MUST include unique IDs and namespaces
-- MUST import base Command or Event types
-- MUST include placeholder attributes
-- SHOULD be edited to add domain-specific attributes
-
-==== Stage 3: Model Generation
-
-*Input*: LinkML schemas from `def/`
-*Output*: Pydantic models in `gen/pyd/commands/` and `gen/pyd/events/`
-*Tool*: `dizzy gen init` (uses `linkml-gen-pydantic`)
-
-Generated models:
-- MUST include type hints
-- MUST include validation logic
-- MUST NOT be manually edited
-- MUST be regenerated when schemas change
-
-==== Stage 4: Protocol Generation
-
-*Input*: `{feature}.feat.yaml` and generated models
-*Output*: Context and Protocol files in `gen/pyd/procedure/` and `gen/pyd/policy/`
-*Tool*: `dizzy gen src`
-
-Generated protocols:
-- MUST define type-safe interfaces
-- MUST include Context with emitters and queries
-- MUST NOT be manually edited
-- MUST be regenerated when Feature Definition changes
-
-==== Stage 5: Implementation
-
-*Input*: Generated protocols
-*Output*: Implementation files in `src/procedure/` and `src/policy/`
-*Tool*: Manual development or `dizzy gen src` scaffolding
-
-Implementations:
-- MUST match Protocol signatures
-- MUST be manually edited
-- MUST NOT be overwritten by regeneration
-- SHOULD include unit tests
-
-==== Stage 6: Deployment
-
-*Input*: Implementations and `impl.yaml` manifest
-*Output*: Deployment-specific artifacts in `result/`
-*Tool*: Deployment-specific tooling
-
-Deployment artifacts:
-- MUST wire emitters to infrastructure (queues, lambdas, etc.)
-- MUST wire queries to database implementations
-- MAY use different strategies per environment
-
-=== Regeneration Rules
-
-==== Safe Regeneration
-
-The following operations are safe:
-- Regenerating `gen/` after schema changes
-- Regenerating protocols after Feature Definition changes
-- Adding new Commands/Events/Procedures/Policies
-
-==== Manual Intervention Required
-
-The following require manual updates:
-- Schema changes affecting existing implementations
-- Adding new attributes to Commands/Events
-- Changing Procedure/Policy signatures
-
-==== Files Never Touched by Generator
-
-The generator MUST NEVER modify:
-- Files in `src/` (implementations)
-- Tests
-- Deployment configurations
-- Documentation
-
-== Testing
-=== Model Tests
-- cardinality
-=== Other Data Tests?
-=== Projections
-=== Queries
-=== Procedures
-=== Chaos Testing
-
-
-
-// ## 11. References
-
-// ### 11.1 Normative References
-
+== Commands as Intent
+
+// TODO: Commands represent what we _want_ to happen. They are ephemeral
+expressions of intent — not records of fact. This distinction matters
+because intent can be rejected, retried, or rerouted, while facts cannot.
+
+commands can be repeated, or contain PII, and other data that is meant to be ephemeral
+
+== Events as Truth
+
+// TODO: Events are the single source of truth. Everything else — every model,
+every view, every report — is derived from events. This means we can always rebuild any view of the world from first principles.
+
+events are immutable logs.
+
+Because events capture _what happened_ independently of any particular
+database schema, the same event stream can power multiple databases
+with completely different schemas — each optimized for different queries.
+
+// This means:
+// - You can build a new database with an alternative schema from the same
+//   events, without migrating the old one. Stand up the new projection,
+//   replay events, and you have a new view of the same data.
+// - Migrations become "build a new projection and cut over" rather than
+//   "transform the existing database in place and pray."
+// - Different teams or services can maintain their own models from the
+//   shared event stream — coordination happens through the event contract,
+//   not through shared database access.
+// - Federated subnetworks can subscribe to relevant event subsets and
+//   build local models suited to their own query patterns, without
+//   coupling to the producer's schema choices.
+//
+// The event stream is the canonical representation. Every database is
+// just a cached, queryable projection of that truth — disposable and
+// rebuildable by design.
+
+== Procedures and Policies as Pure Logic
+
+The business logic lives in Procedures (command handlers) and Policies (event reactors).
+
+These are not entirely pure functions of their inputs plus query results.
+
+Any external systems they connect to - API's, exteneral databases, etc - must be represented either solely as another DIZZY component, or be modelled so that Effects are logged within Events.
+
+This is what makes them portable across languages and deployable in any topology.
+
+== Models as Disposable Views
+
+TODO: Models are derived and rebuildable.
+They exist to make queries fast, not to be the source of truth.
+You can have as many models as you have questions to answer,
+backed by whatever database technology makes sense for each question.
+
+Connect to the Projection concept as the bridge from events to models.
+
+= Existing Disciplines, New Composition
+
+DIZZY is nothing new.
+
+// TODO: DIZZY is not inventing new computer science. It composes existing,
+// proven disciplines into a coherent whole. Acknowledge the lineage and
+// explain how DIZZY brings them together:
+
+- Command Query Responsibility Separation (CQRS)
+- Command Queuing
+- Event Storming (for domain discovery)
+- Event Sourcing (for truth)
+- Functional Programming (for testable logic)
+- Dependency Injection (for decoupling)
+- Infrastructure as Code (for deployment)
+
+// == The Spectrum from Structured Logging to Event Sourcing
+// TODO: Structured logging is for more than just debugging.
+// There is a spectrum from Change Data Capture <-> Event Sourcing.
+// Many teams are already halfway to event sourcing without knowing it.
+// Help readers see the continuum and understand where DIZZY sits on it.
+
+// == Event Storming as the On-Ramp
+// TODO: Event Storming is a collaborative workshop technique where
+// domain experts and developers map out a system using sticky notes.
+// Orange stickies for events ("OrderPlaced"), blue for commands
+// ("PlaceOrder"), lilac for policies ("When order placed, reserve inventory"),
+// and pink for procedures (the logic that handles a command).
+//
+// The key insight: these sticky notes map directly to DIZZY components.
+// The orange stickies become your event definitions. The blue stickies
+// become your command definitions. The lilac stickies become policies.
+// The pink stickies become procedures.
+//
+// This means an Event Storming session doesn't just produce a wall of
+// sticky notes that gets photographed and forgotten — it produces the
+// skeleton of a feature definition. The gap between "we understand the
+// domain" and "we have a working system" shrinks dramatically.
+//
+// For teams unfamiliar with Event Storming, see [reference to Brandolini
+// or similar]. The practice is valuable independent of DIZZY, but DIZZY
+// gives the output a direct path to implementation.
+
+
+// = A Worked Example
+// TODO: This is critical. Walk through a complete, concrete example at a
+// conceptual level. Something simple enough to follow but rich enough to
+// show the architecture working. Candidates:
+// - A todo list app (simplest, most familiar)
+// - A shopping cart (good for showing projections and multiple models)
+// - An ETL pipeline (shows the non-web-app applicability)
+//
+// Show:
+// 1. The domain events and commands (what happened, what we want to happen)
+// 2. A procedure handling a command and emitting events
+// 3. A policy reacting to an event and issuing a new command
+// 4. A projection building a model from events
+// 5. A query reading from that model
+// 6. How swapping the database or deployment model doesn't touch any of the above
+
+
+// = Organizing Work: From Architecture to Work Breakdown
+// TODO: One of DIZZY's underappreciated benefits is how it structures
+// the work of building software, not just the software itself.
+
+
+// == Countable Flows, Not Spaghetti Traces
+// TODO: In a DIZZY system, the flow of execution is _enumerable_.
+// You can list every command, every procedure, every event, every policy.
+// The feature definition is a complete map of how data and intent move
+// through the system. Contrast this with traditional codebases where
+// understanding "what happens when a user clicks X" requires tracing
+// through layers of implicit function calls, middleware, and side effects.
+//
+// In DIZZY, the answer is always: "Command A is handled by Procedure B,
+// which emits Events C and D, which trigger Policies E and F."
+// The flow is a finite, countable set — not an emergent property of
+// tangled code paths.
+
+
+// == Components as Work Units
+// TODO: Once a feature definition exists, the work items write themselves.
+// Each procedure, policy, projection, and query implementation is a
+// discrete, bounded unit of work with:
+// - A clear input type (the command or event it handles)
+// - A clear output contract (the events or commands it emits)
+// - A clear context (which queries it can access)
+// - No implicit dependencies on other implementations
+//
+// This means work can be parallelized naturally. Two developers (or agents)
+// can implement different procedures for the same feature simultaneously,
+// because the schema contracts define the boundaries.
+
+
+// == The Technical Lead's View
+// TODO: For a technical lead, the feature definition serves as a
+// high-level map of the system. When a change request comes in, the lead
+// can identify exactly which DIZZY components are affected:
+// - Which commands need to change or be added?
+// - Which events are new?
+// - Which procedures and policies need updating?
+// - Which projections and models are impacted?
+//
+// This produces a small, explicit set of work items — not a vague
+// "go figure out what needs to change in the codebase." The waterfall-like
+// structure of definition -> generation -> implementation provides
+// a natural ordering, while the independence of components within each
+// stage enables parallel execution.
+
+
+// == Agents and Automated Workers
+// TODO: The clear boundaries that help human teams also help AI agents
+// and automated tools. An agent given a procedure to implement has:
+// - The exact input type (generated from schema)
+// - The exact output contract (which events to emit)
+// - The exact query interface (what it can read)
+// - No need to understand the rest of the system
+//
+// This is the minimal context needed to do useful work. The feature
+// definition acts as a coordination protocol — agents don't need to
+// understand the whole system, just their component's contract.
+
+
+// = Testing by Construction
+// == Chaos Testing
+
+
+
+// = Addressing the Hard Problems
+// TODO: Be honest about the challenges. Event sourcing has well-known
+// difficulties. Addressing them head-on builds credibility.
+
+
+// == Schema Evolution and Event Versioning
+// TODO: Events are immutable, but schemas evolve. How does DIZZY handle
+// adding fields, renaming events, or changing event semantics over time?
+
+
+// == Eventual Consistency
+// TODO: Models are eventually consistent with the event store. What does
+// this mean in practice? What are the failure modes? When is eventual
+// consistency acceptable, and when do you need stronger guarantees?
+// How does DIZZY help teams reason about consistency boundaries?
+
+
+// == Event Store Growth and Snapshots
+// TODO: The event store grows without bound. What strategies exist for
+// managing this? Snapshotting, compaction, archival. How does DIZZY's
+// projection-rebuilding model interact with these strategies?
+
+
+// == Ordering and Distribution
+// TODO: When events are processed across distributed nodes, ordering
+// guarantees become complex. What ordering guarantees does DIZZY provide?
+// What does it leave to the infrastructure? How should teams reason about
+// causal ordering vs. total ordering?
+
+
+// == Sagas and Long-Running Processes
+// TODO: Some business processes span multiple commands and events over time.
+// Durable execution
+// Show an example where Event Started - Event Ended - Event Failed
+// Entity ID's
+
+= Conclusion
+
+// TODO: In a future where writing software is 10000x cheaper, how do we
+// structure the work? DIZZY's answer: define the domain precisely,
+// generate the boilerplate, keep the logic portable, and never let an
+// infrastructure choice become a prison.
+
+For the formal specification of DIZZY components, schemas, and code generation pipeline, see the companion _DIZZY Specification_.
+
+
+
+// = References
+// Normative
 // [RFC2119] Bradner, S., "Key words for use in RFCs to Indicate Requirement Levels", BCP 14, RFC 2119, March 1997.
-
 // [LinkML] "Linked Data Modeling Language", https://linkml.io/
-
 // [CQRS] Fowler, M., "CQRS", https://martinfowler.com/bliki/CQRS.html
-
 // [EventSourcing] Fowler, M., "Event Sourcing", https://martinfowler.com/eaaDev/EventSourcing.html
 
-// ### 11.2 Informative References
-
-// [DDD] Evans, E., "Domain-Driven Design: Tackling Complexity in the Heart of Software", Addison-Wesley, 2003.
-
-// [CosmicPython] Percival, H. and Gregory, B., "Architecture Patterns with Python", O'Reilly, 2020, https://www.cosmicpython.com/
-
-// [Conway] Conway, M., "How Do Committees Invent?", 1968, http://www.melconway.com/Home/Committees_Paper.html
-
+// Informative
+// [DDD] Evans, E., "Domain-Driven Design", Addison-Wesley, 2003.
+// [CosmicPython] Percival, H. and Gregory, B., "Architecture Patterns with Python", O'Reilly, 2020. https://www.cosmicpython.com/
+// [Conway] Conway, M., "How Do Committees Invent?", 1968.
 // [Dijkstra] Dijkstra, E., "The Humble Programmer", ACM Turing Lecture, 1972.
-
 // [Feathers] Feathers, M., "Working Effectively with Legacy Code", Prentice Hall, 2004.
-
 // [Kleppmann] Kleppmann, M., "Designing Data-Intensive Applications", O'Reilly, 2017.
-
-// ### 11.3 Project References
-
-// [CLAUDE.md] "DIZZY Documentation Index", /CLAUDE.md
-
-// [Concepts] "DIZZY Core Concepts", /docs/concepts.md
-
-// [BuildOrder] "DIZZY Build Order", /docs/build-order.md
-
-// [Testing] "DIZZY Testing Guide", /docs/testing.md
-
-// [Pipeline] "DIZZY Code Generation Pipeline", /docs/analysis.md
-
-// [Whitepaper] "DIZZY Whitepaper", /whitepaper.typ
-
-
-
-
-
-
-// = Figures
-
-
-// #diagram(
-//   node-corner-radius: 4pt,
-
-//   // Event space elements
-//   node((0,0), $e_1$),
-//   node((0,1), $e_2$),
-//   node((0,2), $e_3$),
-//   node((0,3), $e_4$),
-//   node((0,4), $e_5$),
-//   node((0,5), $e_6$),
-
-//   // Model space elements
-//   node((3,0), $m_1$),
-//   node((3,1), $m_2$),
-//   node((3,2), $m_3$),
-
-//   {
-//     let tint(c) = (stroke: c, fill: rgb(..c.components().slice(0,3), 5%), inset: 8pt)
-//     node(enclose: ((0,0), (0,5)), ..tint(blue), name: <e>)
-//     node(enclose: ((3,0), (3,2)), ..tint(green), name: <m>)
-//   },
-
-//   edge(<e>, <m>, "->", $j$, stroke: 2pt),
-// )
-
-// #diagram(
-//   node-corner-radius: 4pt,
-
-//   // Event space elements (on top)
-//   node((0,0), $e_1$),
-//   node((1,0), $e_2$),
-//   node((2,0), $e_3$),
-//   node((3,0), $e_4$),
-//   node((4,0), $e_5$),
-//   node((5,0), $e_6$),
-
-//   // Model space elements (on bottom)
-//   node((0,3), $m_1$),
-//   node((1,3), $m_2$),
-//   node((2,3), $m_3$),
-
-//   {
-//     let tint(c) = (stroke: c, fill: rgb(..c.components().slice(0,3), 5%), inset: 8pt)
-//     node(enclose: ((0,0), (5,0)), ..tint(blue), name: <e>)
-//     node(enclose: ((0,3), (2,3)), ..tint(green), name: <m>)
-//   },
-
-//   // Complex mapping between events and models
-//   edge((0,0), (0,3), "->", stroke: .5pt),
-//   edge((0,0), (1,3), "->", stroke: .5pt),
-//   edge((1,0), (1,3), "->", stroke: .5pt),
-//   edge((2,0), (0,3), "->", stroke: .5pt),
-//   edge((2,0), (2,3), "->", stroke: .5pt),
-//   edge((3,0), (2,3), "->", stroke: .5pt),
-//   edge((4,0), (0,3), "->", stroke: .5pt),
-//   edge((4,0), (1,3), "->", stroke: .5pt),
-//   edge((4,0), (2,3), "->", stroke: .5pt),
-//   edge((5,0), (1,3), "->", stroke: .5pt),
-// )
-
-// #diagram(
-//   node-corner-radius: 4pt,
-//   spacing: (2em, 1.5em),
-
-//   // Event space elements with examples
-//   node((0,0), [$e_1$: ItemAddedToCart]),
-//   node((0,1), [$e_2$: ItemRemovedFromCart]),
-//   node((0,2), [$e_3$: OrderPlaced]),
-//   node((0,3), [$e_4$: PaymentReceived]),
-//   node((0,4), [$e_5$: ItemShipped]),
-
-//   // Model space elements (database tables)
-//   node((3,0), [$m_1$: CartItems]),
-//   node((3,1), [$m_2$: Orders]),
-//   node((3,2), [$m_3$: Inventory]),
-//   node((3,3), [$m_4$: Analytics]),
-
-//   {
-//     let tint(c) = (stroke: c, fill: rgb(..c.components().slice(0,3), 5%), inset: 8pt)
-//     node(enclose: ((0,0), (0,4)), ..tint(blue), name: <e>)
-//     node(enclose: ((3,0), (3,3)), ..tint(green), name: <m>)
-//   },
-
-//   // Complex mapping between events and models
-//   edge((0,0), (3,0), "->", stroke: .5pt),
-//   edge((0,0), (3,2), "->", stroke: .5pt),
-//   edge((0,0), (3,3), "->", stroke: .5pt),
-//   edge((0,1), (3,0), "->", stroke: .5pt),
-//   edge((0,1), (3,2), "->", stroke: .5pt),
-//   edge((0,1), (3,3), "->", stroke: .5pt),
-//   edge((0,2), (3,0), "->", stroke: .5pt),
-//   edge((0,2), (3,1), "->", stroke: .5pt),
-//   edge((0,2), (3,3), "->", stroke: .5pt),
-//   edge((0,3), (3,1), "->", stroke: .5pt),
-//   edge((0,3), (3,3), "->", stroke: .5pt),
-//   edge((0,4), (3,1), "->", stroke: .5pt),
-//   edge((0,4), (3,2), "->", stroke: .5pt),
-//   edge((0,4), (3,3), "->", stroke: .5pt),
-// )
-
-// template:
-
-
-
-// #diagram(
-//   node-corner-radius: 4pt,
-//   node((0,0), $S a$),
-//   node((1,0), $T b$),
-//   node((0,1), $S a'$),
-//   node((1,1), $T b'$),
-//   edge((0,0), (1,0), "->", $f$),
-//   edge((0,1), (1,1), "->", $f'$),
-//   edge((0,0), (0,1), "->", $alpha$),
-//   edge((1,0), (1,1), "->", $beta$),
-
-//   node((2,0), $(a, b, f)$),
-//   edge("->", text(0.8em, $(alpha, beta)$)),
-//   node((2,1), $(a', b', f')$),
-
-//   node((0,2), $S a$),
-//   edge("->", $f$),
-//   node((1,2), $T b$),
-
-//   node((2,2), $(a, b, f)$),
-
-//   {
-//       let tint(c) = (stroke: c, fill: rgb(..c.components().slice(0,3), 5%), inset: 8pt)
-//       node(enclose: ((0,0), (1,1)), ..tint(teal), name: <big>)
-//       node(enclose: ((2,0), (2,1)), ..tint(teal), name: <tall>)
-//       node(enclose: ((0,2), (1,2)), ..tint(green), name: <wide>)
-//       node(enclose: ((2,2),), ..tint(green), name: <small>)
-//   },
-
-//   edge(<big>, <tall>, "<==>", stroke: teal + .75pt),
-//   edge(<wide>, <small>, "<==>", stroke: green + .75pt),
-//   edge(<big>, <wide>, "<=>", stroke: .75pt),
-//   edge(<tall>, <small>, "<=>", stroke: .75pt),
-// )
