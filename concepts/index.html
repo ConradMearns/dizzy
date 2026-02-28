@@ -1,0 +1,854 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
+    
+    
+      
+        <title>DIZZY Core Concepts - dizzy</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../assets/stylesheets/obsidian.min.css">
+    
+      <link rel="stylesheet" href="../assets/stylesheets/obsidian.min.css.map">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dizzy-core-concepts" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="dizzy" class="md-header__button md-logo" aria-label="dizzy" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            dizzy
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              DIZZY Core Concepts
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="pink" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ConradMearns/dizzy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="dizzy" class="md-nav__button md-logo" aria-label="dizzy" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    dizzy
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ConradMearns/dizzy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/index.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../how-to/index.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    How-to
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/index.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tutorials
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../explanation/index.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#data-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Components
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Components">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#commands-c" class="md-nav__link">
+    <span class="md-ellipsis">
+      Commands ($c$)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#events-e" class="md-nav__link">
+    <span class="md-ellipsis">
+      Events ($e$)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#models-m" class="md-nav__link">
+    <span class="md-ellipsis">
+      Models ($m$)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#queries-q" class="md-nav__link">
+    <span class="md-ellipsis">
+      Queries ($Q$)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#process-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Process Components
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Process Components">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#context" class="md-nav__link">
+    <span class="md-ellipsis">
+      Context
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#procedures-d" class="md-nav__link">
+    <span class="md-ellipsis">
+      Procedures ($d$)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#policies-y" class="md-nav__link">
+    <span class="md-ellipsis">
+      Policies ($y$)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#projections-j" class="md-nav__link">
+    <span class="md-ellipsis">
+      Projections ($j$)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#information-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Information Flow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Information Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#event-loop-command-event" class="md-nav__link">
+    <span class="md-ellipsis">
+      Event Loop (Command → Event)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-loop-event-query" class="md-nav__link">
+    <span class="md-ellipsis">
+      Model Loop (Event → Query)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cqrs-separation" class="md-nav__link">
+    <span class="md-ellipsis">
+      CQRS Separation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#event-sourcing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Event Sourcing
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-this-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why This Architecture?
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Why This Architecture?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#support-almost-any-programming-language" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support (Almost) Any Programming Language
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deferring-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deferring Decisions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#architecting-for-reversibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecting for Reversibility
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="dizzy-core-concepts">DIZZY Core Concepts</h1>
+<p>DIZZY implements Command Query Responsibility Separation (CQRS) with Event Sourcing in a language-agnostic, infrastructure-decoupled manner.</p>
+<h2 id="data-components">Data Components</h2>
+<h3 id="commands-c">Commands ($c$)</h3>
+<p><strong>Commands</strong> are imperative intents that describe what should happen.</p>
+<ul>
+<li><strong>Imperative</strong>: Express intention ("StartScan", "CalculateHash")</li>
+<li><strong>Ephemeral</strong>: Not stored long-term, processed and discarded</li>
+<li><strong>Input to Procedures</strong>: Each command triggers exactly one procedure</li>
+<li><strong>Structure</strong>: Defined in LinkML schemas at <code>def/commands/{command_name}.yaml</code></li>
+</ul>
+<p>Example: <code>StartScan(scan_path="/data", recursive=True)</code></p>
+<h3 id="events-e">Events ($e$)</h3>
+<p><strong>Events</strong> are immutable facts about what has happened in the system.</p>
+<ul>
+<li><strong>Immutable</strong>: Once created, never modified</li>
+<li><strong>Durable</strong>: Stored permanently in the event store</li>
+<li><strong>Past Tense</strong>: Named for completed actions ("ScanItemFound", "HashCalculated")</li>
+<li><strong>Source of Truth</strong>: Events are the only required persistent data</li>
+<li><strong>Structure</strong>: Defined in LinkML schemas at <code>def/events/{event_name}.yaml</code></li>
+</ul>
+<p>Example: <code>ScanItemFound(item_path="/data/file.txt", size_bytes=1024, timestamp="2026-01-31T12:00:00Z")</code></p>
+<p>Key principle: <strong>Events are all you need</strong> for complete system state reconstruction via Event Sourcing.</p>
+<h3 id="models-m">Models ($m$)</h3>
+<p><strong>Models</strong> are database representations that optimize queries.</p>
+<ul>
+<li><strong>Optimization</strong>: "The database is an optimization" - models make queries faster</li>
+<li><strong>Derived State</strong>: Can always be rebuilt from events via projections</li>
+<li><strong>Multiple Representations</strong>: Same events can populate multiple model types (SQL, NoSQL, graph, etc.)</li>
+<li><strong>Structure</strong>: Defined in <code>feat.yaml</code> under <code>projections:</code></li>
+</ul>
+<p>Example:
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">projections</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">ScanResult</span><span class="p">:</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Aggregated</span><span class="nv"> </span><span class="s">scan</span><span class="nv"> </span><span class="s">statistics&quot;</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">attributes</span><span class="p">:</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">      </span><span class="nt">total_items</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Total</span><span class="nv"> </span><span class="s">number</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">items</span><span class="nv"> </span><span class="s">found&quot;</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">      </span><span class="nt">total_bytes</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Total</span><span class="nv"> </span><span class="s">size</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">bytes&quot;</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">      </span><span class="nt">scan_duration</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Time</span><span class="nv"> </span><span class="s">taken</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">complete</span><span class="nv"> </span><span class="s">scan&quot;</span>
+</span></code></pre></div></p>
+<h3 id="queries-q">Queries ($Q$)</h3>
+<p><strong>Queries</strong> are request-response interfaces to read from models.</p>
+<ul>
+<li><strong>Bidirectional</strong>: Request ($q_i$) → Process ($q_p$) → Response ($q_o$)</li>
+<li><strong>Read-Only</strong>: Queries never modify state</li>
+<li><strong>Model-Backed</strong>: Query implementations read from models (databases)</li>
+<li><strong>Typed Interface</strong>: Parameters and return types defined in <code>feat.yaml</code></li>
+<li><strong>Structure</strong>: Defined in <code>feat.yaml</code> under <code>queries:</code></li>
+</ul>
+<p>Example:
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">queries</span><span class="p">:</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">get_scan_results</span><span class="p">:</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Retrieve</span><span class="nv"> </span><span class="s">aggregated</span><span class="nv"> </span><span class="s">scan</span><span class="nv"> </span><span class="s">results&quot;</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">ScanResult</span><span class="p p-Indicator">]</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">scan_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Unique</span><span class="nv"> </span><span class="s">identifier</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">scan&quot;</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="nt">returns</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ScanResult</span><span class="nv"> </span><span class="s">object</span><span class="nv"> </span><span class="s">with</span><span class="nv"> </span><span class="s">statistics&quot;</span>
+</span></code></pre></div></p>
+<p>Queries enable fast lookups without replaying entire event history.</p>
+<h2 id="process-components">Process Components</h2>
+<p>All processes in DIZZY follow a key principle: <strong>No return statements</strong>. Instead, processes use dependency injection to acquire callback functions (emitters) defined at deployment time.</p>
+<h3 id="context">Context</h3>
+<p>The execution context provides processes with:
+- <strong>Emitters</strong>: Callbacks to emit events or commands (defined at deployment)
+- <strong>Queries</strong>: Interfaces to query the current world model</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nd">@dataclass</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">Context</span><span class="p">:</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">emit</span><span class="p">:</span> <span class="n">BazCrunchedEmitter</span>  <span class="c1"># Callable[[BazCrunched], None]</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">query</span><span class="p">:</span> <span class="n">BazQueriers</span>        <span class="c1"># Query interfaces</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="nb">input</span><span class="p">:</span> <span class="n">Input</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">compute_something</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;term&quot;</span><span class="p">))</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">context</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">BazCrunched</span><span class="p">(</span><span class="n">result</span><span class="p">))</span>  <span class="c1"># Fire-and-forget</span>
+</span></code></pre></div>
+<p><strong>Fire-and-forget philosophy</strong>: Don't wait to inform other components. Emit events immediately and let the system react.</p>
+<h3 id="procedures-d">Procedures ($d$)</h3>
+<p><strong>Procedures</strong> perform meaningful work and emit events.</p>
+<ul>
+<li><strong>Command Handler</strong>: Each procedure handles exactly one command type</li>
+<li><strong>Read/Write</strong>: Can query models and produce side effects</li>
+<li><strong>Event Emission</strong>: Emits zero or more events describing work completed</li>
+<li><strong>Effectful</strong>: May interact with external systems (file I/O, API calls, calculations)</li>
+<li><strong>Structure</strong>:</li>
+<li>Protocol: <code>gen/pyd/procedure/{command_name}_protocol.py</code></li>
+<li>Context: <code>gen/pyd/procedure/{command_name}_context.py</code></li>
+<li>Implementation: <code>src/procedure/{impl_type}/{procedure_name}.py</code></li>
+</ul>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">partition_scan</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n">start_scan_context</span><span class="p">,</span> <span class="n">command</span><span class="p">:</span> <span class="n">StartScan</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Scan directory and emit events for each item found.&quot;&quot;&quot;</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">command</span><span class="o">.</span><span class="n">scan_path</span><span class="p">):</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>        <span class="n">context</span><span class="o">.</span><span class="n">emit</span><span class="o">.</span><span class="n">scan_item_found</span><span class="p">(</span><span class="n">ScanItemFound</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">item</span><span class="p">,</span> <span class="o">...</span><span class="p">))</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="n">context</span><span class="o">.</span><span class="n">emit</span><span class="o">.</span><span class="n">scan_complete</span><span class="p">(</span><span class="n">ScanComplete</span><span class="p">(</span><span class="n">total_items</span><span class="o">=</span><span class="n">count</span><span class="p">))</span>
+</span></code></pre></div>
+<h3 id="policies-y">Policies ($y$)</h3>
+<p><strong>Policies</strong> encode workflow logic and business rules.</p>
+<ul>
+<li><strong>Event Handler</strong>: Each policy reacts to one event type</li>
+<li><strong>Read-Only</strong>: Can only query models, cannot perform side effects</li>
+<li><strong>Command Emission</strong>: Emits zero or more commands based on business logic</li>
+<li><strong>Reactive</strong>: Implements "when this happens, then do that" logic</li>
+<li><strong>Structure</strong>:</li>
+<li>Protocol: <code>gen/pyd/policy/{event_name}_protocol.py</code></li>
+<li>Context: <code>gen/pyd/policy/{policy_name}_context.py</code></li>
+<li>Implementation: <code>src/policy/{impl_type}/{policy_name}.py</code></li>
+</ul>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">hash_priority_files</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n">hash_policy_context</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">ScanItemFound</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Emit hash command only for priority file types.&quot;&quot;&quot;</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">file_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">((</span><span class="s1">&#39;.pdf&#39;</span><span class="p">,</span> <span class="s1">&#39;.docx&#39;</span><span class="p">)):</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>        <span class="n">context</span><span class="o">.</span><span class="n">emit</span><span class="o">.</span><span class="n">calculate_hash</span><span class="p">(</span><span class="n">CalculateHash</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">file_path</span><span class="p">))</span>
+</span></code></pre></div>
+<p><strong>Key distinction</strong>: Procedures do work, Policies decide what work should be done next.</p>
+<h3 id="projections-j">Projections ($j$)</h3>
+<p><strong>Projections</strong> map events to model updates.</p>
+<ul>
+<li><strong>Event → Model Mapping</strong>: Transform events into database operations</li>
+<li><strong>Idempotent</strong>: Can safely process same event multiple times</li>
+<li><strong>Model Builder</strong>: Updates read models based on event content</li>
+<li><strong>Many-to-Many</strong>: Multiple events can update one model; one event can update multiple models</li>
+<li><strong>Rebuild Capability</strong>: Since projections are deterministic, models can be rebuilt by replaying events</li>
+</ul>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Event Stream: [e₁, e₂, e₃, e₄, e₅, e₆]
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>                ↓  ↓  ↓  ↓  ↓  ↓
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>           Projections (j)
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>                ↓  ↓  ↓
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>Models:     [m₁, m₂, m₃]
+</span></code></pre></div>
+<p>Example: <code>ScanItemFound</code> event might update:
+- <code>ScanResult</code> model (increment total_items counter)
+- <code>FileInventory</code> model (add new file record)
+- <code>Analytics</code> model (track file type distribution)</p>
+<h2 id="information-flow">Information Flow</h2>
+<h3 id="event-loop-command-event">Event Loop (Command → Event)</h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Command (c) → Procedure (d) → Event (e) → Policy (y) → Command (c&#39;) → ...
+</span></code></pre></div>
+<ol>
+<li>Command arrives requesting work</li>
+<li>Procedure performs work and emits events</li>
+<li>Events trigger policies</li>
+<li>Policies emit new commands</li>
+<li>Cycle continues</li>
+</ol>
+<h3 id="model-loop-event-query">Model Loop (Event → Query)</h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Event (e) → Projection (j) → Model (m) → Query (Q) → Response
+</span></code></pre></div>
+<ol>
+<li>Event describes what happened</li>
+<li>Projection updates model(s)</li>
+<li>Model provides optimized queryable state</li>
+<li>Query retrieves information for procedures/policies</li>
+</ol>
+<h2 id="cqrs-separation">CQRS Separation</h2>
+<p><strong>Write Side</strong> (Commands → Procedures → Events):
+- Commands express intent
+- Procedures perform work
+- Events record facts
+- All writes go through event store</p>
+<p><strong>Read Side</strong> (Events → Projections → Models → Queries):
+- Events update projections
+- Projections maintain models
+- Queries read from models
+- Optimized for specific read patterns</p>
+<p><strong>Benefit</strong>: Write and read concerns are completely decoupled. Can optimize, scale, and even use different databases for different queries.</p>
+<h2 id="event-sourcing">Event Sourcing</h2>
+<p>Traditional systems store current state. DIZZY stores the sequence of events that led to that state.</p>
+<p><strong>Advantages</strong>:
+- <strong>Complete Audit Trail</strong>: Every change is recorded with full context
+- <strong>Time Travel</strong>: Reconstruct state at any point in history
+- <strong>Debugging</strong>: Replay events to reproduce issues
+- <strong>Model Evolution</strong>: Add new projections to existing event streams
+- <strong>Multiple Models</strong>: Same events can populate different database types</p>
+<p><strong>Principle</strong>: "The database is an optimization." Models are just cached views of event history, optimized for specific query patterns. If a model is corrupted or schema changes, rebuild it by replaying events through projections.</p>
+<h2 id="why-this-architecture">Why This Architecture?</h2>
+<h3 id="support-almost-any-programming-language">Support (Almost) Any Programming Language</h3>
+<ul>
+<li>Components communicate via serialized data (commands, events)</li>
+<li>No shared memory or library dependencies</li>
+<li>Procedures can be written in different languages</li>
+<li>Each component is independently deployable</li>
+</ul>
+<h3 id="deferring-decisions">Deferring Decisions</h3>
+<ul>
+<li>Don't choose database upfront - use events</li>
+<li>Add projections for new models later</li>
+<li>Switch serialization formats without changing logic</li>
+<li>Change infrastructure without touching business logic</li>
+</ul>
+<h3 id="architecting-for-reversibility">Architecting for Reversibility</h3>
+<ul>
+<li>Made wrong database choice? Add new projection, deprecate old model</li>
+<li>Need to split monolith? Components already decoupled</li>
+<li>Performance issue? Replace individual procedure in different language</li>
+<li>Schema evolution? Events are immutable, models can evolve</li>
+</ul>
+<p><strong>Philosophy</strong>: "Everything in computing changes, it's just a matter of <em>when</em>."</p>
+<p>DIZZY embraces change rather than fighting it.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "content.tabs.link"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>
