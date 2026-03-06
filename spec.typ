@@ -34,7 +34,7 @@
 
 = Abstract
 
-This document specifies DIZZY, a software architecture framework for building event-driven systems with decoupled infrastructure. DIZZY implements Command Query Responsibility Separation (CQRS) with Event Sourcing using language-agnostic schemas and a code generation pipeline. The architecture enables reversible decisions, supports multiple programming languages, and provides infrastructure independence through strict separation of concerns.
+This document specifies DIZZY, a software architecture framework for building event-driven systems with decoupled infrastructure. DIZZY implements Command Query Responsibility Separation (CQRS) with Event Sourcing using language-agnostic schemas and schema-driven dependency tracking. The architecture enables reversible decisions, supports multiple programming languages, and provides infrastructure independence through strict separation of concerns.
 
 For the philosophy, motivation, and design rationale behind DIZZY, see the companion whitepaper.
 
@@ -295,33 +295,35 @@ Queries consist of three components:
 
 
 
-== Code Generation Pipeline
+== Dependency Tracking
 
 === Overview
 
-DIZZY uses a multi-stage code generation pipeline to maintain type safety while preserving implementation flexibility.
+The Feature Definition schema (`{feature}.feat.yaml`) serves as a dependency graph for the entire feature. When a change is needed anywhere in the system, this schema enables construction of a precise list of elements to investigate for further refactoring:
 
-// A DIZZY feature MUST follow this structure:
+- Changing a Command → trace to the Procedure that handles it, and any Policies that emit it
+- Changing an Event → trace to Policies that react to it, and Projections that update Models from it
+- Changing a Model → trace to Queries that read it, and Projections that write to it
 
-
+A DIZZY feature MUST follow this folder structure:
 
 ```
 {feature}/
-├── def/                  # LinkML schemas (edit after generation)
+├── def/                  # Feature definition (edit here)
+│   └── {feature}.feat.yaml
+├── gen_def/              # Generated definitions (DO NOT EDIT)
 │   ├── commands/
-│   └── events/
-├── gen/                  # Generated code (DO NOT EDIT)
-│   └── pyd/
-│       ├── commands/
-│       ├── events/
-│       ├── procedure/
-│       └── policy/
-├── src/                  # Implementations (EDIT HERE)
-│   ├── procedure/
-│   └── policy/
-├── result/               # Deployment artifacts
-├── {feature}.feat.yaml   # Feature Definition
-└── impl.yaml             # Implementation manifest
+│   ├── events/
+│   └── models/
+├── gen_impl/             # Generated implementation scaffolds (DO NOT EDIT)
+│   ├── procedures/
+│   ├── policies/
+│   └── projections/
+└── src/                  # Implementations (EDIT HERE)
+    ├── procedures/
+    ├── policies/
+    ├── projections/
+    └── queries/
 ```
 
 === Pipeline Stages
@@ -329,98 +331,73 @@ DIZZY uses a multi-stage code generation pipeline to maintain type safety while 
 ==== Stage 1: Feature Definition
 
 *Input*: Domain knowledge
-*Output*: `{feature}.feat.yaml`
-*Tool*: Manual editing
+*Output*: `def/{feature}.feat.yaml`
 
 Feature Definition MUST declare:
 - All Commands with descriptions
 - All Events with descriptions
 - All Procedures with command mappings, emits lists, and contexts
 - All Policies with event mappings, emits lists, and contexts
-- All Projections (Models) with attributes
+- All Projections with event mappings and Model targets
+- All Models with attributes
 - All Queries with parameters and return types
 
-=== Stage 2: Schema Generation
+==== Stage 2: Definition Generation
 
-*Input*: `{feature}.feat.yaml`
-*Output*: LinkML schemas in `def/commands/` and `def/events/`
-*Tool*: `dizzy gen init`
+*Input*: `def/{feature}.feat.yaml`
+*Output*: Typed schemas in `gen_def/commands/`, `gen_def/events/`, and `gen_def/models/`
 
-Generated schemas:
+Generated definitions:
 - MUST include unique IDs and namespaces
-- MUST import base Command or Event types
+- MUST include type hints and validation logic
 - MUST include placeholder attributes
-- SHOULD be edited to add domain-specific attributes
-
-==== Stage 3: Model Generation
-
-*Input*: LinkML schemas from `def/`
-*Output*: Pydantic models in `gen/pyd/commands/` and `gen/pyd/events/`
-*Tool*: `dizzy gen init` (uses `linkml-gen-pydantic`)
-
-Generated models:
-- MUST include type hints
-- MUST include validation logic
 - MUST NOT be manually edited
-- MUST be regenerated when schemas change
+- MUST be regenerated when the Feature Definition changes
+- SHOULD be edited only via changes to the Feature Definition
 
-==== Stage 4: Protocol Generation
+==== Stage 3: Scaffold Generation
 
-*Input*: `{feature}.feat.yaml` and generated models
-*Output*: Context and Protocol files in `gen/pyd/procedure/` and `gen/pyd/policy/`
-*Tool*: `dizzy gen src`
+*Input*: `def/{feature}.feat.yaml` and generated definitions from `gen_def/`
+*Output*: Context and Protocol scaffolds in `gen_impl/procedures/`, `gen_impl/policies/`, and `gen_impl/projections/`
 
-Generated protocols:
+Generated scaffolds:
 - MUST define type-safe interfaces
 - MUST include Context with emitters and queries
 - MUST NOT be manually edited
-- MUST be regenerated when Feature Definition changes
+- MUST be regenerated when the Feature Definition changes
 
-==== Stage 5: Implementation
+==== Stage 4: Implementation
 
-*Input*: Generated protocols
-*Output*: Implementation files in `src/procedure/` and `src/policy/`
-*Tool*: Manual development or `dizzy gen src` scaffolding
+*Input*: Generated scaffolds from `gen_impl/`
+*Output*: Implementation files in `src/procedures/`, `src/policies/`, `src/projections/`, and `src/queries/`
 
 Implementations:
-- MUST match Protocol signatures
+- MUST match scaffold signatures
 - MUST be manually edited
 - MUST NOT be overwritten by regeneration
 - SHOULD include unit tests
-
-==== Stage 6: Deployment
-
-*Input*: Implementations and `impl.yaml` manifest
-*Output*: Deployment-specific artifacts in `result/`
-*Tool*: Deployment-specific tooling
-
-Deployment artifacts:
-- MUST wire emitters to infrastructure (queues, lambdas, etc.)
-- MUST wire queries to database implementations
-- MAY use different strategies per environment
 
 === Regeneration Rules
 
 ==== Safe Regeneration
 
 The following operations are safe:
-- Regenerating `gen/` after schema changes
-- Regenerating protocols after Feature Definition changes
-- Adding new Commands/Events/Procedures/Policies
+- Regenerating `gen_def/` after Feature Definition changes
+- Regenerating `gen_impl/` after Feature Definition changes
+- Adding new Commands, Events, Procedures, Policies, Projections, or Queries
 
 ==== Manual Intervention Required
 
-The following require manual updates:
+The following require manual updates to `src/`:
 - Schema changes affecting existing implementations
-- Adding new attributes to Commands/Events
-- Changing Procedure/Policy signatures
+- Adding new attributes to Commands or Events
+- Changing Procedure, Policy, or Projection signatures
 
-==== Files Never Touched by Generator
+==== Files Never Modified by Generation
 
-The generator MUST NEVER modify:
+Generation MUST NEVER modify:
 - Files in `src/` (implementations)
 - Tests
-- Deployment configurations
 - Documentation
 
 == Testing
