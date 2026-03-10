@@ -284,3 +284,104 @@ gen_def: generated definitions
 gen_int: generated interfaces
 
 Sections with no content in the feat file produce no output.
+
+---
+
+## CLI Workflow
+
+Dizzy is a two-step generator. The split exists because `def/` files require human authorship
+between the two steps — they cannot be fully derived from the feat file alone.
+
+### Step 1 — Author the feat file
+
+Write `my_feature.feat.yaml` by hand. Declare models, commands, events, procedures, policies,
+and projections at the intent level. No types, no schemas, no implementation details yet.
+
+---
+
+### Step 2 — Scaffold definition stubs
+
+```
+dizzy scaffold <feat_file> <output_dir> [--todos]
+```
+
+Reads the feat file and generates empty `def/` stub files for everything that requires
+human schema authorship before code can be generated:
+
+- `def/models/<schema_name>.yaml` — stub LinkML schema per model (skipped if already exists)
+- `def/commands.yaml` — stub LinkML schema listing all commands
+- `def/events.yaml` — stub LinkML schema listing all events
+
+After running, Dizzy prints:
+
+```
+Scaffolded def/ stubs. Next steps:
+  1. Fill in class definitions in def/models/*.yaml
+  2. Add attributes to def/commands.yaml and def/events.yaml
+  3. Run: dizzy gen <feat_file> <output_dir>
+```
+
+With `--todos`, also writes `def/TODO.md` describing what needs to be authored in each stub file.
+
+---
+
+### Step 3 — Author the definition files
+
+Edit the generated `def/` stubs:
+- Add classes, attributes, and relationships to each model schema
+- Add typed attributes to commands and events as needed
+
+These files are yours — Dizzy will never overwrite them.
+
+---
+
+### Step 4 — Generate interfaces and source stubs
+
+```
+dizzy gen <feat_file> <output_dir> [--todos]
+```
+
+Reads both the feat file and the authored `def/` files, then generates:
+
+**`gen_def/`** — derived from `def/` schemas (Pydantic models, SQLAlchemy models)
+
+**`gen_int/`** — Protocol stubs derived from the feat file structure (queries, procedures,
+policies, projections)
+
+**`src/`** — empty implementation stubs, one per interface, for the developer to fill in:
+
+```
+src/
+  query/
+    <query_name>.py
+  procedure/
+    <procedure_name>.py
+  policy/
+    <policy_name>.py
+  projection/
+    <projection_name>.py
+```
+
+Source stubs are only created if the file does not already exist, so they are safe to
+re-run after editing.
+
+After running, Dizzy prints a per-section summary and:
+
+```
+Generated interfaces and source stubs. Next steps:
+  Implement the src/ files to complete your feature.
+```
+
+With `--todos`, also writes `src/TODO.md` listing each unimplemented stub with a brief
+description of what it should do (derived from the feat file descriptions).
+
+---
+
+### Summary
+
+| Step | Command | You do next |
+|------|---------|-------------|
+| 1 | — | Write `my_feature.feat.yaml` |
+| 2 | `dizzy scaffold` | Edit `def/` schema stubs |
+| 3 | — | Author class definitions and attributes |
+| 4 | `dizzy gen` | Implement `src/` stubs |
