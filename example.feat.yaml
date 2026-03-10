@@ -1,8 +1,15 @@
 description: |
   Scan and Upload Feature
-  
+
   User inserts SD card and wants to scan for images/documents to upload to personal cloud storage.
   Flow: scan partition → find items → create priority manifest → upload blobs
+
+models:
+  scan_data: Scan records, priority manifests, and upload tracking
+
+queries:
+  get_scan_items: Retrieves all items discovered during a scan
+  get_manifest: Retrieves a priority manifest by ID
 
 commands:
   start_scan: Initiates a scan to discover files
@@ -64,3 +71,22 @@ policies:
     event: priority_manifest_created
     emits:
       - upload_blob_using_manifest
+
+projections:
+  scan_item_index:
+    description: Records each discovered file into the scan data store
+    event: scan_item_found
+    models:
+      - scan_data
+
+  manifest_tracker:
+    description: Records created manifests into the scan data store
+    event: priority_manifest_created
+    models:
+      - scan_data
+
+  upload_log:
+    description: Records upload start events into the scan data store
+    event: manifest_upload_started
+    models:
+      - scan_data

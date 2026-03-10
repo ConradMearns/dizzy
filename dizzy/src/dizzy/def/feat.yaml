@@ -1,0 +1,203 @@
+id: https://example.org/dizzy/feat
+name: dizzy-feat-schema
+title: Dizzy Feature Definition Meta-Schema
+description: >-
+  LinkML meta-schema formally defining the structure of .feat.yaml feature definition files
+  used by the Dizzy generator pipeline.
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dizzy: https://example.org/dizzy/
+
+default_prefix: dizzy
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  FeatureDefinition:
+    description: >-
+      Top-level container for a Dizzy feature definition file.
+    attributes:
+      description:
+        description: Human-readable description of the feature
+        range: string
+      models:
+        description: Named database schemas (name -> description or ModelDef)
+        range: ModelDef
+        multivalued: true
+        inlined: true
+      queries:
+        description: Named read operations (name -> description or QueryDef)
+        range: QueryDef
+        multivalued: true
+        inlined: true
+      commands:
+        description: Named write intents (name -> description or CommandDef)
+        range: CommandDef
+        multivalued: true
+        inlined: true
+      events:
+        description: Immutable domain facts (name -> description or EventDef)
+        range: EventDef
+        multivalued: true
+        inlined: true
+      procedures:
+        description: Command handlers (name -> ProcedureDef)
+        range: ProcedureDef
+        multivalued: true
+        inlined: true
+      policies:
+        description: Event-driven reaction handlers (name -> PolicyDef)
+        range: PolicyDef
+        multivalued: true
+        inlined: true
+      projections:
+        description: Read-model builders (name -> ProjectionDef)
+        range: ProjectionDef
+        multivalued: true
+        inlined: true
+
+  ModelDef:
+    description: >-
+      A named database schema declaration. The actual class definitions live in
+      def/models/<name>.yaml and are authored separately. The generator creates a stub
+      if that file does not already exist.
+    attributes:
+      name:
+        description: Schema name (plural, lowercase, snake_case)
+        range: string
+        identifier: true
+      description:
+        description: Human-readable description of the schema
+        range: string
+
+  QueryDef:
+    description: >-
+      A named read operation. IO types are not specified here — they live in the generated stub.
+    attributes:
+      name:
+        description: Query name (snake_case)
+        range: string
+        identifier: true
+      description:
+        description: Human-readable description of the query
+        range: string
+
+  AttributeDef:
+    description: >-
+      A typed attribute declared on a command or event.
+    attributes:
+      name:
+        description: Attribute name (snake_case)
+        range: string
+        identifier: true
+      type:
+        description: Primitive type of the attribute (e.g. string, integer, boolean)
+        range: string
+        required: true
+      required:
+        description: Whether this attribute must be provided
+        range: boolean
+
+  CommandDef:
+    description: >-
+      A named write intent with an optional set of typed input attributes.
+    attributes:
+      name:
+        description: Command name (snake_case)
+        range: string
+        identifier: true
+      description:
+        description: Human-readable description of the command
+        range: string
+      attributes:
+        description: Typed input attributes for the command payload
+        range: AttributeDef
+        multivalued: true
+        inlined: true
+
+  EventDef:
+    description: >-
+      An immutable domain fact with an optional set of typed payload attributes.
+    attributes:
+      name:
+        description: Event name (snake_case, past-tense)
+        range: string
+        identifier: true
+      description:
+        description: Human-readable description of the event
+        range: string
+      attributes:
+        description: Typed payload attributes carried by the event
+        range: AttributeDef
+        multivalued: true
+        inlined: true
+
+  ProcedureDef:
+    description: >-
+      A command handler that processes exactly one command, may use queries, and emits events.
+    attributes:
+      name:
+        description: Procedure name (snake_case)
+        range: string
+        identifier: true
+      description:
+        description: Human-readable description of the procedure logic
+        range: string
+      command:
+        description: The command name this procedure handles (required)
+        range: string
+        required: true
+      queries:
+        description: Query names this procedure needs access to
+        range: string
+        multivalued: true
+      emits:
+        description: Event names this procedure may emit
+        range: string
+        multivalued: true
+
+  PolicyDef:
+    description: >-
+      An event-driven reaction handler that listens to exactly one event and optionally
+      dispatches commands.
+    attributes:
+      name:
+        description: Policy name (snake_case)
+        range: string
+        identifier: true
+      description:
+        description: Human-readable description of the policy logic
+        range: string
+      event:
+        description: The event name that triggers this policy (required)
+        range: string
+        required: true
+      emits:
+        description: Command names this policy may dispatch
+        range: string
+        multivalued: true
+
+  ProjectionDef:
+    description: >-
+      A read-model builder that responds to a single event and updates one or more model schemas.
+    attributes:
+      name:
+        description: Projection name (snake_case)
+        range: string
+        identifier: true
+      description:
+        description: Human-readable description of what this projection does
+        range: string
+        required: true
+      event:
+        description: The single event that triggers this projection (required)
+        range: string
+        required: true
+      models:
+        description: Schema names from the models section that this projection writes into (required)
+        range: string
+        multivalued: true
+        required: true

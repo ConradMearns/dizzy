@@ -2,20 +2,20 @@
 
 ## Phase 1 — Example & Schema
 
-- [ ] Update `example.feat.yaml` to include all sections: `models`, `queries` (with inline attributes), `commands`, `events`, `procedures`, `policies`, `projections`
-- [ ] Create `dizzy/src/dizzy/def/feat.yaml` — LinkML meta-schema formally defining the `.feat.yaml` format (`FeatureDefinition`, `ModelDef`, `QueryDef`, `CommandDef`, `EventDef`, `ProcedureDef`, `PolicyDef`, `ProjectionDef`)
+- [x] Update `example.feat.yaml` to include all sections: `models`, `queries`, `commands`, `events`, `procedures`, `policies`, `projections`
+- [x] Create `dizzy/src/dizzy/def/feat.yaml` — LinkML meta-schema formally defining the `.feat.yaml` format (`FeatureDefinition`, `ModelDef`, `QueryDef`, `CommandDef`, `EventDef`, `ProcedureDef`, `PolicyDef`, `ProjectionDef`)
 
 ## Phase 2 — Generator Modules
 
-Create `dizzy/src/dizzy/generators/` with one module per feat section, each exposing `generate(feat, def_dir, gen_dir)` and skipping gracefully if the section is absent.
+Create `dizzy/src/dizzy/generators/` with one module per feat section, each exposing `generate(feat, def_dir, gen_def_dir, gen_int_dir)` and skipping gracefully if the section is absent.
 
-- [ ] `generators/models.py` — `models` → `def/models.yaml` + `gen/models.py` (via gen-pydantic)
-- [ ] `generators/commands.py` — `commands` → `def/commands.yaml` + `gen/commands.py`
-- [ ] `generators/events.py` — `events` → `def/events.yaml` + `gen/events.py`
-- [ ] `generators/queries.py` — `queries` → `def/queries.yaml` + `gen/queries.py` + `gen/query_interfaces.py`
-- [ ] `generators/procedures.py` — `procedures` → `gen/procedure/py/*_context.py` + `*_protocol.py`
-- [ ] `generators/policies.py` — `policies` → `gen/policy/py/*_protocol.py`
-- [ ] `generators/projections.py` — `projections` → `gen/projection/py/*_projection.py`
+- [ ] `generators/models.py` — `models` (schema name + description only) → stub `def/models/<schema_name>.yaml` (if not exists) + `gen_def/pydantic/<schema_name>.py` + `gen_def/sqla/<schema_name>.py`
+- [ ] `generators/commands.py` — `commands` → `def/commands.yaml` + `gen_def/pydantic/commands.py`
+- [ ] `generators/events.py` — `events` → `def/events.yaml` + `gen_def/pydantic/events.py`
+- [ ] `generators/queries.py` — `queries` (name + description only) → `gen_int/python/query/<query_name>.py` (Protocol stub)
+- [ ] `generators/procedures.py` — `procedures` → `gen_int/python/procedure/*_context.py` + `*_protocol.py`
+- [ ] `generators/policies.py` — `policies` → `gen_int/python/policy/*_protocol.py`
+- [ ] `generators/projections.py` — `projections` → `gen_int/python/projection/*_projection.py`
 
 ## Phase 3 — CLI
 

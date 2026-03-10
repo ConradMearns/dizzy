@@ -33,58 +33,54 @@ All sections are optional. The generator skips sections not present.
 ## Section Definitions
 
 ### `models`
-Domain data shapes — value objects, entities, or shared types referenced by commands, events, queries.
+Named database schemas — each entry represents a logical grouping of related classes (tables)
+for a single database. The feat file declares schema names and optional descriptions only.
+The actual classes are defined in the corresponding `def/models/<schema_name>.yaml` LinkML file,
+which is authored separately and may grow over time without touching the feat file.
+
+The generator creates a stub `def/models/<schema_name>.yaml` if one does not already exist, then
+generates one output file per schema per target backend. Use plural, lowercase names.
 
 ```yaml
 models:
-  Recipe:
-    description: A structured recipe with ingredients and steps
-    attributes:
-      title:
-        type: string
-        required: true
-      ingredients:
-        type: string        # scalar type or reference to another model
-        multivalued: true
-      estimated_minutes:
-        type: integer
-      cost_estimate:
-        type: float
+  recipes: Full recipe database — recipes, steps, and ingredients
 ```
 
-**Generates:** `def/models.yaml` (LinkML), `gen/models.py` (Pydantic)
+`def/models/recipes.yaml` (hand-authored) then defines all classes in that schema:
+
+```yaml
+classes:
+  Recipe:
+    attributes:
+      title: ...
+  Step:
+    attributes:
+      body: ...
+  Ingredient:
+    attributes:
+      name: ...
+      quantity: ...
+```
+
+**Generates (per schema):**
+- `def/models/<schema_name>.yaml` — stub LinkML schema (only if file does not exist)
+- `gen_def/pydantic/<schema_name>.py` — Pydantic models for all classes in the schema
+- `gen_def/sqla/<schema_name>.py` — SQLAlchemy models for all classes in the schema
 
 ---
 
 ### `queries`
-Named read operations, each with an input and output type.
+Named read operations. Each query is declared with a name and description only — IO types are
+not specified in the feat file. The actual input/output contract lives in the model schema and
+is fleshed out when the generated stub is implemented.
 
 ```yaml
 queries:
-  get_recipe_text:
-    description: Retrieves raw recipe text given a source reference
-    input: source_ref        # name of input field (scalar) or model reference
-    output: raw_text         # name of output field (scalar) or model reference
+  get_recipe_text: Retrieves raw recipe text given a source reference
+  get_recipe: Retrieves a structured recipe by ID
 ```
 
-For richer queries, `input` and `output` can be inline attribute maps:
-
-```yaml
-queries:
-  search_recipes:
-    description: Search recipes by keyword
-    input:
-      keyword: string
-      max_results:
-        type: integer
-        required: false
-    output:
-      results:
-        type: Recipe
-        multivalued: true
-```
-
-**Generates:** `def/queries.yaml` (LinkML), `gen/queries.py` (Pydantic), `gen/query_interfaces.py` (Protocol)
+**Generates:** `gen_int/python/query/<query_name>.py` (Protocol stub)
 
 ---
 
@@ -103,7 +99,7 @@ commands:
         required: true
 ```
 
-**Generates:** `def/commands.yaml` (LinkML), `gen/commands.py` (Pydantic)
+**Generates:** `def/commands.yaml` (LinkML), `gen_def/pydantic/commands.py` (Pydantic)
 
 ---
 
@@ -124,7 +120,7 @@ events:
         type: string
 ```
 
-**Generates:** `def/events.yaml` (LinkML), `gen/events.py` (Pydantic)
+**Generates:** `def/events.yaml` (LinkML), `gen_def/pydantic/events.py` (Pydantic)
 
 ---
 
@@ -149,7 +145,7 @@ Fields:
 - `queries` (optional): list of query names this procedure needs access to
 - `emits` (optional): list of event names this procedure may emit
 
-**Generates:** `gen/procedure/py/<procedure_name>_context.py`, `gen/procedure/py/<procedure_name>_protocol.py`
+**Generates:** `gen_int/python/procedure/<procedure_name>_context.py`, `gen_int/python/procedure/<procedure_name>_protocol.py`
 
 ---
 
@@ -169,27 +165,29 @@ Fields:
 - `event` (required): the event that triggers this policy
 - `emits` (optional): list of command names this policy may dispatch
 
-**Generates:** `gen/policy/py/<policy_name>_protocol.py`
+**Generates:** `gen_int/python/policy/<policy_name>_protocol.py`
 
 ---
 
 ### `projections`
-Build queryable read models from a stream of events.
+Build queryable read models in response to a single event. Each projection listens to exactly
+one event and may update one or more model schemas.
 
 ```yaml
 projections:
   recipe_library:
-    description: Maintains a searchable list of all ingested recipes
-    events:
-      - recipe_ingested
-    output: Recipe      # model reference for the projected state shape
+    description: Adds ingested recipe to the recipe library
+    event: recipe_ingested
+    models:
+      - recipes
 ```
 
 Fields:
-- `events` (required): list of event names that update this projection
-- `output` (required): model name representing the projected read shape
+- `description` (required): what this projection does
+- `event` (required): the single event that triggers this projection
+- `models` (required): list of schema names from `models` that this projection writes into
 
-**Generates:** `gen/projection/py/<projection_name>_projection.py` (Protocol)
+**Generates:** `gen_int/python/projection/<projection_name>_projection.py` (Protocol)
 
 ---
 
@@ -199,33 +197,11 @@ Fields:
 description: Recipe App
 
 models:
-  Recipe:
-    description: A structured recipe
-    attributes:
-      title:
-        type: string
-        required: true
-      ingredients:
-        type: string
-        multivalued: true
-      steps:
-        type: string
-        multivalued: true
-      estimated_minutes:
-        type: integer
-      cost_usd:
-        type: float
+  recipes: Full recipe database — recipes, steps, and ingredients
 
 queries:
-  get_recipe_text:
-    description: Retrieves raw recipe text given a source identifier
-    input: source_ref
-    output: raw_text
-
-  get_recipe:
-    description: Retrieves a structured recipe by ID
-    input: recipe_id
-    output: Recipe
+  get_recipe_text: Retrieves raw recipe text given a source reference
+  get_recipe: Retrieves a structured recipe by ID
 
 commands:
   ingest_recipe_text: Initiates ingestion of a recipe from a raw text source
@@ -259,10 +235,10 @@ policies:
 
 projections:
   recipe_library:
-    description: Maintains a searchable collection of all ingested recipes
-    events:
-      - recipe_ingested
-    output: Recipe
+    description: Adds ingested recipe to the recipe library
+    event: recipe_ingested
+    models:
+      - recipes
 ```
 
 ---
@@ -274,16 +250,21 @@ Given a feature at `app/my_feature/my_feature.feat.yaml`, the generator produces
 ```
 app/my_feature/
   def/
-    models.yaml
+    models/
+      recipes.yaml
     commands.yaml
     events.yaml
     queries.yaml
   gen_def/
     pydantic/
-      models.py
+      models/
+        recipes.yaml
       commands.py
       events.py
       queries.py
+    sqla/
+      models/
+        recipes.yaml
   gen_int/
     python/
       query/
