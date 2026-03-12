@@ -75,14 +75,14 @@ Create `dizzy/src/dizzy/generators/` with one module per feat section. Each modu
 
 ### `generators/policies.py`
 
-- [ ] Write `tests/generators/test_policies.py`:
+- [x] Write `tests/generators/test_policies.py`:
   - unit: `render_policy_context(policy_name, feat)` — assert emitters dataclass, correct imports
   - unit: `render_policy_protocol(policy_name, feat)` — assert Protocol class, `__call__` signature with event param
   - unit: policy with no `emits` → emitters dataclass has `pass`
-- [ ] Implement `render_policy_context` + `write_policy_context` (`gen_int/python/policy/*_context.py`)
-- [ ] Implement `render_policy_protocol` + `write_policy_protocol` (`gen_int/python/policy/*_protocol.py`)
-- [ ] Implement `write_policy_src_stub` (`src/policy/<name>.py`, skip if exists)
-- [ ] Run snapshot test; update + commit snapshots
+- [x] Implement `render_policy_context` + `write_policy_context` (`gen_int/python/policy/*_context.py`)
+- [x] Implement `render_policy_protocol` + `write_policy_protocol` (`gen_int/python/policy/*_protocol.py`)
+- [x] Implement `write_policy_src_stub` (`src/policy/<name>.py`, skip if exists)
+- [x] Run snapshot test; update + commit snapshots
 
 ### `generators/projections.py`
 

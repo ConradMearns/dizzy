@@ -1,0 +1,41 @@
+# serializer version: 1
+# name: test_render_policy_context_snapshot
+  '''
+  # AUTO-GENERATED — do not edit
+  from dataclasses import dataclass
+  
+  
+  @dataclass
+  class index_recipe_on_ingest_emitters:
+      pass
+  
+  
+  @dataclass
+  class index_recipe_on_ingest_context:
+      emit: index_recipe_on_ingest_emitters
+  
+  '''
+# ---
+# name: test_render_policy_protocol_snapshot
+  '''
+  # AUTO-GENERATED — do not edit
+  from typing import Protocol
+  
+  from gen_def.pydantic.events import recipe_ingested
+  from gen_int.python.policy.index_recipe_on_ingest_context import (
+      index_recipe_on_ingest_context,
+  )
+  
+  
+  class index_recipe_on_ingest_protocol(Protocol):
+      """Adds recipe to the library projection when ingested"""
+  
+      def __call__(
+          self,
+          event: recipe_ingested,
+          context: index_recipe_on_ingest_context,
+      ) -> None:
+          ...
+  
+  '''
+# ---
