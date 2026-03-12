@@ -75,7 +75,8 @@ classes:
 
   QueryDef:
     description: >-
-      A named read operation. IO types are not specified here — they live in the generated stub.
+      A named read operation. IO types are not specified here — they live in authored LinkML
+      stubs. Each query reads from exactly one model schema.
     attributes:
       name:
         description: Query name (snake_case)
@@ -84,6 +85,11 @@ classes:
       description:
         description: Human-readable description of the query
         range: string
+        required: true
+      model:
+        description: The schema name from models that this query reads from (required)
+        range: string
+        required: true
 
   AttributeDef:
     description: >-

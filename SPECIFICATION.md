@@ -70,17 +70,75 @@ classes:
 ---
 
 ### `queries`
-Named read operations. Each query is declared with a name and description only — IO types are
-not specified in the feat file. The actual input/output contract lives in the model schema and
-is fleshed out when the generated stub is implemented.
+Named read operations. Each query must declare the single model schema it reads from, but IO
+types are not specified in the feat file — those are defined in authored LinkML stubs and
+fleshed out when the implementation is written.
+
+Each query decomposes into **three composable elements**:
+
+- **`QueryInput`** — a LinkML-defined data shape for the query's input parameters
+- **`QueryOutput`** — a LinkML-defined data shape for the query's return value
+- **`QueryProcess`** — a Protocol for the callable that accepts a `QueryInput` and a context
+  (holding a SQLAlchemy session for the referenced model schema) and returns a `QueryOutput`
 
 ```yaml
 queries:
-  get_recipe_text: Retrieves raw recipe text given a source reference
-  get_recipe: Retrieves a structured recipe by ID
+  get_recipe_text:
+    description: Retrieves raw recipe text given a source reference
+    model: recipes
+  get_recipe:
+    description: Retrieves a structured recipe by ID
+    model: recipes
 ```
 
-**Generates:** `gen_int/python/query/<query_name>.py` (Protocol stub)
+Fields:
+- `description` (required): what this query does
+- `model` (required): the schema name from `models` that this query reads from
+
+**Scaffold generates** (stubs, never overwritten):
+- `def/queries/<query_name>_input.yaml` — LinkML stub for `QueryInput`
+- `def/queries/<query_name>_output.yaml` — LinkML stub for `QueryOutput`
+
+**Gen generates** (from the authored def stubs):
+- `gen_def/pydantic/query/<query_name>_input.py` — Pydantic model for `QueryInput`
+- `gen_def/pydantic/query/<query_name>_output.py` — Pydantic model for `QueryOutput`
+- `gen_int/python/query/<query_name>.py` — `QueryProcess` Protocol + context dataclass:
+
+```python
+# AUTO-GENERATED — do not edit
+from dataclasses import dataclass
+from typing import Protocol, Any
+
+from gen_def.pydantic.query.get_recipe_text_input import get_recipe_text_input
+from gen_def.pydantic.query.get_recipe_text_output import get_recipe_text_output
+
+
+@dataclass
+class get_recipe_text_context:
+    """SQLAlchemy session for the schema read by this query."""
+    recipes: Any  # SQLAlchemy session for the recipes schema
+
+
+class get_recipe_text_query(Protocol):
+    """Retrieves raw recipe text given a source reference"""
+
+    def __call__(
+        self, input: get_recipe_text_input, context: get_recipe_text_context
+    ) -> get_recipe_text_output:
+        ...
+```
+
+Queries declared in a procedure's `queries:` list are injected into that procedure's
+`_queries` context dataclass as typed fields:
+
+```python
+@dataclass
+class extract_and_transform_recipe_queries:
+    get_recipe_text: get_recipe_text_query
+```
+
+The implementor passes in a concrete callable (e.g. a SQLAlchemy-backed function) when
+constructing the procedure context.
 
 ---
 
@@ -173,6 +231,10 @@ Fields:
 Build queryable read models in response to a single event. Each projection listens to exactly
 one event and may update one or more model schemas.
 
+A projection is structurally similar to a procedure: it receives an **event** and a **context**
+object, then uses SQLAlchemy to persist state into the referenced model schemas. One SQLAlchemy
+session is injected per declared model schema.
+
 ```yaml
 projections:
   recipe_library:
@@ -187,7 +249,33 @@ Fields:
 - `event` (required): the single event that triggers this projection
 - `models` (required): list of schema names from `models` that this projection writes into
 
-**Generates:** `gen_int/python/projection/<projection_name>_projection.py` (Protocol)
+**Generates:** `gen_int/python/projection/<projection_name>_projection.py` — a context dataclass
+and a Protocol stub:
+
+```python
+# AUTO-GENERATED — do not edit
+from dataclasses import dataclass
+from typing import Protocol, Any
+
+from ..events import recipe_ingested
+
+
+@dataclass
+class recipe_library_context:
+    """SQLAlchemy sessions for schemas written by this projection."""
+    recipes: Any  # SQLAlchemy session for the recipes schema
+
+
+class recipe_library_projection(Protocol):
+    """Adds ingested recipe to the recipe library"""
+
+    def __call__(self, event: recipe_ingested, context: recipe_library_context) -> None:
+        """Apply the projection — mutate model state in response to the event."""
+        ...
+```
+
+The `Any` session type is a placeholder; the implementor binds it to a concrete SQLAlchemy
+`Session` when wiring up the projection.
 
 ---
 
@@ -200,8 +288,12 @@ models:
   recipes: Full recipe database — recipes, steps, and ingredients
 
 queries:
-  get_recipe_text: Retrieves raw recipe text given a source reference
-  get_recipe: Retrieves a structured recipe by ID
+  get_recipe_text:
+    description: Retrieves raw recipe text given a source reference
+    model: recipes
+  get_recipe:
+    description: Retrieves a structured recipe by ID
+    model: recipes
 
 commands:
   ingest_recipe_text: Initiates ingestion of a recipe from a raw text source
@@ -252,24 +344,32 @@ app/my_feature/
   def/
     models/
       recipes.yaml
+    queries/
+      get_recipe_text_input.yaml
+      get_recipe_text_output.yaml
+      get_recipe_input.yaml
+      get_recipe_output.yaml
     commands.yaml
     events.yaml
-    queries.yaml
   gen_def/
     pydantic/
       models/
-        recipes.yaml
+        recipes.py
+      query/
+        get_recipe_text_input.py
+        get_recipe_text_output.py
+        get_recipe_input.py
+        get_recipe_output.py
       commands.py
       events.py
-      queries.py
     sqla/
       models/
-        recipes.yaml
+        recipes.py
   gen_int/
     python/
       query/
-        recipes_with_ingredients.py
-        all_recipes.py
+        get_recipe_text.py
+        get_recipe.py
       procedure/
         extract_and_transform_recipe_context.py
         extract_and_transform_recipe_protocol.py
@@ -277,6 +377,16 @@ app/my_feature/
         index_recipe_on_ingest_protocol.py
       projection/
         recipe_library_projection.py
+  src/
+    query/
+      get_recipe_text.py
+      get_recipe.py
+    procedure/
+      extract_and_transform_recipe.py
+    policy/
+      index_recipe_on_ingest.py
+    projection/
+      recipe_library.py
 ```
 
 def: definitions
@@ -284,6 +394,30 @@ gen_def: generated definitions
 gen_int: generated interfaces
 
 Sections with no content in the feat file produce no output.
+
+---
+
+## Import Path Convention
+
+All generated files use **relative Python imports**. The intent is that the entire output
+directory is portable — it can be copied or symlinked into any project structure without
+changing import paths.
+
+Generated files assume the feature output directory is a Python package root (i.e. there is
+an `__init__.py` at each level). Imports between generated layers use dot-notation relative
+to that root:
+
+| From | Importing | Import |
+|------|-----------|--------|
+| `gen_int/python/procedure/` | Pydantic events | `from gen_def.pydantic.events import ...` |
+| `gen_int/python/procedure/` | Pydantic commands | `from gen_def.pydantic.commands import ...` |
+| `gen_int/python/procedure/` | Query Protocols | `from gen_int.python.query import ...` |
+| `gen_int/python/projection/` | Pydantic events | `from gen_def.pydantic.events import ...` |
+| `src/procedure/` | Procedure Protocol + context | `from gen_int.python.procedure.<name>_protocol import ...` |
+| `src/projection/` | Projection Protocol + context | `from gen_int.python.projection.<name>_projection import ...` |
+
+The feature output directory must be on `sys.path` (or be a package reachable from it) for
+these imports to resolve at runtime.
 
 ---
 
