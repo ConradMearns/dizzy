@@ -1,5 +1,7 @@
 """Tests for commands generator."""
 
+from typing import Any
+
 import pytest
 
 from dizzy.feat import AttributeDef, CommandDef, FeatureDefinition
@@ -114,10 +116,20 @@ def test_render_scaffold_commands_write_creates_file(tmp_path, recipe_feat):
     assert "ingest_recipe_text" in dest.read_text()
 
 
-def test_write_gen_commands_creates_file(tmp_path, recipe_feat):
+def test_write_gen_commands_creates_file(tmp_path, recipe_feat: FeatureDefinition) -> None:
     from dizzy.generators.commands import write_gen_commands
 
     write_gen_commands(recipe_feat, tmp_path)
     dest = tmp_path / "gen_def" / "pydantic" / "commands.py"
     assert dest.exists()
     assert "class ingest_recipe_text" in dest.read_text()
+
+
+def test_render_scaffold_commands_snapshot(recipe_feat: FeatureDefinition, snapshot: Any) -> None:
+    result = render_scaffold_commands(recipe_feat)
+    assert result == snapshot
+
+
+def test_render_gen_commands_snapshot(recipe_feat: FeatureDefinition, snapshot: Any) -> None:
+    result = render_gen_commands(recipe_feat)
+    assert result == snapshot

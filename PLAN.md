@@ -41,7 +41,7 @@ Create `dizzy/src/dizzy/generators/` with one module per feat section. Each modu
   - unit: `render_gen_commands(feat)` produces valid Pydantic file for all commands
 - [x] Implement `render_scaffold_commands` + `write_scaffold_commands` (stub `def/commands.yaml`, skip if exists)
 - [x] Implement `render_gen_commands` + `write_gen_commands` (`gen_def/pydantic/commands.py`)
-- [ ] Run snapshot test; update + commit snapshots
+- [x] Run snapshot test; update + commit snapshots
 
 ### `generators/events.py`
 

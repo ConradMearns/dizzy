@@ -23,8 +23,10 @@ dizzy/                          ← repo root
       conftest.py               ← recipe_feat fixture
       fixtures/
         recipe.feat.yaml
-      snapshots/                ← empty; populated on first --snapshot-update
+      snapshots/                ← unused; syrupy places snapshots co-located with test files
       generators/
+        __snapshots__/          ← syrupy snapshot files (committed)
+          test_commands.ambr
         test_commands.py        ← complete
         test_events.py
         test_queries.py
@@ -42,7 +44,7 @@ dizzy/                          ← repo root
 
 ## Snapshot testing
 
-Phase 3 snapshot tests live in `tests/generators/test_<section>.py` alongside the unit tests for each generator. They assert on rendered output using `assert result == snapshot()` and are run/updated with:
+Phase 3 snapshot tests live in `tests/generators/test_<section>.py` alongside the unit tests for each generator. Syrupy stores snapshots in `tests/generators/__snapshots__/<test_file>.ambr`, co-located with the test file (not in the top-level `tests/snapshots/` directory). They assert on rendered output using `assert result == snapshot` and are run/updated with:
 
 ```
 just test-update
