@@ -97,13 +97,31 @@ Fields:
 - `description` (required): what this query does
 - `model` (required): the schema name from `models` that this query reads from
 
-**Scaffold generates** (stubs, never overwritten):
-- `def/queries/<query_name>_input.yaml` — LinkML stub for `QueryInput`
-- `def/queries/<query_name>_output.yaml` — LinkML stub for `QueryOutput`
+**Scaffold generates** (stub, never overwritten):
+- `def/queries/<query_name>.yaml` — single LinkML stub containing both `<QueryName>Input` and `<QueryName>Output` class stubs
 
-**Gen generates** (by running `linkml gen-pydantic` on the authored def stubs, then deriving the Protocol from the feat file):
-- `gen_def/pydantic/query/<query_name>_input.py` — Pydantic model for `QueryInput` (via linkml)
-- `gen_def/pydantic/query/<query_name>_output.py` — Pydantic model for `QueryOutput` (via linkml)
+For example, `def/queries/get_recipe_text.yaml`:
+
+```yaml
+id: https://example.org/queries/get_recipe_text
+name: get_recipe_text
+description: Retrieves raw recipe text given a source reference
+prefixes:
+  linkml: https://w3id.org/linkml/
+default_range: string
+imports:
+  - linkml:types
+classes:
+  GetRecipeTextInput:
+    description: Input for get_recipe_text
+    attributes: {}
+  GetRecipeTextOutput:
+    description: Output for get_recipe_text
+    attributes: {}
+```
+
+**Gen generates** (by running `linkml gen-pydantic` on the authored def stub, then deriving the Protocol from the feat file):
+- `gen_def/pydantic/query/<query_name>.py` — Pydantic models for both `<QueryName>Input` and `<QueryName>Output` (via linkml)
 - `gen_int/python/query/<query_name>.py` — `QueryProcess` Protocol + context dataclass:
 
 ```python
@@ -111,8 +129,7 @@ Fields:
 from dataclasses import dataclass
 from typing import Protocol, Any
 
-from gen_def.pydantic.query.get_recipe_text_input import get_recipe_text_input
-from gen_def.pydantic.query.get_recipe_text_output import get_recipe_text_output
+from gen_def.pydantic.query.get_recipe_text import GetRecipeTextInput, GetRecipeTextOutput
 
 
 @dataclass
@@ -125,8 +142,8 @@ class get_recipe_text_query(Protocol):
     """Retrieves raw recipe text given a source reference"""
 
     def __call__(
-        self, input: get_recipe_text_input, context: get_recipe_text_context
-    ) -> get_recipe_text_output:
+        self, input: GetRecipeTextInput, context: get_recipe_text_context
+    ) -> GetRecipeTextOutput:
         ...
 ```
 
@@ -450,10 +467,8 @@ app/my_feature/
     models/
       recipes.yaml
     queries/
-      get_recipe_text_input.yaml
-      get_recipe_text_output.yaml
-      get_recipe_input.yaml
-      get_recipe_output.yaml
+      get_recipe_text.yaml
+      get_recipe.yaml
     commands.yaml
     events.yaml
   gen_def/
@@ -461,10 +476,8 @@ app/my_feature/
       models/
         recipes.py
       query/
-        get_recipe_text_input.py
-        get_recipe_text_output.py
-        get_recipe_input.py
-        get_recipe_output.py
+        get_recipe_text.py
+        get_recipe.py
       commands.py
       events.py
     sqla/
@@ -517,7 +530,7 @@ to that root:
 
 | From | Importing | Import |
 |------|-----------|--------|
-| `gen_int/python/query/` | Query input/output models | `from gen_def.pydantic.query.<name>_input import ...` |
+| `gen_int/python/query/` | Query input/output models | `from gen_def.pydantic.query.<name> import <Name>Input, <Name>Output` |
 | `gen_int/python/procedure/` | Pydantic events | `from gen_def.pydantic.events import ...` |
 | `gen_int/python/procedure/` | Pydantic commands | `from gen_def.pydantic.commands import ...` |
 | `gen_int/python/procedure/` | Query Protocols | `from gen_int.python.query.<name> import ...` |
@@ -556,8 +569,7 @@ Reads the feat file and generates empty `def/` stub files for everything that re
 human schema authorship before code can be generated:
 
 - `def/models/<schema_name>.yaml` — stub LinkML schema per model (skipped if already exists)
-- `def/queries/<query_name>_input.yaml` — stub LinkML schema for each query's input (skipped if already exists)
-- `def/queries/<query_name>_output.yaml` — stub LinkML schema for each query's output (skipped if already exists)
+- `def/queries/<query_name>.yaml` — stub LinkML schema with `<QueryName>Input` and `<QueryName>Output` class stubs (skipped if already exists)
 - `def/commands.yaml` — stub LinkML schema listing all commands (skipped if already exists)
 - `def/events.yaml` — stub LinkML schema listing all events (skipped if already exists)
 
