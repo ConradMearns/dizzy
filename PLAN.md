@@ -60,43 +60,41 @@ authored `def/` stubs, not by rendering Python strings from feat data.
 
 ### `generators/commands.py`
 
-- [ ] Remove `render_gen_commands` and `write_gen_commands`
-- [ ] Remove `test_render_gen_commands_*` tests and `test_write_gen_commands_*` test from `test_commands.py`
-- [ ] Remove `test_render_gen_commands_snapshot` from `test_commands.py`
-- [ ] Delete the `test_render_gen_commands_snapshot` entry from `tests/generators/__snapshots__/test_commands.ambr`
+- [x] Remove `render_gen_commands` and `write_gen_commands`
+- [x] Remove `test_render_gen_commands_*` tests and `test_write_gen_commands_*` test from `test_commands.py`
+- [x] Remove `test_render_gen_commands_snapshot` from `test_commands.py`
+- [x] Delete the `test_render_gen_commands_snapshot` entry from `tests/generators/__snapshots__/test_commands.ambr`
 
 ### `generators/events.py`
 
-- [ ] Remove `render_gen_events` and `write_gen_events`
-- [ ] Remove `test_render_gen_events_*` tests and `test_write_gen_events_*` test from `test_events.py`
-- [ ] Remove `test_render_gen_events_snapshot` from `test_events.py`
-- [ ] Delete the `test_render_gen_events_snapshot` entry from `tests/generators/__snapshots__/test_events.ambr`
+- [x] Remove `render_gen_events` and `write_gen_events`
+- [x] Remove `test_render_gen_events_*` tests and `test_write_gen_events_*` test from `test_events.py`
+- [x] Remove `test_render_gen_events_snapshot` from `test_events.py`
+- [x] Delete the `test_render_gen_events_snapshot` entry from `tests/generators/__snapshots__/test_events.ambr`
 
 ### `generators/queries.py`
 
-- [ ] Remove `render_gen_query_pydantic_stub`, `write_gen_query_pydantic_input`, `write_gen_query_pydantic_output`
-- [ ] Remove `test_write_gen_query_pydantic_*` tests from `test_queries.py` (if any)
-- [ ] Keep all scaffold tests and Protocol tests — those are correct
+- [x] Remove `render_gen_query_pydantic_stub`, `write_gen_query_pydantic_input`, `write_gen_query_pydantic_output`
+- [x] Remove `test_write_gen_query_pydantic_*` tests from `test_queries.py` (if any)
+- [x] Keep all scaffold tests and Protocol tests — those are correct
 
 ### `generators/models.py`
 
-- [ ] Remove `render_gen_model_pydantic`, `write_gen_model_pydantic`, `render_gen_model_sqla`, `write_gen_model_sqla`
-- [ ] Remove `_load_def_classes` helper (no longer needed)
-- [ ] Remove corresponding tests from `test_models.py`: all `test_render_gen_model_*` and `test_write_gen_model_*` tests
-- [ ] Remove pydantic/sqla snapshot tests and their `.ambr` entries
-- [ ] Remove `tests/fixtures/def/` directory and `recipe_def_dir` fixture from `conftest.py` — no longer needed
-- [ ] Run `just test` — all tests pass
+- [x] Remove `render_gen_model_pydantic`, `write_gen_model_pydantic`, `render_gen_model_sqla`, `write_gen_model_sqla`
+- [x] Remove `_load_def_classes` helper (no longer needed)
+- [x] Remove corresponding tests from `test_models.py`: all `test_render_gen_model_*` and `test_write_gen_model_*` tests
+- [x] Remove pydantic/sqla snapshot tests and their `.ambr` entries
+- [x] Remove `tests/fixtures/def/` directory and `recipe_def_dir` fixture from `conftest.py` — no longer needed
+- [x] Run `just test` — all tests pass
 
 ## Phase 4 — CLI: `dizzy scaffold`
 
 Implement and test `dizzy scaffold` before any gen work begins.
 
-- [ ] Write `tests/test_cli.py` scaffold integration tests:
-  - `test_scaffold_creates_def_stubs` — runs `dizzy scaffold` against fixture, asserts all `def/` stubs exist
-  - `test_scaffold_does_not_overwrite` — runs scaffold twice, asserts files unchanged
-  - `test_scaffold_todos_flag` — runs with `--todos`, asserts `def/TODO.md` written
-- [ ] Implement `dizzy scaffold <feat_file> <output_dir> [--todos]` in `cli.py` — calls all scaffold writers, prints next-steps message
-- [ ] Implement `generators/todos.py` — writes `def/TODO.md` describing what needs authoring in each stub
+- [ ] Write `tests/test_cli.py` scaffold integration tests (call `scaffold()` directly — typer commands are plain functions):
+  - `test_scaffold_creates_def_stubs` — calls `scaffold()` against fixture, asserts all `def/` stubs exist
+  - `test_scaffold_does_not_overwrite` — calls `scaffold()` twice, asserts files unchanged
+- [ ] Implement `dizzy scaffold <feat_file> <output_dir>` in `cli.py` — calls all scaffold writers, prints next-steps message
 - [ ] Run `just test` — all tests pass
 
 ## Phase 5 — Gen Generators (linkml runner + Protocol generators)
@@ -138,20 +136,16 @@ Implement and test `dizzy scaffold` before any gen work begins.
 
 ## Phase 6 — CLI: `dizzy gen`
 
-- [ ] Write `tests/test_cli.py` gen integration tests:
-  - `test_gen_creates_all_outputs` — runs `dizzy gen`, asserts all `gen_def/`, `gen_int/`, `src/` files exist
-  - `test_gen_does_not_overwrite_src` — runs gen twice, asserts src stubs unchanged
-  - `test_gen_todos_flag` — runs with `--todos`, asserts `src/TODO.md` written
-- [ ] Implement `dizzy gen <feat_file> <output_dir> [--todos]` in `cli.py` — runs linkml runner then Protocol generators, prints per-section summary and next-steps message
-- [ ] Implement `generators/todos.py` `src/TODO.md` writer (after gen)
+- [ ] Write `tests/test_cli.py` gen integration tests (call `gen()` directly — typer commands are plain functions):
+  - `test_gen_creates_all_outputs` — calls `gen()`, asserts all `gen_def/`, `gen_int/`, `src/` files exist
+  - `test_gen_does_not_overwrite_src` — calls `gen()` twice, asserts src stubs unchanged
+- [ ] Implement `dizzy gen <feat_file> <output_dir>` in `cli.py` — runs linkml runner then Protocol generators, prints per-section summary and next-steps message
 - [ ] Run `just test` — all tests pass
 
 ## Phase 7 — Install & Manual Smoke Test
 
 - [ ] Install dizzy globally: `uv tool install --editable /home/conrad/dizzy/dizzy`
 - [ ] Run `dizzy scaffold example.feat.yaml app/example` — verify def stubs created, next-steps message printed
-- [ ] Run `dizzy scaffold example.feat.yaml app/example --todos` — verify `def/TODO.md` written
 - [ ] Run `dizzy gen example.feat.yaml app/example` — verify all sections generate correctly, src stubs created
-- [ ] Run `dizzy gen example.feat.yaml app/example --todos` — verify `src/TODO.md` written
 - [ ] Re-run both commands — verify existing def/ and src/ files are not overwritten
 - [ ] Run `dizzy scaffold /home/conrad/dizzy-recipe/app/01_dj_scripts/recipe.feat.yaml /home/conrad/dizzy-recipe/app/01_dj_scripts` — verify best-effort (no events, no projections → no output for those sections, no errors)

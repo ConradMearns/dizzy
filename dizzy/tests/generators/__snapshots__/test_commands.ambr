@@ -1,16 +1,4 @@
 # serializer version: 1
-# name: test_render_gen_commands_snapshot
-  '''
-  # AUTO-GENERATED — do not edit
-  from pydantic import BaseModel
-  
-  
-  class ingest_recipe_text(BaseModel):
-      """Initiates ingestion of a recipe from a raw text source"""
-      pass
-  
-  '''
-# ---
 # name: test_render_scaffold_commands_snapshot
   '''
   id: https://example.org/commands

@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 
 from dizzy.feat import AttributeDef, EventDef, FeatureDefinition
-from dizzy.generators.events import render_gen_events, render_scaffold_events
+from dizzy.generators.events import render_scaffold_events
 
 
 def test_render_scaffold_events_basic(recipe_feat: FeatureDefinition) -> None:
@@ -60,47 +60,6 @@ def test_render_scaffold_events_optional_attribute() -> None:
     assert not any("required: true" in l for l in hash_block)
 
 
-def test_render_gen_events_basic(recipe_feat: FeatureDefinition) -> None:
-    result = render_gen_events(recipe_feat)
-    assert "# AUTO-GENERATED" in result
-    assert "from pydantic import BaseModel" in result
-    assert "class recipe_ingested(BaseModel):" in result
-    assert "A recipe was successfully extracted and validated" in result
-
-
-def test_render_gen_events_with_required_attributes(recipe_feat: FeatureDefinition) -> None:
-    result = render_gen_events(recipe_feat)
-    assert "recipe_id: str" in result
-    assert "source_ref: str" in result
-    # all attributes required → no Optional import needed
-    assert "Optional" not in result
-
-
-def test_render_gen_events_with_optional_attribute() -> None:
-    feat = FeatureDefinition(
-        events={
-            "scan_item_found": EventDef(
-                description="Found a file while scanning",
-                attributes={
-                    "file_path": AttributeDef(type="string", required=True),
-                    "file_hash": AttributeDef(type="string", required=False),
-                },
-            )
-        }
-    )
-    result = render_gen_events(feat)
-    assert "from typing import Optional" in result
-    assert "file_hash: Optional[str] = None" in result
-
-
-def test_render_gen_events_no_attributes() -> None:
-    feat = FeatureDefinition(
-        events={"something_happened": EventDef(description="Something happened")}
-    )
-    result = render_gen_events(feat)
-    assert "pass" in result
-    assert "Optional" not in result
-
 
 def test_write_scaffold_events_skips_if_exists(
     tmp_path: Path, recipe_feat: FeatureDefinition
@@ -125,16 +84,6 @@ def test_write_scaffold_events_creates_file(
     assert "recipe_ingested" in dest.read_text()
 
 
-def test_write_gen_events_creates_file(
-    tmp_path: Path, recipe_feat: FeatureDefinition
-) -> None:
-    from dizzy.generators.events import write_gen_events
-
-    write_gen_events(recipe_feat, tmp_path)
-    dest = tmp_path / "gen_def" / "pydantic" / "events.py"
-    assert dest.exists()
-    assert "class recipe_ingested" in dest.read_text()
-
 
 def test_render_scaffold_events_snapshot(
     recipe_feat: FeatureDefinition, snapshot: Any
@@ -143,8 +92,3 @@ def test_render_scaffold_events_snapshot(
     assert result == snapshot
 
 
-def test_render_gen_events_snapshot(
-    recipe_feat: FeatureDefinition, snapshot: Any
-) -> None:
-    result = render_gen_events(recipe_feat)
-    assert result == snapshot

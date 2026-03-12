@@ -549,7 +549,7 @@ and projections at the intent level. No types, no schemas, no implementation det
 ### Step 2 — Scaffold definition stubs
 
 ```
-dizzy scaffold <feat_file> <output_dir> [--todos]
+dizzy scaffold <feat_file> <output_dir>
 ```
 
 Reads the feat file and generates empty `def/` stub files for everything that requires
@@ -571,8 +571,6 @@ Scaffolded def/ stubs. Next steps:
   4. Run: dizzy gen <feat_file> <output_dir>
 ```
 
-With `--todos`, also writes `def/TODO.md` describing what needs to be authored in each stub file.
-
 ---
 
 ### Step 3 — Author the definition files
@@ -588,7 +586,7 @@ These files are yours — Dizzy will never overwrite them.
 ### Step 4 — Generate interfaces and source stubs
 
 ```
-dizzy gen <feat_file> <output_dir> [--todos]
+dizzy gen <feat_file> <output_dir>
 ```
 
 Reads both the feat file and the authored `def/` files, then generates:
@@ -622,9 +620,6 @@ After running, Dizzy prints a per-section summary and:
 Generated interfaces and source stubs. Next steps:
   Implement the src/ files to complete your feature.
 ```
-
-With `--todos`, also writes `src/TODO.md` listing each unimplemented stub with a brief
-description of what it should do (derived from the feat file descriptions).
 
 ---
 
@@ -665,6 +660,23 @@ def test_render_procedure_context(recipe_feat):
     assert "class extract_and_transform_recipe_context" in result
     assert "get_recipe_text: get_recipe_text_query" in result
 ```
+
+### CLI tests — typer commands as plain functions
+
+Typer commands are plain Python functions. Tests call them directly without subprocess or
+`CliRunner`. The `tmp_path` pytest fixture provides the output directory.
+
+```python
+from dizzy.cli import scaffold
+
+def test_scaffold_creates_def_stubs(tmp_path: Path) -> None:
+    scaffold(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+    assert (tmp_path / "def" / "commands.yaml").exists()
+    assert (tmp_path / "def" / "events.yaml").exists()
+```
+
+This keeps CLI tests fast (no subprocess overhead) and avoids install-time coupling. End-to-end
+smoke testing against the installed binary is handled manually in Phase 7.
 
 ### Integration tests — snapshot tests (syrupy)
 

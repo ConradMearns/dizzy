@@ -15,7 +15,3 @@ def recipe_feat() -> FeatureDefinition:
     return load_feat(FIXTURES_DIR / "recipe.feat.yaml")
 
 
-@pytest.fixture
-def recipe_def_dir() -> Path:
-    """Path to fixture directory containing def/models/recipes.yaml."""
-    return FIXTURES_DIR

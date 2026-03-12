@@ -3,10 +3,8 @@
 from pathlib import Path
 from typing import Any
 
-import pytest
-
 from dizzy.feat import AttributeDef, CommandDef, FeatureDefinition
-from dizzy.generators.commands import render_gen_commands, render_scaffold_commands
+from dizzy.generators.commands import render_scaffold_commands
 
 
 def test_render_scaffold_commands_basic(recipe_feat):
@@ -56,47 +54,6 @@ def test_render_scaffold_commands_with_attributes():
     assert not any("required: true" in l for l in notes_block)
 
 
-def test_render_gen_commands_basic(recipe_feat):
-    result = render_gen_commands(recipe_feat)
-    assert "# AUTO-GENERATED" in result
-    assert "from pydantic import BaseModel" in result
-    assert "class ingest_recipe_text(BaseModel):" in result
-    assert "Initiates ingestion of a recipe from a raw text source" in result
-    assert "pass" in result  # no attributes → pass body
-
-
-def test_render_gen_commands_with_required_attribute():
-    feat = FeatureDefinition(
-        commands={
-            "create_item": CommandDef(
-                description="Creates an item",
-                attributes={
-                    "item_id": AttributeDef(type="string", required=True),
-                },
-            )
-        }
-    )
-    result = render_gen_commands(feat)
-    assert "class create_item(BaseModel):" in result
-    assert "item_id: str" in result
-    assert "Optional" not in result
-
-
-def test_render_gen_commands_with_optional_attribute():
-    feat = FeatureDefinition(
-        commands={
-            "create_item": CommandDef(
-                description="Creates an item",
-                attributes={
-                    "notes": AttributeDef(type="string", required=False),
-                },
-            )
-        }
-    )
-    result = render_gen_commands(feat)
-    assert "from typing import Optional" in result
-    assert "notes: Optional[str] = None" in result
-
 
 def test_render_scaffold_commands_write_skips_if_exists(tmp_path: Path, recipe_feat: FeatureDefinition) -> None:
     from dizzy.generators.commands import write_scaffold_commands
@@ -117,20 +74,9 @@ def test_render_scaffold_commands_write_creates_file(tmp_path: Path, recipe_feat
     assert "ingest_recipe_text" in dest.read_text()
 
 
-def test_write_gen_commands_creates_file(tmp_path, recipe_feat: FeatureDefinition) -> None:
-    from dizzy.generators.commands import write_gen_commands
-
-    write_gen_commands(recipe_feat, tmp_path)
-    dest = tmp_path / "gen_def" / "pydantic" / "commands.py"
-    assert dest.exists()
-    assert "class ingest_recipe_text" in dest.read_text()
-
 
 def test_render_scaffold_commands_snapshot(recipe_feat: FeatureDefinition, snapshot: Any) -> None:
     result = render_scaffold_commands(recipe_feat)
     assert result == snapshot
 
 
-def test_render_gen_commands_snapshot(recipe_feat: FeatureDefinition, snapshot: Any) -> None:
-    result = render_gen_commands(recipe_feat)
-    assert result == snapshot

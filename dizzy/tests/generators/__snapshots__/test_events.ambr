@@ -1,17 +1,4 @@
 # serializer version: 1
-# name: test_render_gen_events_snapshot
-  '''
-  # AUTO-GENERATED — do not edit
-  from pydantic import BaseModel
-  
-  
-  class recipe_ingested(BaseModel):
-      """A recipe was successfully extracted and validated"""
-      recipe_id: str
-      source_ref: str
-  
-  '''
-# ---
 # name: test_render_scaffold_events_snapshot
   '''
   id: https://example.org/events

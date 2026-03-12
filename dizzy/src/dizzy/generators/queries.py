@@ -69,45 +69,6 @@ def write_scaffold_query_output(
     dest.write_text(render_scaffold_query_output(query_name, feat))
 
 
-def render_gen_query_pydantic_stub(query_name: str, suffix: str, description: str) -> str:
-    """Render a minimal Pydantic stub for a query input or output class."""
-    class_name = f"{query_name}_{suffix}"
-    lines = [
-        "# AUTO-GENERATED — do not edit",
-        "from pydantic import BaseModel",
-        "",
-        "",
-        f"class {class_name}(BaseModel):",
-        f'    """{description}"""',
-        "    pass",
-        "",
-    ]
-    return "\n".join(lines)
-
-
-def write_gen_query_pydantic_input(
-    query_name: str, feat: FeatureDefinition, output_dir: Path
-) -> None:
-    """Write gen_def/pydantic/query/<query_name>_input.py (always overwritten)."""
-    query = feat.queries[query_name]
-    dest = output_dir / "gen_def" / "pydantic" / "query" / f"{query_name}_input.py"
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(
-        render_gen_query_pydantic_stub(query_name, "input", query.description)
-    )
-
-
-def write_gen_query_pydantic_output(
-    query_name: str, feat: FeatureDefinition, output_dir: Path
-) -> None:
-    """Write gen_def/pydantic/query/<query_name>_output.py (always overwritten)."""
-    query = feat.queries[query_name]
-    dest = output_dir / "gen_def" / "pydantic" / "query" / f"{query_name}_output.py"
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(
-        render_gen_query_pydantic_stub(query_name, "output", query.description)
-    )
-
 
 def render_gen_query_protocol(query_name: str, feat: FeatureDefinition) -> str:
     """Render gen_int/python/query/<query_name>.py — Protocol + context dataclass."""

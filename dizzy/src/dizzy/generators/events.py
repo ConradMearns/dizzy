@@ -1,4 +1,4 @@
-"""Events generator — scaffold def/events.yaml and gen_def/pydantic/events.py."""
+"""Events generator — scaffold def/events.yaml."""
 
 from pathlib import Path
 
@@ -8,13 +8,6 @@ _LINKML_TYPE_MAP = {
     "string": "string",
     "integer": "integer",
     "boolean": "boolean",
-    "float": "float",
-}
-
-_PYTHON_TYPE_MAP = {
-    "string": "str",
-    "integer": "int",
-    "boolean": "bool",
     "float": "float",
 }
 
@@ -57,41 +50,3 @@ def write_scaffold_events(feat: FeatureDefinition, output_dir: Path) -> None:
     dest.write_text(render_scaffold_events(feat))
 
 
-def render_gen_events(feat: FeatureDefinition) -> str:
-    """Render gen_def/pydantic/events.py from the feat definition."""
-    needs_optional = any(
-        not attr.required
-        for evt in feat.events.values()
-        for attr in evt.attributes.values()
-    )
-
-    lines = ["# AUTO-GENERATED — do not edit"]
-    if needs_optional:
-        lines.append("from typing import Optional")
-        lines.append("")
-    lines.append("from pydantic import BaseModel")
-
-    for name, evt in feat.events.items():
-        lines.append("")
-        lines.append("")
-        lines.append(f"class {name}(BaseModel):")
-        lines.append(f'    """{evt.description}"""')
-        if evt.attributes:
-            for attr_name, attr in evt.attributes.items():
-                py_type = _PYTHON_TYPE_MAP.get(attr.type, attr.type)
-                if attr.required:
-                    lines.append(f"    {attr_name}: {py_type}")
-                else:
-                    lines.append(f"    {attr_name}: Optional[{py_type}] = None")
-        else:
-            lines.append("    pass")
-
-    lines.append("")
-    return "\n".join(lines)
-
-
-def write_gen_events(feat: FeatureDefinition, output_dir: Path) -> None:
-    """Write gen_def/pydantic/events.py (always overwritten)."""
-    dest = output_dir / "gen_def" / "pydantic" / "events.py"
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(render_gen_events(feat))
