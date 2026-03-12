@@ -1,0 +1,26 @@
+classes:
+  Recipe:
+    attributes:
+      title:
+        range: string
+        required: true
+      source_ref:
+        range: string
+        required: true
+      notes:
+        range: string
+  Step:
+    attributes:
+      body:
+        range: string
+        required: true
+      order:
+        range: integer
+        required: true
+  Ingredient:
+    attributes:
+      name:
+        range: string
+        required: true
+      quantity:
+        range: string

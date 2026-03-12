@@ -23,107 +23,130 @@ Set up the test harness before writing any generator code.
   - `dizzy/tests/generators/test_models.py`
   - `dizzy/tests/test_cli.py`
 
-## Phase 3 — Generator Modules (TDD: test → implement → snapshot)
+## Phase 3 — Scaffold Generators (LinkML stub generation only)
 
-For each generator, the cycle is:
-1. Write unit tests for `render_*` functions (assert on string content)
-2. Implement `render_*` + `write_*` functions (make tests pass)
-3. Run snapshot tests to lock in output; commit snapshots
+`dizzy scaffold` reads the feat file and writes `def/` LinkML stubs. That is all it does.
+No Pydantic, no SQLAlchemy, no Protocols — just stubs for the user to author.
 
-Create `dizzy/src/dizzy/generators/` with one module per feat section. Each module exposes:
-- `render_*(feat, ...) -> str` — pure function, no filesystem access
-- `write_*(feat, output_dir, ...)` — calls `render_*` and writes to the correct path
+### `generators/commands.py` — scaffold only
+
+- [x] Implement `render_scaffold_commands` + `write_scaffold_commands` (stub `def/commands.yaml`, skip if exists)
+- [x] Write tests: linkml header, all commands listed with attributes
+- [x] Run snapshot test; update + commit snapshots
+
+### `generators/events.py` — scaffold only
+
+- [x] Implement `render_scaffold_events` + `write_scaffold_events` (stub `def/events.yaml`, skip if exists)
+- [x] Write tests: linkml header, all events listed with attributes
+- [x] Run snapshot test; update + commit snapshots
+
+### `generators/queries.py` — scaffold only
+
+- [x] Implement `render_scaffold_query_input` + `render_scaffold_query_output` + writers (stubs in `def/queries/`, skip if exists)
+- [x] Write tests: linkml header, class name, empty attributes
+- [x] Run snapshot test; update + commit snapshots
+
+### `generators/models.py` — scaffold only
+
+- [x] Implement `render_scaffold_model` + `write_scaffold_model` (stub `def/models/<name>.yaml`, skip if exists)
+- [x] Write tests: linkml header, schema name, description, empty classes
+- [x] Run snapshot test; update + commit snapshots
+
+## Phase 3 Cleanup — Remove incorrect gen code
+
+The original implementation incorrectly added manual Pydantic generation to the scaffold
+generators. `gen_def/` files must be produced by running `linkml gen-pydantic` on the
+authored `def/` stubs, not by rendering Python strings from feat data.
 
 ### `generators/commands.py`
 
-- [x] Write `tests/generators/test_commands.py`:
-  - unit: `render_scaffold_commands(feat)` produces valid LinkML stub listing all commands with attributes
-  - unit: `render_gen_commands(feat)` produces valid Pydantic file for all commands
-- [x] Implement `render_scaffold_commands` + `write_scaffold_commands` (stub `def/commands.yaml`, skip if exists)
-- [x] Implement `render_gen_commands` + `write_gen_commands` (`gen_def/pydantic/commands.py`)
-- [x] Run snapshot test; update + commit snapshots
+- [ ] Remove `render_gen_commands` and `write_gen_commands`
+- [ ] Remove `test_render_gen_commands_*` tests and `test_write_gen_commands_*` test from `test_commands.py`
+- [ ] Remove `test_render_gen_commands_snapshot` from `test_commands.py`
+- [ ] Delete the `test_render_gen_commands_snapshot` entry from `tests/generators/__snapshots__/test_commands.ambr`
 
 ### `generators/events.py`
 
-- [x] Write `tests/generators/test_events.py`:
-  - unit: `render_scaffold_events(feat)` produces valid LinkML stub listing all events with attributes
-  - unit: `render_gen_events(feat)` produces valid Pydantic file for all events
-- [x] Implement `render_scaffold_events` + `write_scaffold_events` (stub `def/events.yaml`, skip if exists)
-- [x] Implement `render_gen_events` + `write_gen_events` (`gen_def/pydantic/events.py`)
-- [x] Run snapshot test; update + commit snapshots
+- [ ] Remove `render_gen_events` and `write_gen_events`
+- [ ] Remove `test_render_gen_events_*` tests and `test_write_gen_events_*` test from `test_events.py`
+- [ ] Remove `test_render_gen_events_snapshot` from `test_events.py`
+- [ ] Delete the `test_render_gen_events_snapshot` entry from `tests/generators/__snapshots__/test_events.ambr`
 
 ### `generators/queries.py`
 
-- [x] Write `tests/generators/test_queries.py`:
-  - unit: `render_scaffold_query_input(query_name, feat)` produces LinkML stub
-  - unit: `render_scaffold_query_output(query_name, feat)` produces LinkML stub
-  - unit: `render_gen_query_protocol(query_name, feat)` produces correct Protocol + context dataclass (imports, class names, docstring from description, model field)
-- [x] Implement scaffold renders + writers (stubs in `def/queries/`, skip if exists)
-- [x] Implement gen renders + writers (`gen_def/pydantic/query/`, `gen_int/python/query/`, `src/query/` stub if not exists)
-- [x] Run snapshot test; update + commit snapshots
-
-### `generators/procedures.py`
-
-- [x] Write `tests/generators/test_procedures.py`:
-  - unit: `render_procedure_context(procedure_name, feat)` — assert context dataclass, nested emitters + queries dataclasses, correct imports
-  - unit: `render_procedure_protocol(procedure_name, feat)` — assert Protocol class, `__call__` signature, correct imports
-  - unit: procedure with no `queries` → no queries dataclass; procedure with no `emits` → empty emitters dataclass
-- [x] Implement `render_procedure_context` + `write_procedure_context` (`gen_int/python/procedure/*_context.py`)
-- [x] Implement `render_procedure_protocol` + `write_procedure_protocol` (`gen_int/python/procedure/*_protocol.py`)
-- [x] Implement `write_procedure_src_stub` (`src/procedure/<name>.py`, skip if exists)
-- [x] Run snapshot test; update + commit snapshots
-
-### `generators/policies.py`
-
-- [x] Write `tests/generators/test_policies.py`:
-  - unit: `render_policy_context(policy_name, feat)` — assert emitters dataclass, correct imports
-  - unit: `render_policy_protocol(policy_name, feat)` — assert Protocol class, `__call__` signature with event param
-  - unit: policy with no `emits` → emitters dataclass has `pass`
-- [x] Implement `render_policy_context` + `write_policy_context` (`gen_int/python/policy/*_context.py`)
-- [x] Implement `render_policy_protocol` + `write_policy_protocol` (`gen_int/python/policy/*_protocol.py`)
-- [x] Implement `write_policy_src_stub` (`src/policy/<name>.py`, skip if exists)
-- [x] Run snapshot test; update + commit snapshots
-
-### `generators/projections.py`
-
-- [x] Write `tests/generators/test_projections.py`:
-  - unit: `render_projection(projection_name, feat)` — assert context dataclass with one session field per model, Protocol class, `__call__` with event + context params, correct imports
-  - unit: projection with multiple models → multiple session fields in context
-- [x] Implement `render_projection` + `write_projection` (`gen_int/python/projection/*_projection.py`)
-- [x] Implement `write_projection_src_stub` (`src/projection/<name>.py`, skip if exists)
-- [x] Run snapshot test; update + commit snapshots
+- [ ] Remove `render_gen_query_pydantic_stub`, `write_gen_query_pydantic_input`, `write_gen_query_pydantic_output`
+- [ ] Remove `test_write_gen_query_pydantic_*` tests from `test_queries.py` (if any)
+- [ ] Keep all scaffold tests and Protocol tests — those are correct
 
 ### `generators/models.py`
 
-- [ ] Write `tests/generators/test_models.py`:
-  - unit: `render_scaffold_model(schema_name, feat)` produces minimal LinkML stub with correct schema name
-  - unit: `render_gen_model_pydantic(schema_name, def_dir)` produces Pydantic models from authored LinkML
-  - unit: `render_gen_model_sqla(schema_name, def_dir)` produces SQLAlchemy models from authored LinkML
-- [ ] Implement scaffold render + writer (stub `def/models/<name>.yaml`, skip if exists)
-- [ ] Implement gen renders + writers (`gen_def/pydantic/models/<name>.py`, `gen_def/sqla/models/<name>.py`)
-- [ ] Run snapshot test; update + commit snapshots
+- [ ] Remove `render_gen_model_pydantic`, `write_gen_model_pydantic`, `render_gen_model_sqla`, `write_gen_model_sqla`
+- [ ] Remove `_load_def_classes` helper (no longer needed)
+- [ ] Remove corresponding tests from `test_models.py`: all `test_render_gen_model_*` and `test_write_gen_model_*` tests
+- [ ] Remove pydantic/sqla snapshot tests and their `.ambr` entries
+- [ ] Remove `tests/fixtures/def/` directory and `recipe_def_dir` fixture from `conftest.py` — no longer needed
+- [ ] Run `just test` — all tests pass
+
+## Phase 4 — CLI: `dizzy scaffold`
+
+Implement and test `dizzy scaffold` before any gen work begins.
+
+- [ ] Write `tests/test_cli.py` scaffold integration tests:
+  - `test_scaffold_creates_def_stubs` — runs `dizzy scaffold` against fixture, asserts all `def/` stubs exist
+  - `test_scaffold_does_not_overwrite` — runs scaffold twice, asserts files unchanged
+  - `test_scaffold_todos_flag` — runs with `--todos`, asserts `def/TODO.md` written
+- [ ] Implement `dizzy scaffold <feat_file> <output_dir> [--todos]` in `cli.py` — calls all scaffold writers, prints next-steps message
+- [ ] Implement `generators/todos.py` — writes `def/TODO.md` describing what needs authoring in each stub
+- [ ] Run `just test` — all tests pass
+
+## Phase 5 — Gen Generators (linkml runner + Protocol generators)
+
+`dizzy gen` runs in two sub-steps:
+1. Run the LinkML toolchain on each `def/` stub to produce `gen_def/` files
+2. Read the feat file to generate `gen_int/` Protocol files and `src/` stubs
+
+### `generators/linkml_runner.py`
+
+- [ ] Implement `run_linkml_pydantic(def_file: Path, output_file: Path) -> None` — shells out to `linkml gen-pydantic <def_file>` and writes result to `output_file`
+- [ ] Implement `run_linkml_sqla(def_file: Path, output_file: Path) -> None` — shells out to `linkml gen-sqla <def_file>` and writes result to `output_file`
+- [ ] Write `tests/generators/test_linkml_runner.py`:
+  - Verify `linkml gen-pydantic` can be run against `def/commands.yaml` stub and produces valid Python
+  - Verify `linkml gen-pydantic` can be run against `def/events.yaml` stub and produces valid Python
+  - Verify `linkml gen-pydantic` can be run against `def/queries/*_input.yaml` stub and produces valid Python
+  - Verify `linkml gen-pydantic` can be run against `def/models/<name>.yaml` stub and produces valid Python
+  - Verify `linkml gen-sqla` can be run against `def/models/<name>.yaml` stub and produces valid Python
+  - Use the scaffold fixture stubs (scaffolded from `recipe.feat.yaml`) as inputs
+
+### Protocol generators (already implemented — verify correct)
+
+- [x] `render_gen_query_protocol` + `write_gen_query_protocol` — `gen_int/python/query/<name>.py`
+- [x] `render_procedure_context` + `render_procedure_protocol` + writers — `gen_int/python/procedure/`
+- [x] `render_policy_context` + `render_policy_protocol` + writers — `gen_int/python/policy/`
+- [x] `render_projection` + writer — `gen_int/python/projection/`
+
+### `src/` stub generators (already implemented — verify correct)
+
+- [x] `write_src_query_stub` — `src/query/<name>.py`, skip if exists
+- [x] `write_procedure_src_stub` — `src/procedure/<name>.py`, skip if exists
+- [x] `write_policy_src_stub` — `src/policy/<name>.py`, skip if exists
+- [x] `write_projection_src_stub` — `src/projection/<name>.py`, skip if exists
 
 ### `__init__.py` emitter
 
 - [ ] Implement helper that writes an empty `__init__.py` in every generated directory
 - [ ] Add assertions to integration snapshot tests that `__init__.py` exists in each generated dir
 
-## Phase 4 — CLI
+## Phase 6 — CLI: `dizzy gen`
 
-- [ ] Write `tests/test_cli.py` integration tests first:
-  - `test_scaffold_creates_def_stubs` — runs `dizzy scaffold` against fixture, asserts def stubs exist
-  - `test_scaffold_does_not_overwrite` — runs scaffold twice, asserts files unchanged
-  - `test_scaffold_todos_flag` — runs with `--todos`, asserts `def/TODO.md` written
-  - `test_gen_creates_all_outputs` — runs `dizzy gen`, snapshot-tests every generated file
+- [ ] Write `tests/test_cli.py` gen integration tests:
+  - `test_gen_creates_all_outputs` — runs `dizzy gen`, asserts all `gen_def/`, `gen_int/`, `src/` files exist
   - `test_gen_does_not_overwrite_src` — runs gen twice, asserts src stubs unchanged
   - `test_gen_todos_flag` — runs with `--todos`, asserts `src/TODO.md` written
-- [ ] Implement `dizzy scaffold <feat_file> <output_dir> [--todos]` — runs scaffold generators, prints next-steps message
-- [ ] Implement `dizzy gen <feat_file> <output_dir> [--todos]` — runs gen generators, prints per-section summary and next-steps message
-- [ ] Implement `generators/todos.py` — writes `def/TODO.md` (after scaffold) or `src/TODO.md` (after gen)
-- [ ] Remove / retire the two standalone root scripts (`generate_linkml_from_feature.py`, `generate_protocols_from_commands.py`)
-- [ ] Run full test suite; all tests pass
+- [ ] Implement `dizzy gen <feat_file> <output_dir> [--todos]` in `cli.py` — runs linkml runner then Protocol generators, prints per-section summary and next-steps message
+- [ ] Implement `generators/todos.py` `src/TODO.md` writer (after gen)
+- [ ] Run `just test` — all tests pass
 
-## Phase 5 — Install & Manual Smoke Test
+## Phase 7 — Install & Manual Smoke Test
 
 - [ ] Install dizzy globally: `uv tool install --editable /home/conrad/dizzy/dizzy`
 - [ ] Run `dizzy scaffold example.feat.yaml app/example` — verify def stubs created, next-steps message printed

@@ -62,10 +62,12 @@ classes:
       quantity: ...
 ```
 
-**Generates (per schema):**
-- `def/models/<schema_name>.yaml` — stub LinkML schema (only if file does not exist)
-- `gen_def/pydantic/<schema_name>.py` — Pydantic models for all classes in the schema
-- `gen_def/sqla/<schema_name>.py` — SQLAlchemy models for all classes in the schema
+**Scaffold generates** (stub, never overwritten):
+- `def/models/<schema_name>.yaml` — stub LinkML schema
+
+**Gen generates** (by running the LinkML toolchain on the authored stub):
+- `gen_def/pydantic/models/<schema_name>.py` — Pydantic models (via `linkml gen-pydantic`)
+- `gen_def/sqla/models/<schema_name>.py` — SQLAlchemy models (via `linkml gen-sqla`)
 
 ---
 
@@ -99,9 +101,9 @@ Fields:
 - `def/queries/<query_name>_input.yaml` — LinkML stub for `QueryInput`
 - `def/queries/<query_name>_output.yaml` — LinkML stub for `QueryOutput`
 
-**Gen generates** (from the authored def stubs):
-- `gen_def/pydantic/query/<query_name>_input.py` — Pydantic model for `QueryInput`
-- `gen_def/pydantic/query/<query_name>_output.py` — Pydantic model for `QueryOutput`
+**Gen generates** (by running `linkml gen-pydantic` on the authored def stubs, then deriving the Protocol from the feat file):
+- `gen_def/pydantic/query/<query_name>_input.py` — Pydantic model for `QueryInput` (via linkml)
+- `gen_def/pydantic/query/<query_name>_output.py` — Pydantic model for `QueryOutput` (via linkml)
 - `gen_int/python/query/<query_name>.py` — `QueryProcess` Protocol + context dataclass:
 
 ```python
@@ -157,7 +159,11 @@ commands:
         required: true
 ```
 
-**Generates:** `def/commands.yaml` (LinkML), `gen_def/pydantic/commands.py` (Pydantic)
+**Scaffold generates** (stub, never overwritten):
+- `def/commands.yaml` — LinkML stub listing all commands with attributes
+
+**Gen generates** (by running `linkml gen-pydantic` on the authored stub):
+- `gen_def/pydantic/commands.py` — Pydantic models for all commands
 
 ---
 
@@ -178,7 +184,11 @@ events:
         type: string
 ```
 
-**Generates:** `def/events.yaml` (LinkML), `gen_def/pydantic/events.py` (Pydantic)
+**Scaffold generates** (stub, never overwritten):
+- `def/events.yaml` — LinkML stub listing all events with attributes
+
+**Gen generates** (by running `linkml gen-pydantic` on the authored stub):
+- `gen_def/pydantic/events.py` — Pydantic models for all events
 
 ---
 
@@ -583,10 +593,11 @@ dizzy gen <feat_file> <output_dir> [--todos]
 
 Reads both the feat file and the authored `def/` files, then generates:
 
-**`gen_def/`** — derived from `def/` schemas (Pydantic models, SQLAlchemy models)
+**`gen_def/`** — produced by running `linkml gen-pydantic` (and `linkml gen-sqla` for models)
+on the authored `def/` schemas
 
 **`gen_int/`** — Protocol stubs derived from the feat file structure (queries, procedures,
-policies, projections)
+policies, projections), using the `gen_def/` types as references in imports
 
 **`src/`** — implementation stubs, one per interface, for the developer to fill in. Each stub imports its Protocol and raises `NotImplementedError`:
 

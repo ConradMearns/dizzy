@@ -13,3 +13,9 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures"
 def recipe_feat() -> FeatureDefinition:
     """Full recipe example feat — used across all generator tests."""
     return load_feat(FIXTURES_DIR / "recipe.feat.yaml")
+
+
+@pytest.fixture
+def recipe_def_dir() -> Path:
+    """Path to fixture directory containing def/models/recipes.yaml."""
+    return FIXTURES_DIR
