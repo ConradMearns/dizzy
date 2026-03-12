@@ -45,12 +45,12 @@ Create `dizzy/src/dizzy/generators/` with one module per feat section. Each modu
 
 ### `generators/events.py`
 
-- [ ] Write `tests/generators/test_events.py`:
+- [x] Write `tests/generators/test_events.py`:
   - unit: `render_scaffold_events(feat)` produces valid LinkML stub listing all events with attributes
   - unit: `render_gen_events(feat)` produces valid Pydantic file for all events
-- [ ] Implement `render_scaffold_events` + `write_scaffold_events` (stub `def/events.yaml`, skip if exists)
-- [ ] Implement `render_gen_events` + `write_gen_events` (`gen_def/pydantic/events.py`)
-- [ ] Run snapshot test; update + commit snapshots
+- [x] Implement `render_scaffold_events` + `write_scaffold_events` (stub `def/events.yaml`, skip if exists)
+- [x] Implement `render_gen_events` + `write_gen_events` (`gen_def/pydantic/events.py`)
+- [x] Run snapshot test; update + commit snapshots
 
 ### `generators/queries.py`
 

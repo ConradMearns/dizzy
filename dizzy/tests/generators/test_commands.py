@@ -1,5 +1,6 @@
 """Tests for commands generator."""
 
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -97,7 +98,7 @@ def test_render_gen_commands_with_optional_attribute():
     assert "notes: Optional[str] = None" in result
 
 
-def test_render_scaffold_commands_write_skips_if_exists(tmp_path, recipe_feat):
+def test_render_scaffold_commands_write_skips_if_exists(tmp_path: Path, recipe_feat: FeatureDefinition) -> None:
     from dizzy.generators.commands import write_scaffold_commands
 
     dest = tmp_path / "def" / "commands.yaml"
@@ -107,7 +108,7 @@ def test_render_scaffold_commands_write_skips_if_exists(tmp_path, recipe_feat):
     assert dest.read_text() == "existing content"
 
 
-def test_render_scaffold_commands_write_creates_file(tmp_path, recipe_feat):
+def test_render_scaffold_commands_write_creates_file(tmp_path: Path, recipe_feat: FeatureDefinition) -> None:
     from dizzy.generators.commands import write_scaffold_commands
 
     write_scaffold_commands(recipe_feat, tmp_path)
