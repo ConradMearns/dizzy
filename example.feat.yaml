@@ -8,8 +8,12 @@ models:
   scan_data: Scan records, priority manifests, and upload tracking
 
 queries:
-  get_scan_items: Retrieves all items discovered during a scan
-  get_manifest: Retrieves a priority manifest by ID
+  get_scan_items:
+    description: Retrieves all items discovered during a scan
+    model: scan_data
+  get_manifest:
+    description: Retrieves a priority manifest by ID
+    model: scan_data
 
 commands:
   start_scan: Initiates a scan to discover files

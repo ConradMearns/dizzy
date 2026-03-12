@@ -91,11 +91,11 @@ authored `def/` stubs, not by rendering Python strings from feat data.
 
 Implement and test `dizzy scaffold` before any gen work begins.
 
-- [ ] Write `tests/test_cli.py` scaffold integration tests (call `scaffold()` directly — typer commands are plain functions):
+- [x] Write `tests/test_cli.py` scaffold integration tests (call `scaffold()` directly — typer commands are plain functions):
   - `test_scaffold_creates_def_stubs` — calls `scaffold()` against fixture, asserts all `def/` stubs exist
   - `test_scaffold_does_not_overwrite` — calls `scaffold()` twice, asserts files unchanged
-- [ ] Implement `dizzy scaffold <feat_file> <output_dir>` in `cli.py` — calls all scaffold writers, prints next-steps message
-- [ ] Run `just test` — all tests pass
+- [x] Implement `dizzy scaffold <feat_file> <output_dir>` in `cli.py` — calls all scaffold writers, prints next-steps message
+- [x] Run `just test` — all tests pass
 
 ## Phase 5 — Gen Generators (linkml runner + Protocol generators)
 
