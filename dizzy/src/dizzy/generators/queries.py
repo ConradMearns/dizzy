@@ -5,76 +5,53 @@ from pathlib import Path
 from dizzy.feat import FeatureDefinition
 
 
-def render_scaffold_query_input(query_name: str, feat: FeatureDefinition) -> str:
-    """Render a LinkML stub for def/queries/<query_name>_input.yaml."""
+def _to_camel(snake: str) -> str:
+    """Convert snake_case to CamelCase."""
+    return "".join(word.capitalize() for word in snake.split("_"))
+
+
+def render_scaffold_query(query_name: str, feat: FeatureDefinition) -> str:
+    """Render a combined LinkML stub for def/queries/<query_name>.yaml."""
     query = feat.queries[query_name]
-    class_name = f"{query_name}_input"
+    camel = _to_camel(query_name)
     lines = [
-        f"id: https://example.org/queries/{class_name}",
-        f"name: {class_name}",
+        f"id: https://example.org/queries/{query_name}",
+        f"name: {query_name}",
+        f"description: {query.description}",
         "prefixes:",
         "  linkml: https://w3id.org/linkml/",
         "default_range: string",
         "imports:",
         "  - linkml:types",
         "classes:",
-        f"  {class_name}:",
-        f"    description: Input for {query_name} — {query.description}",
+        f"  {camel}Input:",
+        f"    description: Input for {query_name}",
+        "    attributes: {}",
+        f"  {camel}Output:",
+        f"    description: Output for {query_name}",
         "    attributes: {}",
         "",
     ]
     return "\n".join(lines)
 
 
-def write_scaffold_query_input(
+def write_scaffold_query(
     query_name: str, feat: FeatureDefinition, output_dir: Path
 ) -> None:
-    """Write def/queries/<query_name>_input.yaml; skip if file already exists."""
-    dest = output_dir / "def" / "queries" / f"{query_name}_input.yaml"
+    """Write def/queries/<query_name>.yaml; skip if file already exists."""
+    dest = output_dir / "def" / "queries" / f"{query_name}.yaml"
     if dest.exists():
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(render_scaffold_query_input(query_name, feat))
-
-
-def render_scaffold_query_output(query_name: str, feat: FeatureDefinition) -> str:
-    """Render a LinkML stub for def/queries/<query_name>_output.yaml."""
-    query = feat.queries[query_name]
-    class_name = f"{query_name}_output"
-    lines = [
-        f"id: https://example.org/queries/{class_name}",
-        f"name: {class_name}",
-        "prefixes:",
-        "  linkml: https://w3id.org/linkml/",
-        "default_range: string",
-        "imports:",
-        "  - linkml:types",
-        "classes:",
-        f"  {class_name}:",
-        f"    description: Output for {query_name} — {query.description}",
-        "    attributes: {}",
-        "",
-    ]
-    return "\n".join(lines)
-
-
-def write_scaffold_query_output(
-    query_name: str, feat: FeatureDefinition, output_dir: Path
-) -> None:
-    """Write def/queries/<query_name>_output.yaml; skip if file already exists."""
-    dest = output_dir / "def" / "queries" / f"{query_name}_output.yaml"
-    if dest.exists():
-        return
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(render_scaffold_query_output(query_name, feat))
-
+    dest.write_text(render_scaffold_query(query_name, feat))
 
 
 def render_gen_query_protocol(query_name: str, feat: FeatureDefinition) -> str:
     """Render gen_int/python/query/<query_name>.py — Protocol + context dataclass."""
     query = feat.queries[query_name]
-    input_class = f"{query_name}_input"
-    output_class = f"{query_name}_output"
+    camel = _to_camel(query_name)
+    input_class = f"{camel}Input"
+    output_class = f"{camel}Output"
     context_class = f"{query_name}_context"
     protocol_class = f"{query_name}_query"
 
@@ -83,11 +60,10 @@ def render_gen_query_protocol(query_name: str, feat: FeatureDefinition) -> str:
         "from dataclasses import dataclass",
         "from typing import Protocol, Any",
         "",
-        f"from gen_def.pydantic.query.{input_class} import {input_class}",
-        f"from gen_def.pydantic.query.{output_class} import {output_class}",
+        f"from gen_def.pydantic.query.{query_name} import {input_class}, {output_class}",
         "",
         "",
-        f"@dataclass",
+        "@dataclass",
         f"class {context_class}:",
         '    """SQLAlchemy session for the schema read by this query."""',
         f"    {query.model}: Any  # SQLAlchemy session for the {query.model} schema",
@@ -116,15 +92,15 @@ def write_gen_query_protocol(
 
 def render_src_query_stub(query_name: str) -> str:
     """Render a src/query/<query_name>.py implementation stub."""
+    camel = _to_camel(query_name)
+    input_class = f"{camel}Input"
+    output_class = f"{camel}Output"
     protocol_class = f"{query_name}_query"
     context_class = f"{query_name}_context"
-    input_class = f"{query_name}_input"
-    output_class = f"{query_name}_output"
     lines = [
         "# Implementation stub — fill in your logic here",
         f"from gen_int.python.query.{query_name} import {protocol_class}, {context_class}",
-        f"from gen_def.pydantic.query.{query_name}_input import {input_class}",
-        f"from gen_def.pydantic.query.{query_name}_output import {output_class}",
+        f"from gen_def.pydantic.query.{query_name} import {input_class}, {output_class}",
         "",
         "",
         f"def {query_name}(input: {input_class}, context: {context_class}) -> {output_class}:",

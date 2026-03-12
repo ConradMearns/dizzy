@@ -12,10 +12,8 @@ def test_scaffold_creates_def_stubs(tmp_path: Path) -> None:
 
     assert (tmp_path / "def" / "commands.yaml").exists()
     assert (tmp_path / "def" / "events.yaml").exists()
-    assert (tmp_path / "def" / "queries" / "get_recipe_text_input.yaml").exists()
-    assert (tmp_path / "def" / "queries" / "get_recipe_text_output.yaml").exists()
-    assert (tmp_path / "def" / "queries" / "get_recipe_input.yaml").exists()
-    assert (tmp_path / "def" / "queries" / "get_recipe_output.yaml").exists()
+    assert (tmp_path / "def" / "queries" / "get_recipe_text.yaml").exists()
+    assert (tmp_path / "def" / "queries" / "get_recipe.yaml").exists()
     assert (tmp_path / "def" / "models" / "recipes.yaml").exists()
 
 

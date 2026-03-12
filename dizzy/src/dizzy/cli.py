@@ -6,7 +6,7 @@ import typer
 from dizzy.feat import load_feat
 from dizzy.generators.commands import write_scaffold_commands
 from dizzy.generators.events import write_scaffold_events
-from dizzy.generators.queries import write_scaffold_query_input, write_scaffold_query_output
+from dizzy.generators.queries import write_scaffold_query
 from dizzy.generators.models import write_scaffold_model
 
 app = typer.Typer()
@@ -27,8 +27,7 @@ def scaffold(
         write_scaffold_events(feat, output_dir)
 
     for query_name in feat.queries:
-        write_scaffold_query_input(query_name, feat, output_dir)
-        write_scaffold_query_output(query_name, feat, output_dir)
+        write_scaffold_query(query_name, feat, output_dir)
 
     for schema_name in feat.models:
         write_scaffold_model(schema_name, feat, output_dir)
