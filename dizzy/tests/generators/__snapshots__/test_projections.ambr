@@ -1,0 +1,25 @@
+# serializer version: 1
+# name: test_render_projection_snapshot
+  '''
+  # AUTO-GENERATED — do not edit
+  from dataclasses import dataclass
+  from typing import Protocol, Any
+  
+  from gen_def.pydantic.events import recipe_ingested
+  
+  
+  @dataclass
+  class recipe_library_context:
+      """SQLAlchemy sessions for schemas written by this projection."""
+      recipes: Any  # SQLAlchemy session for the recipes schema
+  
+  
+  class recipe_library_projection(Protocol):
+      """Adds ingested recipe to the recipe library"""
+  
+      def __call__(self, event: recipe_ingested, context: recipe_library_context) -> None:
+          """Apply the projection — mutate model state in response to the event."""
+          ...
+  
+  '''
+# ---

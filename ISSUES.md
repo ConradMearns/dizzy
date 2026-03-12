@@ -9,6 +9,18 @@ This gap exists in both `test_procedures.py` and `test_policies.py`.
 
 ---
 
+## Projection formatting inconsistencies vs. procedures/policies
+
+Projections differ from procedures and policies in two ways not explained by the spec:
+1. Context and protocol are combined in one `_projection.py` file, while procedures use
+   separate `_context.py` and `_protocol.py` files. Plausible rationale (simpler context,
+   no nested dataclasses), but not stated.
+2. The projection `__call__` is formatted as a single line, while policies (same parameter
+   structure: `event`, `context`) use multi-line formatting. No semantic reason for the
+   difference — likely an inconsistency in how the spec example was written.
+
+---
+
 ## Duplicated type maps across generator modules
 
 `_LINKML_TYPE_MAP` and `_PYTHON_TYPE_MAP` are copy-pasted into every generator module

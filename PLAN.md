@@ -86,12 +86,12 @@ Create `dizzy/src/dizzy/generators/` with one module per feat section. Each modu
 
 ### `generators/projections.py`
 
-- [ ] Write `tests/generators/test_projections.py`:
+- [x] Write `tests/generators/test_projections.py`:
   - unit: `render_projection(projection_name, feat)` — assert context dataclass with one session field per model, Protocol class, `__call__` with event + context params, correct imports
   - unit: projection with multiple models → multiple session fields in context
-- [ ] Implement `render_projection` + `write_projection` (`gen_int/python/projection/*_projection.py`)
-- [ ] Implement `write_projection_src_stub` (`src/projection/<name>.py`, skip if exists)
-- [ ] Run snapshot test; update + commit snapshots
+- [x] Implement `render_projection` + `write_projection` (`gen_int/python/projection/*_projection.py`)
+- [x] Implement `write_projection_src_stub` (`src/projection/<name>.py`, skip if exists)
+- [x] Run snapshot test; update + commit snapshots
 
 ### `generators/models.py`
 
