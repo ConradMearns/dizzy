@@ -16,6 +16,7 @@ dizzy = "dizzy.cli:main"
 [dependency-groups]
 dev = [
     "pytest>=8.4.2",
+    "syrupy>=4.0",
 ]
 
 [build-system]

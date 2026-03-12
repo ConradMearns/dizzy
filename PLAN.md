@@ -9,11 +9,11 @@
 
 Set up the test harness before writing any generator code.
 
-- [ ] Add `syrupy>=4.0` to the `dev` dependency group in `dizzy/pyproject.toml`
-- [ ] Create `dizzy/tests/conftest.py` — shared `recipe_feat` fixture that loads `tests/fixtures/recipe.feat.yaml`
-- [ ] Create `dizzy/tests/fixtures/recipe.feat.yaml` — full example feat (models, queries, commands, events, procedures, policies, projections) matching the spec's full example
-- [ ] Create `dizzy/tests/snapshots/` directory (empty, populated when snapshots are first updated)
-- [ ] Create empty test files to be filled in per-generator (TDD red phase):
+- [x] Add `syrupy>=4.0` to the `dev` dependency group in `dizzy/pyproject.toml`
+- [x] Create `dizzy/tests/conftest.py` — shared `recipe_feat` fixture that loads `tests/fixtures/recipe.feat.yaml`
+- [x] Create `dizzy/tests/fixtures/recipe.feat.yaml` — full example feat (models, queries, commands, events, procedures, policies, projections) matching the spec's full example
+- [x] Create `dizzy/tests/snapshots/` directory (empty, populated when snapshots are first updated)
+- [x] Create empty test files to be filled in per-generator (TDD red phase):
   - `dizzy/tests/generators/test_commands.py`
   - `dizzy/tests/generators/test_events.py`
   - `dizzy/tests/generators/test_queries.py`

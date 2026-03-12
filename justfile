@@ -1,3 +1,11 @@
+[working-directory: "dizzy"]
+test:
+    uv run pytest
+
+[working-directory: "dizzy"]
+test-update:
+    uv run pytest --snapshot-update
+
 check:
     uv run ty check dizzy
 

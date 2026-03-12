@@ -1,0 +1,49 @@
+description: Recipe App
+
+models:
+  recipes: Full recipe database — recipes, steps, and ingredients
+
+queries:
+  get_recipe_text:
+    description: Retrieves raw recipe text given a source reference
+    model: recipes
+  get_recipe:
+    description: Retrieves a structured recipe by ID
+    model: recipes
+
+commands:
+  ingest_recipe_text: Initiates ingestion of a recipe from a raw text source
+
+events:
+  recipe_ingested:
+    description: A recipe was successfully extracted and validated
+    attributes:
+      recipe_id:
+        type: string
+        required: true
+      source_ref:
+        type: string
+        required: true
+
+procedures:
+  extract_and_transform_recipe:
+    description: >
+      Queries raw recipe text via source_ref, then uses an LLM to extract a structured
+      recipe (title, ingredients, steps, time, cost), validated against the recipe model.
+    command: ingest_recipe_text
+    queries:
+      - get_recipe_text
+    emits:
+      - recipe_ingested
+
+policies:
+  index_recipe_on_ingest:
+    description: Adds recipe to the library projection when ingested
+    event: recipe_ingested
+
+projections:
+  recipe_library:
+    description: Adds ingested recipe to the recipe library
+    event: recipe_ingested
+    models:
+      - recipes
