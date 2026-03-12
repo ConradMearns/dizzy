@@ -519,3 +519,86 @@ description of what it should do (derived from the feat file descriptions).
 | 2 | `dizzy scaffold` | Edit `def/` schema stubs |
 | 3 | — | Author class definitions and attributes |
 | 4 | `dizzy gen` | Implement `src/` stubs |
+
+---
+
+## Testing Strategy
+
+### Architecture: split render from write
+
+Every generator module exposes two layers:
+
+1. **`render_*(feat, ...) -> str`** — pure function, takes parsed feat data and returns the
+   file content as a string. No filesystem access. Fully unit-testable in isolation.
+
+2. **`write_*(feat, output_dir, ...)`** — thin wrapper that calls `render_*` and writes the
+   result to the correct path under `output_dir`. This layer is covered by integration tests.
+
+This split means the majority of tests never touch the filesystem and run fast.
+
+### Unit tests — render functions
+
+Each `render_*` function gets direct unit tests that assert on the returned string. Tests live
+in `dizzy/tests/generators/test_<section>.py`. A representative feat fixture is defined once
+in `dizzy/tests/conftest.py` and shared across all generator tests.
+
+```python
+def test_render_procedure_context(recipe_feat):
+    result = render_procedure_context("extract_and_transform_recipe", recipe_feat)
+    assert "class extract_and_transform_recipe_context" in result
+    assert "get_recipe_text: get_recipe_text_query" in result
+```
+
+### Integration tests — snapshot tests (syrupy)
+
+End-to-end tests call the full generator pipeline against a known feat fixture, write output
+to a `tmp_path` directory, and compare every generated file against a saved snapshot.
+
+Snapshots live in `dizzy/tests/snapshots/` and are committed to version control. They serve
+as living documentation of exactly what each generator produces.
+
+```python
+def test_gen_full_example(tmp_path, snapshot):
+    feat = load_feat("tests/fixtures/recipe.feat.yaml")
+    gen(feat, tmp_path)
+    for path in sorted(tmp_path.rglob("*.py")):
+        assert path.read_text() == snapshot(name=str(path.relative_to(tmp_path)))
+```
+
+To update snapshots after an intentional template change:
+
+```
+pytest --snapshot-update
+```
+
+### Dev dependency
+
+Add `syrupy` to the `dev` dependency group in `pyproject.toml`:
+
+```toml
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+    "syrupy>=4.0",
+]
+```
+
+### Test layout
+
+```
+dizzy/
+  tests/
+    conftest.py               # shared feat fixtures
+    fixtures/
+      recipe.feat.yaml        # full example feat used across tests
+    snapshots/                # syrupy snapshot files (committed)
+    generators/
+      test_models.py
+      test_commands.py
+      test_events.py
+      test_queries.py
+      test_procedures.py
+      test_policies.py
+      test_projections.py
+    test_cli.py               # end-to-end scaffold + gen integration tests
+```
