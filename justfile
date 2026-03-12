@@ -6,8 +6,9 @@ test:
 test-update:
     uv run pytest --snapshot-update
 
+[working-directory: "dizzy"]
 check:
-    uv run ty check dizzy
+    uv run ty check src/dizzy tests
 
 docs-serve:
     mkdocs serve

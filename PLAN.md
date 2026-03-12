@@ -36,11 +36,11 @@ Create `dizzy/src/dizzy/generators/` with one module per feat section. Each modu
 
 ### `generators/commands.py`
 
-- [ ] Write `tests/generators/test_commands.py`:
+- [x] Write `tests/generators/test_commands.py`:
   - unit: `render_scaffold_commands(feat)` produces valid LinkML stub listing all commands with attributes
   - unit: `render_gen_commands(feat)` produces valid Pydantic file for all commands
-- [ ] Implement `render_scaffold_commands` + `write_scaffold_commands` (stub `def/commands.yaml`, skip if exists)
-- [ ] Implement `render_gen_commands` + `write_gen_commands` (`gen_def/pydantic/commands.py`)
+- [x] Implement `render_scaffold_commands` + `write_scaffold_commands` (stub `def/commands.yaml`, skip if exists)
+- [x] Implement `render_gen_commands` + `write_gen_commands` (`gen_def/pydantic/commands.py`)
 - [ ] Run snapshot test; update + commit snapshots
 
 ### `generators/events.py`
