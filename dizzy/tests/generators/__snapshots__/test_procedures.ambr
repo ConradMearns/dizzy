@@ -1,0 +1,51 @@
+# serializer version: 1
+# name: test_render_procedure_context_snapshot
+  '''
+  # AUTO-GENERATED — do not edit
+  from dataclasses import dataclass
+  from typing import Callable
+  
+  from gen_def.pydantic.events import recipe_ingested
+  from gen_int.python.query.get_recipe_text import get_recipe_text_query
+  
+  
+  @dataclass
+  class extract_and_transform_recipe_emitters:
+      recipe_ingested: Callable[[recipe_ingested], None]
+  
+  
+  @dataclass
+  class extract_and_transform_recipe_queries:
+      get_recipe_text: get_recipe_text_query
+  
+  
+  @dataclass
+  class extract_and_transform_recipe_context:
+      emit: extract_and_transform_recipe_emitters
+      query: extract_and_transform_recipe_queries
+  
+  '''
+# ---
+# name: test_render_procedure_protocol_snapshot
+  '''
+  # AUTO-GENERATED — do not edit
+  from typing import Protocol
+  
+  from gen_def.pydantic.commands import ingest_recipe_text
+  from gen_int.python.procedure.extract_and_transform_recipe_context import (
+      extract_and_transform_recipe_context,
+  )
+  
+  
+  class extract_and_transform_recipe_protocol(Protocol):
+      """Queries raw recipe text via source_ref, then uses an LLM to extract a structured recipe (title, ingredients, steps, time, cost), validated against the recipe model."""
+  
+      def __call__(
+          self,
+          context: extract_and_transform_recipe_context,
+          command: ingest_recipe_text,
+      ) -> None:
+          ...
+  
+  '''
+# ---

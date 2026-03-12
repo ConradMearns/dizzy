@@ -52,6 +52,39 @@ just test-update
 
 These tests operate directly on `render_*` / `write_*` functions and are **independent of the CLI** (Phase 4). The CLI's end-to-end snapshot in `tests/test_cli.py` is a separate, additional layer added in Phase 4.
 
+## Generator cookbook
+
+Each generator module in `generators/` follows the same pattern. When adding a new one:
+
+### Render/write split
+
+Every section exposes pure `render_*` functions (return `str`, no filesystem access) and thin `write_*` wrappers (call `render_*`, write to the correct path). Tests call `render_*` directly — fast, no tmp_path needed.
+
+### Import ordering in generated files
+
+Generated Python files follow PEP 8 import grouping:
+1. `from __future__` (if needed)
+2. stdlib — `dataclasses`, `typing`
+3. blank line
+4. local generated imports — `gen_def.pydantic.*`, `gen_int.python.*`
+
+Omit a group entirely (including its blank line) when it has no imports. Two blank lines before each top-level class.
+
+### Edge-case conventions
+
+- **Optional fields** (`queries`, `emits`, `models`, `attributes`): only emit the corresponding class/block/import when the list/dict is non-empty.
+- **`pass`** in a dataclass body: used when the dataclass has no fields (e.g. emitters with no `emits`).
+- **Skip-if-exists**: `write_*` functions that produce user-editable files (`def/` stubs, `src/` stubs) skip writing when the file already exists. Generated files (`gen_def/`, `gen_int/`) are always overwritten.
+
+### Test workflow for a new generator
+
+1. Write `tests/generators/test_<section>.py` — unit tests asserting on string content, plus writer tests, plus two snapshot tests at the bottom.
+2. Run `just test` — all non-snapshot tests should pass; snapshot tests fail with "does not exist".
+3. Run `just test-update` — creates the `.ambr` snapshot files.
+4. Run `just test` again — all tests pass. Commit snapshots alongside the implementation.
+
+`just test` is the gate; `just test-update` only runs when intentionally locking in new or changed output.
+
 ## Stale / ignore
 
 - `dizzy/src/feature_model.py` — old LinkML-generated model, predates the full schema. Does not include models, queries, or projections. **Do not extend; use `feat.py` instead.**

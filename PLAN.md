@@ -64,14 +64,14 @@ Create `dizzy/src/dizzy/generators/` with one module per feat section. Each modu
 
 ### `generators/procedures.py`
 
-- [ ] Write `tests/generators/test_procedures.py`:
+- [x] Write `tests/generators/test_procedures.py`:
   - unit: `render_procedure_context(procedure_name, feat)` — assert context dataclass, nested emitters + queries dataclasses, correct imports
   - unit: `render_procedure_protocol(procedure_name, feat)` — assert Protocol class, `__call__` signature, correct imports
   - unit: procedure with no `queries` → no queries dataclass; procedure with no `emits` → empty emitters dataclass
-- [ ] Implement `render_procedure_context` + `write_procedure_context` (`gen_int/python/procedure/*_context.py`)
-- [ ] Implement `render_procedure_protocol` + `write_procedure_protocol` (`gen_int/python/procedure/*_protocol.py`)
-- [ ] Implement `write_procedure_src_stub` (`src/procedure/<name>.py`, skip if exists)
-- [ ] Run snapshot test; update + commit snapshots
+- [x] Implement `render_procedure_context` + `write_procedure_context` (`gen_int/python/procedure/*_context.py`)
+- [x] Implement `render_procedure_protocol` + `write_procedure_protocol` (`gen_int/python/procedure/*_protocol.py`)
+- [x] Implement `write_procedure_src_stub` (`src/procedure/<name>.py`, skip if exists)
+- [x] Run snapshot test; update + commit snapshots
 
 ### `generators/policies.py`
 
