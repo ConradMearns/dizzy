@@ -9,7 +9,7 @@ What worked well
 what were minor and major friction points
 Finally, offer suggestions for future prep.
 
-Enumerate each issue
+Use numbered lists.
 
 You may be asked to:
 - fix the issues: go ahead and fix what you are asked to fix and nothing else. Highlight new issues afterwards.
