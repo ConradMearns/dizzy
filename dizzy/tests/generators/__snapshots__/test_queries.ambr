@@ -1,0 +1,59 @@
+# serializer version: 1
+# name: test_render_gen_query_protocol_snapshot
+  '''
+  # AUTO-GENERATED — do not edit
+  from dataclasses import dataclass
+  from typing import Protocol, Any
+  
+  from gen_def.pydantic.query.get_recipe_text_input import get_recipe_text_input
+  from gen_def.pydantic.query.get_recipe_text_output import get_recipe_text_output
+  
+  
+  @dataclass
+  class get_recipe_text_context:
+      """SQLAlchemy session for the schema read by this query."""
+      recipes: Any  # SQLAlchemy session for the recipes schema
+  
+  
+  class get_recipe_text_query(Protocol):
+      """Retrieves raw recipe text given a source reference"""
+  
+      def __call__(
+          self, input: get_recipe_text_input, context: get_recipe_text_context
+      ) -> get_recipe_text_output:
+          ...
+  
+  '''
+# ---
+# name: test_render_scaffold_query_input_snapshot
+  '''
+  id: https://example.org/queries/get_recipe_text_input
+  name: get_recipe_text_input
+  prefixes:
+    linkml: https://w3id.org/linkml/
+  default_range: string
+  imports:
+    - linkml:types
+  classes:
+    get_recipe_text_input:
+      description: Input for get_recipe_text — Retrieves raw recipe text given a source reference
+      attributes: {}
+  
+  '''
+# ---
+# name: test_render_scaffold_query_output_snapshot
+  '''
+  id: https://example.org/queries/get_recipe_text_output
+  name: get_recipe_text_output
+  prefixes:
+    linkml: https://w3id.org/linkml/
+  default_range: string
+  imports:
+    - linkml:types
+  classes:
+    get_recipe_text_output:
+      description: Output for get_recipe_text — Retrieves raw recipe text given a source reference
+      attributes: {}
+  
+  '''
+# ---

@@ -60,6 +60,7 @@ These tests operate directly on `render_*` / `write_*` functions and are **indep
 
 ## Test Execution
 
-Run tests with the `justfile`
+Always run tests via the `justfile` — never call `uv run pytest` directly.
 
-`just test`
+- `just test` — run the full test suite
+- `just test-update` — run tests and update syrupy snapshots

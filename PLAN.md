@@ -54,13 +54,13 @@ Create `dizzy/src/dizzy/generators/` with one module per feat section. Each modu
 
 ### `generators/queries.py`
 
-- [ ] Write `tests/generators/test_queries.py`:
+- [x] Write `tests/generators/test_queries.py`:
   - unit: `render_scaffold_query_input(query_name, feat)` produces LinkML stub
   - unit: `render_scaffold_query_output(query_name, feat)` produces LinkML stub
   - unit: `render_gen_query_protocol(query_name, feat)` produces correct Protocol + context dataclass (imports, class names, docstring from description, model field)
-- [ ] Implement scaffold renders + writers (stubs in `def/queries/`, skip if exists)
-- [ ] Implement gen renders + writers (`gen_def/pydantic/query/`, `gen_int/python/query/`, `src/query/` stub if not exists)
-- [ ] Run snapshot test; update + commit snapshots
+- [x] Implement scaffold renders + writers (stubs in `def/queries/`, skip if exists)
+- [x] Implement gen renders + writers (`gen_def/pydantic/query/`, `gen_int/python/query/`, `src/query/` stub if not exists)
+- [x] Run snapshot test; update + commit snapshots
 
 ### `generators/procedures.py`
 
