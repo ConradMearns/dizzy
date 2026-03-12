@@ -1,1 +1,0 @@
-Read @SPECIFICATION.md and @PLAN.md - work on the first task ONLY until complete. When complete, verify and update @PLAN.md then exit 

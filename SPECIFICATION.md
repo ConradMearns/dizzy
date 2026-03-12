@@ -8,7 +8,7 @@ frameworks, or infrastructure.
 
 The generator pipeline reads a `.feat.yaml` and produces:
 - LinkML schema files (`def/`) for each section
-- Generated Python models and interfaces (`gen/`)
+- Generated Python models and interfaces (`gen_def/`, `gen_int/`)
 
 ---
 
@@ -203,7 +203,58 @@ Fields:
 - `queries` (optional): list of query names this procedure needs access to
 - `emits` (optional): list of event names this procedure may emit
 
-**Generates:** `gen_int/python/procedure/<procedure_name>_context.py`, `gen_int/python/procedure/<procedure_name>_protocol.py`
+**Gen generates:**
+- `gen_int/python/procedure/<procedure_name>_context.py` — context dataclass with `_emitters` and `_queries` nested dataclasses:
+
+```python
+# AUTO-GENERATED — do not edit
+from dataclasses import dataclass
+from typing import Callable
+
+from gen_def.pydantic.events import recipe_ingested
+from gen_int.python.query.get_recipe_text import get_recipe_text_query
+
+
+@dataclass
+class extract_and_transform_recipe_emitters:
+    recipe_ingested: Callable[[recipe_ingested], None]
+
+
+@dataclass
+class extract_and_transform_recipe_queries:
+    get_recipe_text: get_recipe_text_query
+
+
+@dataclass
+class extract_and_transform_recipe_context:
+    emit: extract_and_transform_recipe_emitters
+    query: extract_and_transform_recipe_queries
+```
+
+- `gen_int/python/procedure/<procedure_name>_protocol.py` — Protocol stub:
+
+```python
+# AUTO-GENERATED — do not edit
+from typing import Protocol
+
+from gen_def.pydantic.commands import ingest_recipe_text
+from gen_int.python.procedure.extract_and_transform_recipe_context import (
+    extract_and_transform_recipe_context,
+)
+
+
+class extract_and_transform_recipe_protocol(Protocol):
+    """Queries raw recipe text via source_ref, then uses an LLM to extract a structured recipe."""
+
+    def __call__(
+        self,
+        context: extract_and_transform_recipe_context,
+        command: ingest_recipe_text,
+    ) -> None:
+        ...
+```
+
+- `src/procedure/<procedure_name>.py` — empty implementation stub (skipped if already exists)
 
 ---
 
@@ -223,7 +274,51 @@ Fields:
 - `event` (required): the event that triggers this policy
 - `emits` (optional): list of command names this policy may dispatch
 
-**Generates:** `gen_int/python/policy/<policy_name>_protocol.py`
+**Gen generates:**
+- `gen_int/python/policy/<policy_name>_context.py` — context dataclass with an emitters nested dataclass (mirrors procedure context, no queries):
+
+```python
+# AUTO-GENERATED — do not edit
+from dataclasses import dataclass
+from typing import Callable
+
+from gen_def.pydantic.commands import create_image_priority_manifest
+
+
+@dataclass
+class trigger_priority_manifest_emitters:
+    create_image_priority_manifest: Callable[[create_image_priority_manifest], None]
+
+
+@dataclass
+class trigger_priority_manifest_context:
+    emit: trigger_priority_manifest_emitters
+```
+
+For policies with no `emits`, the emitters dataclass has `pass`.
+
+- `gen_int/python/policy/<policy_name>_protocol.py` — Protocol stub:
+
+```python
+# AUTO-GENERATED — do not edit
+from typing import Protocol
+
+from gen_def.pydantic.events import scan_complete
+from gen_int.python.policy.trigger_priority_manifest_context import (
+    trigger_priority_manifest_context,
+)
+
+
+class trigger_priority_manifest_protocol(Protocol):
+    """Issues command to create image priority manifest when scan completes"""
+
+    def __call__(
+        self, event: scan_complete, context: trigger_priority_manifest_context
+    ) -> None:
+        ...
+```
+
+- `src/policy/<policy_name>.py` — implementation stub (skipped if already exists)
 
 ---
 
@@ -249,15 +344,15 @@ Fields:
 - `event` (required): the single event that triggers this projection
 - `models` (required): list of schema names from `models` that this projection writes into
 
-**Generates:** `gen_int/python/projection/<projection_name>_projection.py` — a context dataclass
-and a Protocol stub:
+**Gen generates:** `gen_int/python/projection/<projection_name>_projection.py` — a context dataclass
+and a Protocol stub, plus `src/projection/<projection_name>.py` (skipped if already exists):
 
 ```python
 # AUTO-GENERATED — do not edit
 from dataclasses import dataclass
 from typing import Protocol, Any
 
-from ..events import recipe_ingested
+from gen_def.pydantic.events import recipe_ingested
 
 
 @dataclass
@@ -393,6 +488,9 @@ def: definitions
 gen_def: generated definitions
 gen_int: generated interfaces
 
+`dizzy gen` also emits an empty `__init__.py` in every generated directory so that the output
+tree is a valid Python package and root-relative imports resolve correctly.
+
 Sections with no content in the feat file produce no output.
 
 ---
@@ -409,11 +507,16 @@ to that root:
 
 | From | Importing | Import |
 |------|-----------|--------|
+| `gen_int/python/query/` | Query input/output models | `from gen_def.pydantic.query.<name>_input import ...` |
 | `gen_int/python/procedure/` | Pydantic events | `from gen_def.pydantic.events import ...` |
 | `gen_int/python/procedure/` | Pydantic commands | `from gen_def.pydantic.commands import ...` |
-| `gen_int/python/procedure/` | Query Protocols | `from gen_int.python.query import ...` |
+| `gen_int/python/procedure/` | Query Protocols | `from gen_int.python.query.<name> import ...` |
+| `gen_int/python/policy/` | Pydantic events | `from gen_def.pydantic.events import ...` |
+| `gen_int/python/policy/` | Pydantic commands | `from gen_def.pydantic.commands import ...` |
 | `gen_int/python/projection/` | Pydantic events | `from gen_def.pydantic.events import ...` |
+| `src/query/` | Query Protocol + context | `from gen_int.python.query.<name> import ...` |
 | `src/procedure/` | Procedure Protocol + context | `from gen_int.python.procedure.<name>_protocol import ...` |
+| `src/policy/` | Policy Protocol | `from gen_int.python.policy.<name>_protocol import ...` |
 | `src/projection/` | Projection Protocol + context | `from gen_int.python.projection.<name>_projection import ...` |
 
 The feature output directory must be on `sys.path` (or be a package reachable from it) for
@@ -443,16 +546,19 @@ Reads the feat file and generates empty `def/` stub files for everything that re
 human schema authorship before code can be generated:
 
 - `def/models/<schema_name>.yaml` — stub LinkML schema per model (skipped if already exists)
-- `def/commands.yaml` — stub LinkML schema listing all commands
-- `def/events.yaml` — stub LinkML schema listing all events
+- `def/queries/<query_name>_input.yaml` — stub LinkML schema for each query's input (skipped if already exists)
+- `def/queries/<query_name>_output.yaml` — stub LinkML schema for each query's output (skipped if already exists)
+- `def/commands.yaml` — stub LinkML schema listing all commands (skipped if already exists)
+- `def/events.yaml` — stub LinkML schema listing all events (skipped if already exists)
 
 After running, Dizzy prints:
 
 ```
 Scaffolded def/ stubs. Next steps:
   1. Fill in class definitions in def/models/*.yaml
-  2. Add attributes to def/commands.yaml and def/events.yaml
-  3. Run: dizzy gen <feat_file> <output_dir>
+  2. Add input/output shapes in def/queries/*.yaml
+  3. Add attributes to def/commands.yaml and def/events.yaml
+  4. Run: dizzy gen <feat_file> <output_dir>
 ```
 
 With `--todos`, also writes `def/TODO.md` describing what needs to be authored in each stub file.
@@ -482,7 +588,7 @@ Reads both the feat file and the authored `def/` files, then generates:
 **`gen_int/`** — Protocol stubs derived from the feat file structure (queries, procedures,
 policies, projections)
 
-**`src/`** — empty implementation stubs, one per interface, for the developer to fill in:
+**`src/`** — implementation stubs, one per interface, for the developer to fill in. Each stub imports its Protocol and raises `NotImplementedError`:
 
 ```
 src/
