@@ -75,6 +75,33 @@ def test_render_scaffold_commands_write_creates_file(tmp_path: Path, recipe_feat
 
 
 
+def test_render_scaffold_commands_plain_string() -> None:
+    """A command declared as a plain string parses and renders with empty attributes."""
+    from dizzy.feat import _parse_command_def
+
+    cmd = _parse_command_def("Does the thing")
+    assert cmd.description == "Does the thing"
+    assert cmd.attributes == {}
+
+    feat = FeatureDefinition(commands={"do_thing": cmd})
+    result = render_scaffold_commands(feat)
+    assert "do_thing:" in result
+    assert "Does the thing" in result
+    assert "attributes: {}" in result
+
+
+def test_render_scaffold_commands_empty_section() -> None:
+    """An empty commands section renders only the LinkML header with no class entries."""
+    feat = FeatureDefinition()
+    result = render_scaffold_commands(feat)
+    assert "id: https://example.org/commands" in result
+    assert "classes:" in result
+    # no command names in output
+    lines = result.splitlines()
+    class_idx = next(i for i, l in enumerate(lines) if l.strip() == "classes:")
+    assert all(not l.strip() for l in lines[class_idx + 1 :])
+
+
 def test_render_scaffold_commands_snapshot(recipe_feat: FeatureDefinition, snapshot: Any) -> None:
     result = render_scaffold_commands(recipe_feat)
     assert result == snapshot

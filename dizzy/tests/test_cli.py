@@ -3,6 +3,7 @@
 import pytest
 from click.exceptions import Exit as ClickExit
 from pathlib import Path
+from syrupy.assertion import SnapshotAssertion
 
 from dizzy.cli import def_cmd, gen
 
@@ -91,6 +92,19 @@ def test_def_partial_feat(tmp_path: Path) -> None:
     assert (tmp_path / "def" / "queries" / "find_thing.yaml").exists()
     assert not (tmp_path / "def" / "events.yaml").exists()
     assert not (tmp_path / "def" / "models").exists()
+
+
+def test_gen_full_example_snapshot(tmp_path: Path, snapshot: SnapshotAssertion) -> None:
+    def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+    gen(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+
+    generated: dict[str, str] = {}
+    for f in sorted(tmp_path.rglob("*")):
+        if f.is_file():
+            content = f.read_text().replace(str(tmp_path), "<output_dir>")
+            generated[str(f.relative_to(tmp_path))] = content
+
+    assert generated == snapshot
 
 
 def test_gen_does_not_overwrite_src(tmp_path: Path) -> None:
