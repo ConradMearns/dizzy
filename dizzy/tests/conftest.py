@@ -15,3 +15,9 @@ def recipe_feat() -> FeatureDefinition:
     return load_feat(FIXTURES_DIR / "recipe.feat.yaml")
 
 
+@pytest.fixture
+def partial_feat() -> FeatureDefinition:
+    """Partial feat — commands, queries, procedures only (no models/events/policies/projections)."""
+    return load_feat(FIXTURES_DIR / "partial.feat.yaml")
+
+

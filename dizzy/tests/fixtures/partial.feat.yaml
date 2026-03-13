@@ -1,0 +1,15 @@
+description: Partial feat — commands, queries, and procedures only
+
+commands:
+  do_thing: Does a thing
+
+queries:
+  find_thing:
+    description: Finds a thing without a model dependency
+
+procedures:
+  run_thing:
+    description: Runs a thing
+    command: do_thing
+    queries:
+      - find_thing

@@ -84,6 +84,15 @@ def test_gen_error_when_def_missing(tmp_path: Path, capsys: pytest.CaptureFixtur
     assert "def/commands.yaml" in captured.out
 
 
+def test_def_partial_feat(tmp_path: Path) -> None:
+    def_cmd(feat_file=FIXTURES_DIR / "partial.feat.yaml", output_dir=tmp_path)
+
+    assert (tmp_path / "def" / "commands.yaml").exists()
+    assert (tmp_path / "def" / "queries" / "find_thing.yaml").exists()
+    assert not (tmp_path / "def" / "events.yaml").exists()
+    assert not (tmp_path / "def" / "models").exists()
+
+
 def test_gen_does_not_overwrite_src(tmp_path: Path) -> None:
     def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
     gen(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)

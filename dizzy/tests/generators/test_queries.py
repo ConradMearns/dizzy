@@ -10,6 +10,7 @@ from dizzy.generators.queries import (
 )
 
 
+
 def test_render_scaffold_query_linkml_header(recipe_feat: FeatureDefinition) -> None:
     result = render_scaffold_query("get_recipe_text", recipe_feat)
     assert "id: https://example.org/queries/get_recipe_text" in result
@@ -139,6 +140,16 @@ def test_write_src_query_stub_skips_if_exists(
     dest.write_text("my implementation")
     write_src_query_stub("get_recipe_text", tmp_path)
     assert dest.read_text() == "my implementation"
+
+
+def test_render_gen_query_protocol_model_none_omits_session_field(
+    partial_feat: FeatureDefinition,
+) -> None:
+    result = render_gen_query_protocol("find_thing", partial_feat)
+    assert "pass" in result
+    assert "SQLAlchemy session" not in result
+    assert "class find_thing_context:" in result
+    assert "class find_thing_query(Protocol):" in result
 
 
 def test_render_scaffold_query_snapshot(

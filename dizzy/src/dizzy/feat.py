@@ -28,7 +28,7 @@ class EventDef:
 @dataclass
 class QueryDef:
     description: str
-    model: str
+    model: str | None = None
 
 
 @dataclass
@@ -95,7 +95,7 @@ def _parse_event_def(raw: Any) -> EventDef:
 def _parse_query_def(raw: Any) -> QueryDef:
     if isinstance(raw, str):
         raise ValueError("query entries must be a mapping with description and model")
-    return QueryDef(description=raw["description"], model=raw["model"])
+    return QueryDef(description=raw["description"], model=raw.get("model"))
 
 
 def _parse_procedure_def(raw: dict[str, Any]) -> ProcedureDef:
