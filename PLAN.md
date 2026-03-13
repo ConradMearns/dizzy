@@ -11,9 +11,9 @@ Clean up ISSUES.md after completing tasks.
 
 ## Phase 2 — Consolidate Root pyproject.toml
 
-- [ ] Delete `/home/conrad/dizzy/pyproject.toml` (root workspace wrapper)
-- [ ] Move `dizzy/pyproject.toml` up to repo root (or verify it already works as the root)
-- [ ] Remove `[tool.uv.workspace]` section; confirm `uv` commands still work from repo root
+- [x] Delete `/home/conrad/dizzy/pyproject.toml` (root workspace wrapper)
+- [x] Move `dizzy/pyproject.toml` up to repo root (or verify it already works as the root)
+- [x] Remove `[tool.uv.workspace]` section; confirm `uv` commands still work from repo root
 
 ---
 

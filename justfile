@@ -1,14 +1,11 @@
-[working-directory: "dizzy"]
 test:
     uv run pytest
 
-[working-directory: "dizzy"]
 test-update:
     uv run pytest --snapshot-update
 
-[working-directory: "dizzy"]
 check:
-    uv run ty check src/dizzy tests
+    uv run ty check dizzy/src/dizzy dizzy/tests
 
 docs-serve:
     mkdocs serve

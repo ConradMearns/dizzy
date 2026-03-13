@@ -1,31 +1,34 @@
 [project]
-name = "dizzy-root"
+name = "dizzy"
 version = "0.1.0"
-description = "Dizzy monorepo root"
+description = "Dizzy core library"
+readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "dizzy",
-    "plotext>=5.3.2",
-    "xxhash>=3.6.0", # procedure partition_scan
+    "linkml>=1.9.5",
+    "pyyaml>=6.0",
+    "typer[all]>=0.20.0",
 ]
+
+[project.scripts]
+dizzy = "dizzy.cli:main"
 
 [dependency-groups]
 dev = [
-    "pandas>=2.3.3",
-    "pyyaml>=6.0.3",
-    "ty>=0.0.1a27",
-]
-docs = [
-    "mkdocs>=1.6.1",
-    "mkdocs-material>=9.6.22",
-    "mkdocs-publisher>=1.4.8",
-    "mkdocstrings[python]>=0.30.1",
+    "pytest>=8.4.2",
+    "syrupy>=4.0",
 ]
 
-[tool.uv.workspace]
-members = [
-    "dizzy",
-]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.uv.sources]
-dizzy = { workspace = true }
+[tool.hatch.build.targets.wheel]
+packages = ["dizzy/src/dizzy"]
+
+[tool.pytest.ini_options]
+pythonpath = ["dizzy/src"]
+testpaths = ["dizzy/tests"]
+
+[tool.ty.environment]
+extra-paths = ["dizzy/src"]
