@@ -62,9 +62,9 @@ Everything in computing changes - it's just a matter of _when_ the change occurs
 
 We often see, especially in the most cursed software projects, that poor decisions will rear their heads to haunt us again later on.
 
-Decisions that seemed either well intentioned, necessary, critical, or even genuinely brilliant can all turn into a curse when the conditions are right. And truly - I don't know what is worse: the number of projects people have retained as sunk costs, due to pride or politics - or the number of people who seemingly have no awareness of the curses they write. 
+Decisions that seemed either well intentioned, necessary, critical, or even genuinely brilliant can all turn into a curse when the conditions are right. And truly - I don't know what is worse: the number of projects people have retained as sunk costs, due to pride or politics - or the number of people who seemingly have no awareness of the curses they write.
 
-(Though, hindsight punishes the early architects all too often. 
+(Though, hindsight punishes the early architects all too often.
 There are too many such cases, when a developer succumbs to the pressures of the labor. When they break, integrity breaks too. We see mitigations, shortcuts, hacks and sloppy writing apparent as the evidence of such mental slips and burnouts.)
 
 A decent Software Architecture is a ward against such curses. It is the draft of constraints that prevent the workarounds, the dirty hacks, and the "clever" tricks that inevitably cause confusion and harm later. A decent architecture promotes modularity for the sake of repairability.
@@ -90,7 +90,7 @@ We call this "Coupling"
 // only to be usurped and made obsolete by advances in hardware development,
 // or algorithms that change the objective completely.
 
-// 
+//
 
 https://longnow.org/ideas/pace-layers/
 
@@ -104,7 +104,7 @@ The problem is not deciding which option is _correct_ - the choice itself is wha
 There are many stories of those who find a themselves in some peril with bad architecture, and how they saved themselves with a large and heroic refactor.
 These stories illustrate the fear and focus of Software Architecture. We can take direct comparisons against the prices others have paid for the wrong decision - and how long such mistakes took to fix.
 
-Such is also the case for vendor lock-in - whether it be a Service maintained by another organization, or an entire cloud provider. 
+Such is also the case for vendor lock-in - whether it be a Service maintained by another organization, or an entire cloud provider.
 
 // TODO: Argue that the real issue with modern architectures is not whether
 // Monoliths or Microservices are better — it's that we force that decision
@@ -126,7 +126,7 @@ Such is also the case for vendor lock-in - whether it be a Service maintained by
 
 The isolation of data within applications hurts both consumers and businesses.
 
-As a consumer, the data we generate from our photos, health integrations, recipes, liked posts, videos, journal entries etc are effectively useless to us. 
+As a consumer, the data we generate from our photos, health integrations, recipes, liked posts, videos, journal entries etc are effectively useless to us.
 Power users of information cannot access their own data from the Walled Gardens of the internet without using complex and bespoke API's, and cannot integrate their applications together on their own.
 
 Similarly, even within a single business teams struggle to share data effectively.
@@ -187,7 +187,7 @@ DIZZY's intent on enforcing rigid constraints is a philosophical and practical c
 
 // TODO: Introduce the philosophical foundation. These aren't just technical
 // patterns — they're design values that inform every decision in DIZZY.
-//   
+//
 
 == Deferring Decisions
 
@@ -206,7 +206,14 @@ DIZZY prefers to answer and understand the business problems to solve from first
 
 == Architecting for Reversibility
 
-Reversibility is about maintaining the freedom to respond to new information. 
+Reversibility is about maintaining the freedom to respond to new information.
+
+DIZZY should not only empower modularization of our system, it should naturally enable A/B testing and hotswapping so that reversing decisions becomes a standard practice, rather than a hail mary.
+
+// Describe what "reversible" means concretely:
+// - Swap a Postgres-backed model for Redis without touching business logic
+// - Move from monolith to microservice deployment without changing procedure code
+// - Rewrite a procedure in a different language while keeping the same schema contract
 
 - What if we could swap databases in and out of our system as easily as a feature flag?
 - What if our database vendor contract has to be abandoned?
@@ -243,7 +250,7 @@ Just as Programming Languages translate human intent to machine code - so too sh
 
 DIZZY calls this an Interstitial Infrastructure. The goal is to treat Interstitial Infrastructure as a compilation problem.
 
-Infrastructure decisions are the final step in a DIZZY deployment, and enable DIZZY to be built as either a monolith, microservices, or something in between. 
+Infrastructure decisions are the final step in a DIZZY deployment, and enable DIZZY to be built as either a monolith, microservices, or something in between.
 
 Commands, Events, and Models are data. They can be communicated over any number or combinations of message passing channels, such as ZeroMQ, Kafka, HTTP, WebSocket, gRPC, etc.
 
@@ -566,4 +573,4 @@ For the formal specification of DIZZY components, schemas, and code generation p
 // [Conway] Conway, M., "How Do Committees Invent?", 1968.
 // [Dijkstra] Dijkstra, E., "The Humble Programmer", ACM Turing Lecture, 1972.
 // [Feathers] Feathers, M., "Working Effectively with Legacy Code", Prentice Hall, 2004.
-// [Kleppmann] Kleppmann, M., "Designing Data-Intensive Applications", O'Reilly, 2017.
+// [Kleppmann] Kleppmann, "Designing Data-Intensive Applications", O'Reilly, 2017.
