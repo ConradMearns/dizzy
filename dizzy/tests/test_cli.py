@@ -1,16 +1,16 @@
-"""End-to-end scaffold + gen integration tests."""
+"""End-to-end def + gen integration tests."""
 
 import pytest
 from click.exceptions import Exit as ClickExit
 from pathlib import Path
 
-from dizzy.cli import scaffold, gen
+from dizzy.cli import def_cmd, gen
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
-def test_scaffold_creates_def_stubs(tmp_path: Path) -> None:
-    scaffold(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+def test_def_creates_def_stubs(tmp_path: Path) -> None:
+    def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
 
     assert (tmp_path / "def" / "commands.yaml").exists()
     assert (tmp_path / "def" / "events.yaml").exists()
@@ -19,21 +19,21 @@ def test_scaffold_creates_def_stubs(tmp_path: Path) -> None:
     assert (tmp_path / "def" / "models" / "recipes.yaml").exists()
 
 
-def test_scaffold_does_not_overwrite(tmp_path: Path) -> None:
-    scaffold(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+def test_def_does_not_overwrite(tmp_path: Path) -> None:
+    def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
 
     commands_path = tmp_path / "def" / "commands.yaml"
     original_content = commands_path.read_text()
     commands_path.write_text("# custom content\n")
 
-    scaffold(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+    def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
 
     assert commands_path.read_text() == "# custom content\n"
     assert (tmp_path / "def" / "events.yaml").read_text() != "# custom content\n"
 
 
 def test_gen_creates_all_outputs(tmp_path: Path) -> None:
-    scaffold(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+    def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
     gen(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
 
     # gen_def/ — linkml outputs
@@ -80,12 +80,12 @@ def test_gen_error_when_def_missing(tmp_path: Path, capsys: pytest.CaptureFixtur
         gen(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
     assert exc_info.value.exit_code == 1
     captured = capsys.readouterr()
-    assert "dizzy scaffold" in captured.out
+    assert "dizzy def" in captured.out
     assert "def/commands.yaml" in captured.out
 
 
 def test_gen_does_not_overwrite_src(tmp_path: Path) -> None:
-    scaffold(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+    def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
     gen(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
 
     src_file = tmp_path / "src" / "query" / "get_recipe_text.py"

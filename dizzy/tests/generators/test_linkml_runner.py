@@ -2,14 +2,14 @@
 
 from pathlib import Path
 
-from dizzy.cli import scaffold
+from dizzy.cli import def_cmd
 from dizzy.generators.linkml_runner import run_linkml_pydantic, run_linkml_sqla
 
 FIXTURES_DIR = Path(__file__).parent.parent / "fixtures"
 
 
 def _scaffold(tmp_path: Path) -> None:
-    scaffold(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+    def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
 
 
 def test_run_linkml_pydantic_commands(tmp_path: Path) -> None:

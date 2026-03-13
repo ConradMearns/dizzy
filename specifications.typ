@@ -111,7 +111,7 @@ schemas by `linkml gen-pydantic`.
 *Protocol* --- A Python `typing.Protocol` specifying the callable signature required for a
 Procedure, Policy, or Query implementation.
 
-*Scaffold* --- The first generator pass (`dizzy scaffold`). Produces stub `def/` files for human
+*Def* --- The first generator pass (`dizzy def`). Produces stub `def/` files for human
 authorship. Never overwrites existing files.
 
 *Gen* --- The second generator pass (`dizzy gen`). Reads authored `def/` files and produces
@@ -488,7 +488,7 @@ classes:
 
 Use plural, lowercase (snake_case) names.
 
-*Scaffold generates* (stub, never overwritten):
+*`dizzy def` generates* (stub, never overwritten):
 - `def/models/<schema_name>.yaml` — stub LinkML schema
 
 *Gen generates* (by running the LinkML toolchain):
@@ -514,7 +514,7 @@ Fields:
 - `description` (required): what this query does
 - `model` (required): the schema name from `models` that this query reads from
 
-*Scaffold generates* (stub, never overwritten):
+*`dizzy def` generates* (stub, never overwritten):
 - `def/queries/<query_name>.yaml` — single LinkML stub containing `<QueryName>Input` and
   `<QueryName>Output` class stubs
 
@@ -588,7 +588,7 @@ commands:
         required: true
 ```
 
-*Scaffold generates* (stub, never overwritten):
+*`dizzy def` generates* (stub, never overwritten):
 - `def/commands.yaml` — LinkML stub listing all commands with attributes
 
 *Gen generates*:
@@ -613,7 +613,7 @@ events:
         type: string
 ```
 
-*Scaffold generates* (stub, never overwritten):
+*`dizzy def` generates* (stub, never overwritten):
 - `def/events.yaml` — LinkML stub listing all events with attributes
 
 *Gen generates*:
@@ -873,7 +873,7 @@ preserving human authorship over data shapes.
 
 #figure(pipeline) <fig-pipeline>
 
-The split between `scaffold` and `gen` exists because `def/` files require human authorship
+The split between `dizzy def` and `dizzy gen` exists because `def/` files require human authorship
 between the two passes — they cannot be fully derived from the feat file alone.
 
 == Directory Structure
@@ -936,10 +936,10 @@ Sections with no content in the feat file produce no output.
 Write `my_feature.feat.yaml` by hand. Declare models, commands, events, procedures, policies,
 and projections at the intent level. No types, no schemas, no implementation details yet.
 
-== Stage 2 — Scaffold Definition Stubs
+== Stage 2 — Generate Definition Stubs
 
 ```
-dizzy scaffold <feat_file> <output_dir>
+dizzy def <feat_file> <output_dir>
 ```
 
 Reads the feat file and generates empty `def/` stub files for everything that requires
@@ -954,7 +954,7 @@ human schema authorship:
 After running, Dizzy prints:
 
 ```
-Scaffolded def/ stubs. Next steps:
+Generated def/ stubs. Next steps:
   1. Fill in class definitions in def/models/*.yaml
   2. Add input/output shapes in def/queries/*.yaml
   3. Add attributes to def/commands.yaml and def/events.yaml
@@ -1059,7 +1059,7 @@ paths. The feature output directory must be on `sys.path` for imports to resolve
   columns: (auto, auto, auto),
   [*Step*], [*Command*], [*You do next*],
   [1], [---], [Write `my_feature.feat.yaml`],
-  [2], [`dizzy scaffold`], [Edit `def/` schema stubs],
+  [2], [`dizzy def`], [Edit `def/` schema stubs],
   [3], [---], [Author class definitions and attributes],
   [4], [`dizzy gen`], [Implement `src/` stubs],
 )
@@ -1098,10 +1098,10 @@ Typer commands are plain Python functions. Tests call them directly without subp
 `CliRunner`. The `tmp_path` pytest fixture provides the output directory.
 
 ```python
-from dizzy.cli import scaffold
+from dizzy.cli import def_cmd
 
-def test_scaffold_creates_def_stubs(tmp_path: Path) -> None:
-    scaffold(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+def test_def_creates_def_stubs(tmp_path: Path) -> None:
+    def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
     assert (tmp_path / "def" / "commands.yaml").exists()
     assert (tmp_path / "def" / "events.yaml").exists()
 ```
@@ -1145,7 +1145,7 @@ dizzy/
       test_procedures.py
       test_policies.py
       test_projections.py
-    test_cli.py               # end-to-end scaffold + gen integration tests
+    test_cli.py               # end-to-end def + gen integration tests
 ```
 
 
@@ -1193,7 +1193,7 @@ The generator MUST validate Feature Definitions before code generation:
 == Code Generation Idempotency
 
 Running code generation multiple times MUST produce identical output:
-- `dizzy scaffold` produces same stubs given the same Feature Definition (skips existing files)
+- `dizzy def` produces same stubs given the same Feature Definition (skips existing files)
 - `dizzy gen` produces same protocols given the same feat file and `def/` files
 - Timestamps and random IDs are never included in generated code
 
@@ -1355,7 +1355,7 @@ Addison-Wesley, 2003.
 
 *Version 0.2.0 (2026-03-12)*:
 - Unified SPECIFICATION.md (v0.2, repo-authoritative) and specification.md (v0.1, older draft)
-- Corrected CLI commands: `dizzy scaffold` / `dizzy gen` (supersedes old `dizzy gen init` /
+- Corrected CLI commands: `dizzy def` / `dizzy gen` (supersedes old `dizzy gen init` /
   `dizzy gen src`)
 - Corrected directory layout: `gen_def/` + `gen_int/` (supersedes old `gen/pyd/`)
 - Corrected commands and events schema layout: single `def/commands.yaml` and `def/events.yaml`

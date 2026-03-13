@@ -29,8 +29,8 @@ from dizzy.generators.init_emitter import write_init_files
 app = typer.Typer()
 
 
-@app.command()
-def scaffold(
+@app.command("def")
+def def_cmd(
     feat_file: Path = typer.Argument(..., help="Path to the .feat.yaml file"),
     output_dir: Path = typer.Argument(..., help="Output directory for generated files"),
 ) -> None:
@@ -49,7 +49,7 @@ def scaffold(
     for schema_name in feat.models:
         write_scaffold_model(schema_name, feat, output_dir)
 
-    typer.echo("Scaffolded def/ stubs. Next steps:")
+    typer.echo("Generated def/ stubs. Next steps:")
     typer.echo("  1. Fill in class definitions in def/models/*.yaml")
     typer.echo("  2. Add input/output shapes in def/queries/*.yaml")
     typer.echo("  3. Add attributes to def/commands.yaml and def/events.yaml")
@@ -61,7 +61,7 @@ def gen(
     feat_file: Path = typer.Argument(..., help="Path to the .feat.yaml file"),
     output_dir: Path = typer.Argument(..., help="Output directory for generated files"),
 ) -> None:
-    """Generate gen_def/, gen_int/, and src/ from a scaffolded feature directory."""
+    """Generate gen_def/, gen_int/, and src/ from an authored def/ directory."""
     feat = load_feat(feat_file)
 
     # Guard: check that all required def/ stubs exist before proceeding
@@ -81,7 +81,7 @@ def gen(
 
     if missing:
         typer.echo(
-            "Error: def/ stubs not found. Run `dizzy scaffold <feat_file> <output_dir>` first."
+            "Error: def/ stubs not found. Run `dizzy def <feat_file> <output_dir>` first."
         )
         typer.echo("Missing:")
         for path in missing:
