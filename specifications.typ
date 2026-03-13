@@ -1181,7 +1181,13 @@ Projects SHOULD NOT version control:
 
 == Feature Definition Validation
 
-The generator MUST validate Feature Definitions before code generation:
+A partial feat file is valid. All sections are optional; absent sections produce no output.
+A feat is valid as long as every cross-reference it declares resolves within the same feat file.
+For example, a feat with only `commands`, `queries`, and `procedures` (but no `events`, `policies`,
+or `projections`) is valid provided the procedure's `command` and `queries` fields reference names
+declared in that same feat — no `emits` means no event references to validate.
+
+The generator MUST validate cross-references before code generation:
 - All `command` references in procedures exist in `commands:`
 - All `event` references in policies and projections exist in `events:`
 - All `model` references in queries exist in `models:`

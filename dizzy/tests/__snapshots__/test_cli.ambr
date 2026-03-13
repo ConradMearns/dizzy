@@ -1,0 +1,864 @@
+# serializer version: 1
+# name: test_gen_full_example_snapshot
+  dict({
+    'def/commands.yaml': '''
+      id: https://example.org/commands
+      name: commands
+      prefixes:
+        linkml: https://w3id.org/linkml/
+      default_range: string
+      imports:
+        - linkml:types
+      classes:
+        ingest_recipe_text:
+          description: Initiates ingestion of a recipe from a raw text source
+          attributes: {}
+  
+    ''',
+    'def/events.yaml': '''
+      id: https://example.org/events
+      name: events
+      prefixes:
+        linkml: https://w3id.org/linkml/
+      default_range: string
+      imports:
+        - linkml:types
+      classes:
+        recipe_ingested:
+          description: A recipe was successfully extracted and validated
+          attributes:
+            recipe_id:
+              range: string
+              required: true
+            source_ref:
+              range: string
+              required: true
+  
+    ''',
+    'def/models/recipes.yaml': '''
+      id: https://example.org/models/recipes
+      name: recipes
+      description: Full recipe database — recipes, steps, and ingredients
+      prefixes:
+        linkml: https://w3id.org/linkml/
+      default_range: string
+      imports:
+        - linkml:types
+      classes: {}
+  
+    ''',
+    'def/queries/get_recipe.yaml': '''
+      id: https://example.org/queries/get_recipe
+      name: get_recipe
+      description: Retrieves a structured recipe by ID
+      prefixes:
+        linkml: https://w3id.org/linkml/
+      default_range: string
+      imports:
+        - linkml:types
+      classes:
+        GetRecipeInput:
+          description: Input for get_recipe
+          attributes: {}
+        GetRecipeOutput:
+          description: Output for get_recipe
+          attributes: {}
+  
+    ''',
+    'def/queries/get_recipe_text.yaml': '''
+      id: https://example.org/queries/get_recipe_text
+      name: get_recipe_text
+      description: Retrieves raw recipe text given a source reference
+      prefixes:
+        linkml: https://w3id.org/linkml/
+      default_range: string
+      imports:
+        - linkml:types
+      classes:
+        GetRecipeTextInput:
+          description: Input for get_recipe_text
+          attributes: {}
+        GetRecipeTextOutput:
+          description: Output for get_recipe_text
+          attributes: {}
+  
+    ''',
+    'gen_def/__init__.py': '',
+    'gen_def/pydantic/__init__.py': '',
+    'gen_def/pydantic/commands.py': '''
+      from __future__ import annotations
+      
+      import re
+      import sys
+      from datetime import (
+          date,
+          datetime,
+          time
+      )
+      from decimal import Decimal
+      from enum import Enum
+      from typing import (
+          Any,
+          ClassVar,
+          Literal,
+          Optional,
+          Union
+      )
+      
+      from pydantic import (
+          BaseModel,
+          ConfigDict,
+          Field,
+          RootModel,
+          SerializationInfo,
+          SerializerFunctionWrapHandler,
+          field_validator,
+          model_serializer
+      )
+      
+      
+      metamodel_version = "None"
+      version = "None"
+      
+      
+      class ConfiguredBaseModel(BaseModel):
+          model_config = ConfigDict(
+              serialize_by_alias = True,
+              validate_by_name = True,
+              validate_assignment = True,
+              validate_default = True,
+              extra = "forbid",
+              arbitrary_types_allowed = True,
+              use_enum_values = True,
+              strict = False,
+          )
+      
+          @model_serializer(mode='wrap', when_used='unless-none')
+          def treat_empty_lists_as_none(
+                  self, handler: SerializerFunctionWrapHandler,
+                  info: SerializationInfo) -> dict[str, Any]:
+              if info.exclude_none:
+                  _instance = self.model_copy()
+                  for field, field_info in type(_instance).model_fields.items():
+                      if getattr(_instance, field) == [] and not(
+                              field_info.is_required()):
+                          setattr(_instance, field, None)
+              else:
+                  _instance = self
+              return handler(_instance, info)
+      
+      
+      
+      class LinkMLMeta(RootModel):
+          root: dict[str, Any] = {}
+          model_config = ConfigDict(frozen=True)
+      
+          def __getattr__(self, key:str):
+              return getattr(self.root, key)
+      
+          def __getitem__(self, key:str):
+              return self.root[key]
+      
+          def __setitem__(self, key:str, value):
+              self.root[key] = value
+      
+          def __contains__(self, key:str) -> bool:
+              return key in self.root
+      
+      
+      linkml_meta = LinkMLMeta({'default_prefix': 'https://example.org/commands/',
+           'default_range': 'string',
+           'id': 'https://example.org/commands',
+           'imports': ['linkml:types'],
+           'name': 'commands',
+           'prefixes': {'linkml': {'prefix_prefix': 'linkml',
+                                   'prefix_reference': 'https://w3id.org/linkml/'}},
+           'source_file': '<output_dir>/def/commands.yaml'} )
+      
+      
+      class IngestRecipeText(ConfiguredBaseModel):
+          """
+          Initiates ingestion of a recipe from a raw text source
+          """
+          linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/commands'})
+      
+          pass
+      
+      
+      # Model rebuild
+      # see https://pydantic-docs.helpmanual.io/usage/models/#rebuilding-a-model
+      IngestRecipeText.model_rebuild()
+  
+    ''',
+    'gen_def/pydantic/events.py': '''
+      from __future__ import annotations
+      
+      import re
+      import sys
+      from datetime import (
+          date,
+          datetime,
+          time
+      )
+      from decimal import Decimal
+      from enum import Enum
+      from typing import (
+          Any,
+          ClassVar,
+          Literal,
+          Optional,
+          Union
+      )
+      
+      from pydantic import (
+          BaseModel,
+          ConfigDict,
+          Field,
+          RootModel,
+          SerializationInfo,
+          SerializerFunctionWrapHandler,
+          field_validator,
+          model_serializer
+      )
+      
+      
+      metamodel_version = "None"
+      version = "None"
+      
+      
+      class ConfiguredBaseModel(BaseModel):
+          model_config = ConfigDict(
+              serialize_by_alias = True,
+              validate_by_name = True,
+              validate_assignment = True,
+              validate_default = True,
+              extra = "forbid",
+              arbitrary_types_allowed = True,
+              use_enum_values = True,
+              strict = False,
+          )
+      
+          @model_serializer(mode='wrap', when_used='unless-none')
+          def treat_empty_lists_as_none(
+                  self, handler: SerializerFunctionWrapHandler,
+                  info: SerializationInfo) -> dict[str, Any]:
+              if info.exclude_none:
+                  _instance = self.model_copy()
+                  for field, field_info in type(_instance).model_fields.items():
+                      if getattr(_instance, field) == [] and not(
+                              field_info.is_required()):
+                          setattr(_instance, field, None)
+              else:
+                  _instance = self
+              return handler(_instance, info)
+      
+      
+      
+      class LinkMLMeta(RootModel):
+          root: dict[str, Any] = {}
+          model_config = ConfigDict(frozen=True)
+      
+          def __getattr__(self, key:str):
+              return getattr(self.root, key)
+      
+          def __getitem__(self, key:str):
+              return self.root[key]
+      
+          def __setitem__(self, key:str, value):
+              self.root[key] = value
+      
+          def __contains__(self, key:str) -> bool:
+              return key in self.root
+      
+      
+      linkml_meta = LinkMLMeta({'default_prefix': 'https://example.org/events/',
+           'default_range': 'string',
+           'id': 'https://example.org/events',
+           'imports': ['linkml:types'],
+           'name': 'events',
+           'prefixes': {'linkml': {'prefix_prefix': 'linkml',
+                                   'prefix_reference': 'https://w3id.org/linkml/'}},
+           'source_file': '<output_dir>/def/events.yaml'} )
+      
+      
+      class RecipeIngested(ConfiguredBaseModel):
+          """
+          A recipe was successfully extracted and validated
+          """
+          linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/events'})
+      
+          recipe_id: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['recipe_ingested']} })
+          source_ref: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['recipe_ingested']} })
+      
+      
+      # Model rebuild
+      # see https://pydantic-docs.helpmanual.io/usage/models/#rebuilding-a-model
+      RecipeIngested.model_rebuild()
+  
+    ''',
+    'gen_def/pydantic/models/__init__.py': '',
+    'gen_def/pydantic/models/recipes.py': '''
+      from __future__ import annotations
+      
+      import re
+      import sys
+      from datetime import (
+          date,
+          datetime,
+          time
+      )
+      from decimal import Decimal
+      from enum import Enum
+      from typing import (
+          Any,
+          ClassVar,
+          Literal,
+          Optional,
+          Union
+      )
+      
+      from pydantic import (
+          BaseModel,
+          ConfigDict,
+          Field,
+          RootModel,
+          SerializationInfo,
+          SerializerFunctionWrapHandler,
+          field_validator,
+          model_serializer
+      )
+      
+      
+      metamodel_version = "None"
+      version = "None"
+      
+      
+      class ConfiguredBaseModel(BaseModel):
+          model_config = ConfigDict(
+              serialize_by_alias = True,
+              validate_by_name = True,
+              validate_assignment = True,
+              validate_default = True,
+              extra = "forbid",
+              arbitrary_types_allowed = True,
+              use_enum_values = True,
+              strict = False,
+          )
+      
+          @model_serializer(mode='wrap', when_used='unless-none')
+          def treat_empty_lists_as_none(
+                  self, handler: SerializerFunctionWrapHandler,
+                  info: SerializationInfo) -> dict[str, Any]:
+              if info.exclude_none:
+                  _instance = self.model_copy()
+                  for field, field_info in type(_instance).model_fields.items():
+                      if getattr(_instance, field) == [] and not(
+                              field_info.is_required()):
+                          setattr(_instance, field, None)
+              else:
+                  _instance = self
+              return handler(_instance, info)
+      
+      
+      
+      class LinkMLMeta(RootModel):
+          root: dict[str, Any] = {}
+          model_config = ConfigDict(frozen=True)
+      
+          def __getattr__(self, key:str):
+              return getattr(self.root, key)
+      
+          def __getitem__(self, key:str):
+              return self.root[key]
+      
+          def __setitem__(self, key:str, value):
+              self.root[key] = value
+      
+          def __contains__(self, key:str) -> bool:
+              return key in self.root
+      
+      
+      linkml_meta = LinkMLMeta({'default_prefix': 'https://example.org/models/recipes/',
+           'default_range': 'string',
+           'description': 'Full recipe database — recipes, steps, and ingredients',
+           'id': 'https://example.org/models/recipes',
+           'imports': ['linkml:types'],
+           'name': 'recipes',
+           'prefixes': {'linkml': {'prefix_prefix': 'linkml',
+                                   'prefix_reference': 'https://w3id.org/linkml/'}},
+           'source_file': '<output_dir>/def/models/recipes.yaml'} )
+      
+      
+      # Model rebuild
+      # see https://pydantic-docs.helpmanual.io/usage/models/#rebuilding-a-model
+  
+    ''',
+    'gen_def/pydantic/query/__init__.py': '',
+    'gen_def/pydantic/query/get_recipe.py': '''
+      from __future__ import annotations
+      
+      import re
+      import sys
+      from datetime import (
+          date,
+          datetime,
+          time
+      )
+      from decimal import Decimal
+      from enum import Enum
+      from typing import (
+          Any,
+          ClassVar,
+          Literal,
+          Optional,
+          Union
+      )
+      
+      from pydantic import (
+          BaseModel,
+          ConfigDict,
+          Field,
+          RootModel,
+          SerializationInfo,
+          SerializerFunctionWrapHandler,
+          field_validator,
+          model_serializer
+      )
+      
+      
+      metamodel_version = "None"
+      version = "None"
+      
+      
+      class ConfiguredBaseModel(BaseModel):
+          model_config = ConfigDict(
+              serialize_by_alias = True,
+              validate_by_name = True,
+              validate_assignment = True,
+              validate_default = True,
+              extra = "forbid",
+              arbitrary_types_allowed = True,
+              use_enum_values = True,
+              strict = False,
+          )
+      
+          @model_serializer(mode='wrap', when_used='unless-none')
+          def treat_empty_lists_as_none(
+                  self, handler: SerializerFunctionWrapHandler,
+                  info: SerializationInfo) -> dict[str, Any]:
+              if info.exclude_none:
+                  _instance = self.model_copy()
+                  for field, field_info in type(_instance).model_fields.items():
+                      if getattr(_instance, field) == [] and not(
+                              field_info.is_required()):
+                          setattr(_instance, field, None)
+              else:
+                  _instance = self
+              return handler(_instance, info)
+      
+      
+      
+      class LinkMLMeta(RootModel):
+          root: dict[str, Any] = {}
+          model_config = ConfigDict(frozen=True)
+      
+          def __getattr__(self, key:str):
+              return getattr(self.root, key)
+      
+          def __getitem__(self, key:str):
+              return self.root[key]
+      
+          def __setitem__(self, key:str, value):
+              self.root[key] = value
+      
+          def __contains__(self, key:str) -> bool:
+              return key in self.root
+      
+      
+      linkml_meta = LinkMLMeta({'default_prefix': 'https://example.org/queries/get_recipe/',
+           'default_range': 'string',
+           'description': 'Retrieves a structured recipe by ID',
+           'id': 'https://example.org/queries/get_recipe',
+           'imports': ['linkml:types'],
+           'name': 'get_recipe',
+           'prefixes': {'linkml': {'prefix_prefix': 'linkml',
+                                   'prefix_reference': 'https://w3id.org/linkml/'}},
+           'source_file': '<output_dir>/def/queries/get_recipe.yaml'} )
+      
+      
+      class GetRecipeInput(ConfiguredBaseModel):
+          """
+          Input for get_recipe
+          """
+          linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/queries/get_recipe'})
+      
+          pass
+      
+      
+      class GetRecipeOutput(ConfiguredBaseModel):
+          """
+          Output for get_recipe
+          """
+          linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/queries/get_recipe'})
+      
+          pass
+      
+      
+      # Model rebuild
+      # see https://pydantic-docs.helpmanual.io/usage/models/#rebuilding-a-model
+      GetRecipeInput.model_rebuild()
+      GetRecipeOutput.model_rebuild()
+  
+    ''',
+    'gen_def/pydantic/query/get_recipe_text.py': '''
+      from __future__ import annotations
+      
+      import re
+      import sys
+      from datetime import (
+          date,
+          datetime,
+          time
+      )
+      from decimal import Decimal
+      from enum import Enum
+      from typing import (
+          Any,
+          ClassVar,
+          Literal,
+          Optional,
+          Union
+      )
+      
+      from pydantic import (
+          BaseModel,
+          ConfigDict,
+          Field,
+          RootModel,
+          SerializationInfo,
+          SerializerFunctionWrapHandler,
+          field_validator,
+          model_serializer
+      )
+      
+      
+      metamodel_version = "None"
+      version = "None"
+      
+      
+      class ConfiguredBaseModel(BaseModel):
+          model_config = ConfigDict(
+              serialize_by_alias = True,
+              validate_by_name = True,
+              validate_assignment = True,
+              validate_default = True,
+              extra = "forbid",
+              arbitrary_types_allowed = True,
+              use_enum_values = True,
+              strict = False,
+          )
+      
+          @model_serializer(mode='wrap', when_used='unless-none')
+          def treat_empty_lists_as_none(
+                  self, handler: SerializerFunctionWrapHandler,
+                  info: SerializationInfo) -> dict[str, Any]:
+              if info.exclude_none:
+                  _instance = self.model_copy()
+                  for field, field_info in type(_instance).model_fields.items():
+                      if getattr(_instance, field) == [] and not(
+                              field_info.is_required()):
+                          setattr(_instance, field, None)
+              else:
+                  _instance = self
+              return handler(_instance, info)
+      
+      
+      
+      class LinkMLMeta(RootModel):
+          root: dict[str, Any] = {}
+          model_config = ConfigDict(frozen=True)
+      
+          def __getattr__(self, key:str):
+              return getattr(self.root, key)
+      
+          def __getitem__(self, key:str):
+              return self.root[key]
+      
+          def __setitem__(self, key:str, value):
+              self.root[key] = value
+      
+          def __contains__(self, key:str) -> bool:
+              return key in self.root
+      
+      
+      linkml_meta = LinkMLMeta({'default_prefix': 'https://example.org/queries/get_recipe_text/',
+           'default_range': 'string',
+           'description': 'Retrieves raw recipe text given a source reference',
+           'id': 'https://example.org/queries/get_recipe_text',
+           'imports': ['linkml:types'],
+           'name': 'get_recipe_text',
+           'prefixes': {'linkml': {'prefix_prefix': 'linkml',
+                                   'prefix_reference': 'https://w3id.org/linkml/'}},
+           'source_file': '<output_dir>/def/queries/get_recipe_text.yaml'} )
+      
+      
+      class GetRecipeTextInput(ConfiguredBaseModel):
+          """
+          Input for get_recipe_text
+          """
+          linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/queries/get_recipe_text'})
+      
+          pass
+      
+      
+      class GetRecipeTextOutput(ConfiguredBaseModel):
+          """
+          Output for get_recipe_text
+          """
+          linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/queries/get_recipe_text'})
+      
+          pass
+      
+      
+      # Model rebuild
+      # see https://pydantic-docs.helpmanual.io/usage/models/#rebuilding-a-model
+      GetRecipeTextInput.model_rebuild()
+      GetRecipeTextOutput.model_rebuild()
+  
+    ''',
+    'gen_def/sqla/__init__.py': '',
+    'gen_def/sqla/models/__init__.py': '',
+    'gen_def/sqla/models/recipes.py': '''
+      
+      from sqlalchemy import Column, Index, Table, ForeignKey
+      from sqlalchemy.orm import relationship
+      from sqlalchemy.sql.sqltypes import *
+      from sqlalchemy.orm import declarative_base
+      from sqlalchemy.ext.associationproxy import association_proxy
+      
+      Base = declarative_base()
+      metadata = Base.metadata
+      
+      
+  
+    ''',
+    'gen_int/__init__.py': '',
+    'gen_int/python/__init__.py': '',
+    'gen_int/python/policy/__init__.py': '',
+    'gen_int/python/policy/index_recipe_on_ingest_context.py': '''
+      # AUTO-GENERATED — do not edit
+      from dataclasses import dataclass
+      
+      
+      @dataclass
+      class index_recipe_on_ingest_emitters:
+          pass
+      
+      
+      @dataclass
+      class index_recipe_on_ingest_context:
+          emit: index_recipe_on_ingest_emitters
+  
+    ''',
+    'gen_int/python/policy/index_recipe_on_ingest_protocol.py': '''
+      # AUTO-GENERATED — do not edit
+      from typing import Protocol
+      
+      from gen_def.pydantic.events import recipe_ingested
+      from gen_int.python.policy.index_recipe_on_ingest_context import (
+          index_recipe_on_ingest_context,
+      )
+      
+      
+      class index_recipe_on_ingest_protocol(Protocol):
+          """Adds recipe to the library projection when ingested"""
+      
+          def __call__(
+              self,
+              event: recipe_ingested,
+              context: index_recipe_on_ingest_context,
+          ) -> None:
+              ...
+  
+    ''',
+    'gen_int/python/procedure/__init__.py': '',
+    'gen_int/python/procedure/extract_and_transform_recipe_context.py': '''
+      # AUTO-GENERATED — do not edit
+      from dataclasses import dataclass
+      from typing import Callable
+      
+      from gen_def.pydantic.events import recipe_ingested
+      from gen_int.python.query.get_recipe_text import get_recipe_text_query
+      
+      
+      @dataclass
+      class extract_and_transform_recipe_emitters:
+          recipe_ingested: Callable[[recipe_ingested], None]
+      
+      
+      @dataclass
+      class extract_and_transform_recipe_queries:
+          get_recipe_text: get_recipe_text_query
+      
+      
+      @dataclass
+      class extract_and_transform_recipe_context:
+          emit: extract_and_transform_recipe_emitters
+          query: extract_and_transform_recipe_queries
+  
+    ''',
+    'gen_int/python/procedure/extract_and_transform_recipe_protocol.py': '''
+      # AUTO-GENERATED — do not edit
+      from typing import Protocol
+      
+      from gen_def.pydantic.commands import ingest_recipe_text
+      from gen_int.python.procedure.extract_and_transform_recipe_context import (
+          extract_and_transform_recipe_context,
+      )
+      
+      
+      class extract_and_transform_recipe_protocol(Protocol):
+          """Queries raw recipe text via source_ref, then uses an LLM to extract a structured recipe (title, ingredients, steps, time, cost), validated against the recipe model."""
+      
+          def __call__(
+              self,
+              context: extract_and_transform_recipe_context,
+              command: ingest_recipe_text,
+          ) -> None:
+              ...
+  
+    ''',
+    'gen_int/python/projection/__init__.py': '',
+    'gen_int/python/projection/recipe_library_projection.py': '''
+      # AUTO-GENERATED — do not edit
+      from dataclasses import dataclass
+      from typing import Protocol, Any
+      
+      from gen_def.pydantic.events import recipe_ingested
+      
+      
+      @dataclass
+      class recipe_library_context:
+          """SQLAlchemy sessions for schemas written by this projection."""
+          recipes: Any  # SQLAlchemy session for the recipes schema
+      
+      
+      class recipe_library_projection(Protocol):
+          """Adds ingested recipe to the recipe library"""
+      
+          def __call__(self, event: recipe_ingested, context: recipe_library_context) -> None:
+              """Apply the projection — mutate model state in response to the event."""
+              ...
+  
+    ''',
+    'gen_int/python/query/__init__.py': '',
+    'gen_int/python/query/get_recipe.py': '''
+      # AUTO-GENERATED — do not edit
+      from dataclasses import dataclass
+      from typing import Protocol, Any
+      
+      from gen_def.pydantic.query.get_recipe import GetRecipeInput, GetRecipeOutput
+      
+      
+      @dataclass
+      class get_recipe_context:
+          """SQLAlchemy session for the schema read by this query."""
+          recipes: Any  # SQLAlchemy session for the recipes schema
+      
+      
+      class get_recipe_query(Protocol):
+          """Retrieves a structured recipe by ID"""
+      
+          def __call__(
+              self, input: GetRecipeInput, context: get_recipe_context
+          ) -> GetRecipeOutput:
+              ...
+  
+    ''',
+    'gen_int/python/query/get_recipe_text.py': '''
+      # AUTO-GENERATED — do not edit
+      from dataclasses import dataclass
+      from typing import Protocol, Any
+      
+      from gen_def.pydantic.query.get_recipe_text import GetRecipeTextInput, GetRecipeTextOutput
+      
+      
+      @dataclass
+      class get_recipe_text_context:
+          """SQLAlchemy session for the schema read by this query."""
+          recipes: Any  # SQLAlchemy session for the recipes schema
+      
+      
+      class get_recipe_text_query(Protocol):
+          """Retrieves raw recipe text given a source reference"""
+      
+          def __call__(
+              self, input: GetRecipeTextInput, context: get_recipe_text_context
+          ) -> GetRecipeTextOutput:
+              ...
+  
+    ''',
+    'src/policy/index_recipe_on_ingest.py': '''
+      # Implementation stub — fill in your logic here
+      from gen_int.python.policy.index_recipe_on_ingest_protocol import index_recipe_on_ingest_protocol
+      from gen_int.python.policy.index_recipe_on_ingest_context import index_recipe_on_ingest_context
+      from gen_def.pydantic.events import recipe_ingested
+      
+      
+      def index_recipe_on_ingest(
+          event: recipe_ingested,
+          context: index_recipe_on_ingest_context,
+      ) -> None:
+          raise NotImplementedError
+  
+    ''',
+    'src/procedure/extract_and_transform_recipe.py': '''
+      # Implementation stub — fill in your logic here
+      from gen_int.python.procedure.extract_and_transform_recipe_protocol import extract_and_transform_recipe_protocol
+      from gen_int.python.procedure.extract_and_transform_recipe_context import extract_and_transform_recipe_context
+      from gen_def.pydantic.commands import ingest_recipe_text
+      
+      
+      def extract_and_transform_recipe(
+          context: extract_and_transform_recipe_context,
+          command: ingest_recipe_text,
+      ) -> None:
+          raise NotImplementedError
+  
+    ''',
+    'src/projection/recipe_library.py': '''
+      # Implementation stub — fill in your logic here
+      from gen_int.python.projection.recipe_library_projection import recipe_library_projection
+      from gen_int.python.projection.recipe_library_projection import recipe_library_context
+      from gen_def.pydantic.events import recipe_ingested
+      
+      
+      def recipe_library(
+          event: recipe_ingested,
+          context: recipe_library_context,
+      ) -> None:
+          raise NotImplementedError
+  
+    ''',
+    'src/query/get_recipe.py': '''
+      # Implementation stub — fill in your logic here
+      from gen_int.python.query.get_recipe import get_recipe_query, get_recipe_context
+      from gen_def.pydantic.query.get_recipe import GetRecipeInput, GetRecipeOutput
+      
+      
+      def get_recipe(input: GetRecipeInput, context: get_recipe_context) -> GetRecipeOutput:
+          raise NotImplementedError
+  
+    ''',
+    'src/query/get_recipe_text.py': '''
+      # Implementation stub — fill in your logic here
+      from gen_int.python.query.get_recipe_text import get_recipe_text_query, get_recipe_text_context
+      from gen_def.pydantic.query.get_recipe_text import GetRecipeTextInput, GetRecipeTextOutput
+      
+      
+      def get_recipe_text(input: GetRecipeTextInput, context: get_recipe_text_context) -> GetRecipeTextOutput:
+          raise NotImplementedError
+  
+    ''',
+  })
+# ---

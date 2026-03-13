@@ -85,6 +85,33 @@ def test_write_scaffold_events_creates_file(
 
 
 
+def test_render_scaffold_events_plain_string() -> None:
+    """An event declared as a plain string parses and renders with empty attributes."""
+    from dizzy.feat import _parse_event_def
+
+    evt = _parse_event_def("Something happened")
+    assert evt.description == "Something happened"
+    assert evt.attributes == {}
+
+    feat = FeatureDefinition(events={"thing_happened": evt})
+    result = render_scaffold_events(feat)
+    assert "thing_happened:" in result
+    assert "Something happened" in result
+    assert "attributes: {}" in result
+
+
+def test_render_scaffold_events_empty_section() -> None:
+    """An empty events section renders only the LinkML header with no class entries."""
+    feat = FeatureDefinition()
+    result = render_scaffold_events(feat)
+    assert "id: https://example.org/events" in result
+    assert "classes:" in result
+    # no event names in output
+    lines = result.splitlines()
+    class_idx = next(i for i, l in enumerate(lines) if l.strip() == "classes:")
+    assert all(not l.strip() for l in lines[class_idx + 1 :])
+
+
 def test_render_scaffold_events_snapshot(
     recipe_feat: FeatureDefinition, snapshot: Any
 ) -> None:

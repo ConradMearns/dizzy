@@ -55,6 +55,17 @@ def render_gen_query_protocol(query_name: str, feat: FeatureDefinition) -> str:
     context_class = f"{query_name}_context"
     protocol_class = f"{query_name}_query"
 
+    if query.model is not None:
+        context_body = [
+            '    """SQLAlchemy session for the schema read by this query."""',
+            f"    {query.model}: Any  # SQLAlchemy session for the {query.model} schema",
+        ]
+    else:
+        context_body = [
+            '    """No model dependency for this query."""',
+            "    pass",
+        ]
+
     lines = [
         "# AUTO-GENERATED — do not edit",
         "from dataclasses import dataclass",
@@ -65,8 +76,7 @@ def render_gen_query_protocol(query_name: str, feat: FeatureDefinition) -> str:
         "",
         "@dataclass",
         f"class {context_class}:",
-        '    """SQLAlchemy session for the schema read by this query."""',
-        f"    {query.model}: Any  # SQLAlchemy session for the {query.model} schema",
+        *context_body,
         "",
         "",
         f"class {protocol_class}(Protocol):",
