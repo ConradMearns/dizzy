@@ -1,180 +1,160 @@
-"""CLI for dizzy code generation."""
+"""Dizzy — feature file generator CLI."""
 
-import typer
 from pathlib import Path
-from typing import Optional
-import subprocess
+import typer
 
-from dizzy.utils.generate_query_interfaces import generate_query_interfaces
-from dizzy.utils.generate_mutation_interfaces import generate_mutation_interfaces
-from dizzy.utils.generate_procedure_contexts import generate_procedure_contexts
-from dizzy.utils.generate_policy_contexts import generate_policy_contexts
-from dizzy.utils.fix_event_types import fix_event_types, fix_command_types, fix_mutation_types
+from dizzy.feat import load_feat
+from dizzy.generators.commands import write_scaffold_commands
+from dizzy.generators.events import write_scaffold_events
+from dizzy.generators.queries import (
+    write_scaffold_query,
+    write_gen_query_protocol,
+    write_src_query_stub,
+)
+from dizzy.generators.models import write_scaffold_model
+from dizzy.generators.procedures import (
+    write_procedure_context,
+    write_procedure_protocol,
+    write_procedure_src_stub,
+)
+from dizzy.generators.policies import (
+    write_policy_context,
+    write_policy_protocol,
+    write_policy_src_stub,
+)
+from dizzy.generators.projections import write_projection, write_projection_src_stub
+from dizzy.generators.linkml_runner import run_linkml_pydantic, run_linkml_sqla
+from dizzy.generators.init_emitter import write_init_files
 
 app = typer.Typer()
 
 
-def run_gen_pydantic(schema_file: Path, output_file: Path) -> bool:
-    """Run gen-pydantic to generate Pydantic models from LinkML schema."""
-    try:
-        result = subprocess.run(
-            ["gen-pydantic", str(schema_file)],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        
-        output_file.parent.mkdir(parents=True, exist_ok=True)
-        output_file.write_text(result.stdout)
-        
-        print(f"✓ {output_file.name}")
-        return True
-        
-    except subprocess.CalledProcessError as e:
-        print(f"✗ {output_file.name}: {e.stderr}")
-        return False
-    except FileNotFoundError:
-        print("✗ gen-pydantic not found. Install linkml: uv add linkml")
-        return False
+@app.command("def")
+def def_cmd(
+    feat_file: Path = typer.Argument(..., help="Path to the .feat.yaml file"),
+    output_dir: Path = typer.Argument(..., help="Output directory for generated files"),
+) -> None:
+    """Generate def/ stub files from a .feat.yaml feature definition."""
+    feat = load_feat(feat_file)
+
+    if feat.commands:
+        write_scaffold_commands(feat, output_dir)
+
+    if feat.events:
+        write_scaffold_events(feat, output_dir)
+
+    for query_name in feat.queries:
+        write_scaffold_query(query_name, feat, output_dir)
+
+    for schema_name in feat.models:
+        write_scaffold_model(schema_name, feat, output_dir)
+
+    typer.echo("Generated def/ stubs. Next steps:")
+    typer.echo("  1. Fill in class definitions in def/models/*.yaml")
+    typer.echo("  2. Add input/output shapes in def/queries/*.yaml")
+    typer.echo("  3. Add attributes to def/commands.yaml and def/events.yaml")
+    typer.echo("  4. Run: dizzy gen <feat_file> <output_dir>")
 
 
 @app.command()
 def gen(
-    def_dir: Path = typer.Option(
-        "def",
-        "--def-dir",
-        help="Directory containing LinkML schema files"
-    ),
-    gen_dir: Path = typer.Option(
-        "gen",
-        "--gen-dir",
-        help="Output directory for all generated code"
-    ),
-):
-    """Generate code from LinkML schemas."""
-    def_dir = def_dir.resolve()
-    gen_dir = gen_dir.resolve()
+    feat_file: Path = typer.Argument(..., help="Path to the .feat.yaml file"),
+    output_dir: Path = typer.Argument(..., help="Output directory for generated files"),
+) -> None:
+    """Generate gen_def/, gen_int/, and src/ from an authored def/ directory."""
+    feat = load_feat(feat_file)
 
-    # Calculate base directory from def_dir parent
-    base_dir = def_dir.parent
-    queries_dir = base_dir / "queries"
-    mutations_dir = base_dir / "mutations"
-    procedures_dir = base_dir / "procedures"
-    policies_dir = base_dir / "policies"
+    # Guard: check that all required def/ stubs exist before proceeding
+    missing: list[str] = []
+    if feat.commands and not (output_dir / "def" / "commands.yaml").exists():
+        missing.append("def/commands.yaml")
+    if feat.events and not (output_dir / "def" / "events.yaml").exists():
+        missing.append("def/events.yaml")
+    for query_name in feat.queries:
+        stub = output_dir / "def" / "queries" / f"{query_name}.yaml"
+        if not stub.exists():
+            missing.append(f"def/queries/{query_name}.yaml")
+    for schema_name in feat.models:
+        stub = output_dir / "def" / "models" / f"{schema_name}.yaml"
+        if not stub.exists():
+            missing.append(f"def/models/{schema_name}.yaml")
 
-    if not def_dir.exists():
-        print(f"✗ def/ directory not found at {def_dir}")
-        raise typer.Exit(1)
+    if missing:
+        typer.echo(
+            "Error: def/ stubs not found. Run `dizzy def <feat_file> <output_dir>` first."
+        )
+        typer.echo("Missing:")
+        for path in missing:
+            typer.echo(f"  {path}")
+        raise typer.Exit(code=1)
 
-    print(f"Generating from {def_dir}/ to {gen_dir}/\n")
-    
-    success = True
-    
-    # Generate Pydantic models
-    print("Pydantic models:")
-    schemas = [
-        ("models.yaml", "models.py"),
-        ("commands.yaml", "commands.py"),
-        ("queries.yaml", "queries.py"),
-        ("events.yaml", "events.py"),
-        ("mutations.yaml", "mutations.py"),
-    ]
-    
-    for schema_name, output_name in schemas:
-        schema_file = def_dir / schema_name
-        output_file = gen_dir / output_name
+    # Step 1 — run LinkML toolchain on def/ stubs → gen_def/
+    if feat.commands:
+        run_linkml_pydantic(
+            output_dir / "def" / "commands.yaml",
+            output_dir / "gen_def" / "pydantic" / "commands.py",
+        )
 
-        if schema_file.exists():
-            if not run_gen_pydantic(schema_file, output_file):
-                success = False
+    if feat.events:
+        run_linkml_pydantic(
+            output_dir / "def" / "events.yaml",
+            output_dir / "gen_def" / "pydantic" / "events.py",
+        )
 
-    # Apply custom fixes
-    print("\nCustom fixes:")
-    events_file = gen_dir / "events.py"
-    commands_file = gen_dir / "commands.py"
-    mutations_file = gen_dir / "mutations.py"
-    models_file = gen_dir / "models.py"
+    for query_name in feat.queries:
+        run_linkml_pydantic(
+            output_dir / "def" / "queries" / f"{query_name}.yaml",
+            output_dir / "gen_def" / "pydantic" / "query" / f"{query_name}.py",
+        )
 
-    fixes_applied = False
-    if events_file.exists() and fix_event_types(events_file, models_file):
-        print("✓ Fixed event type annotations")
-        fixes_applied = True
+    for schema_name in feat.models:
+        run_linkml_pydantic(
+            output_dir / "def" / "models" / f"{schema_name}.yaml",
+            output_dir / "gen_def" / "pydantic" / "models" / f"{schema_name}.py",
+        )
+        run_linkml_sqla(
+            output_dir / "def" / "models" / f"{schema_name}.yaml",
+            output_dir / "gen_def" / "sqla" / "models" / f"{schema_name}.py",
+        )
 
-    if commands_file.exists() and fix_command_types(commands_file, models_file):
-        print("✓ Fixed command type annotations")
-        fixes_applied = True
+    # Step 2 — generate gen_int/ Protocol files from feat structure
+    for query_name in feat.queries:
+        write_gen_query_protocol(query_name, feat, output_dir)
 
-    if mutations_file.exists() and fix_mutation_types(mutations_file, models_file):
-        print("✓ Fixed mutation type annotations")
-        fixes_applied = True
+    for procedure_name in feat.procedures:
+        write_procedure_context(procedure_name, feat, output_dir)
+        write_procedure_protocol(procedure_name, feat, output_dir)
 
-    if not fixes_applied:
-        print("  No fixes needed")
+    for policy_name in feat.policies:
+        write_policy_context(policy_name, feat, output_dir)
+        write_policy_protocol(policy_name, feat, output_dir)
 
-    # Query interfaces
-    print("\nQuery interfaces:")
-    queries_yaml = def_dir / "queries.yaml"
-    if queries_yaml.exists():
-        try:
-            generate_query_interfaces(
-                queries_yaml,
-                queries_dir / "interfaces.py",
-                gen_import_path="gen.queries"
-            )
-        except Exception as e:
-            print(f"✗ queries/interfaces.py: {e}")
-            success = False
-    
-    # Mutation interfaces
-    print("\nMutation interfaces:")
-    mutations_yaml = def_dir / "mutations.yaml"
-    if mutations_yaml.exists():
-        try:
-            generate_mutation_interfaces(
-                mutations_yaml,
-                mutations_dir / "interfaces.py",
-                gen_import_path="gen.mutations"
-            )
-        except Exception as e:
-            print(f"✗ mutations/interfaces.py: {e}")
-            success = False
-    
-    # Procedure contexts
-    print("\nProcedure contexts:")
-    procedures_yaml = def_dir / "procedures.d.yaml"
-    if procedures_yaml.exists():
-        try:
-            generate_procedure_contexts(
-                procedures_yaml,
-                gen_dir / "procedures.py",
-                procedures_dir / "interfaces.py",
-            )
-        except Exception as e:
-            print(f"✗ procedures: {e}")
-            success = False
+    for projection_name in feat.projections:
+        write_projection(projection_name, feat, output_dir)
 
-    # Policy contexts
-    print("\nPolicy contexts:")
-    policies_yaml = def_dir / "policies.d.yaml"
-    if policies_yaml.exists():
-        try:
-            generate_policy_contexts(
-                policies_yaml,
-                gen_dir / "policies.py",
-                policies_dir / "interfaces.py",
-            )
-        except Exception as e:
-            print(f"✗ policies: {e}")
-            success = False
+    # Step 3 — generate src/ stubs (skip if already exists)
+    for query_name in feat.queries:
+        write_src_query_stub(query_name, output_dir)
 
-    print()
-    if success:
-        print("✨ Done")
-        raise typer.Exit(0)
-    else:
-        print("⚠️  Completed with errors")
-        raise typer.Exit(1)
+    for procedure_name in feat.procedures:
+        write_procedure_src_stub(procedure_name, feat, output_dir)
+
+    for policy_name in feat.policies:
+        write_policy_src_stub(policy_name, feat, output_dir)
+
+    for projection_name in feat.projections:
+        write_projection_src_stub(projection_name, feat, output_dir)
+
+    # Step 4 — write __init__.py in every generated directory
+    write_init_files(output_dir)
+
+    typer.echo("Generated interfaces and source stubs. Next steps:")
+    typer.echo("  Implement the src/ files to complete your feature.")
+
+
+def main() -> None:
+    app()
 
 
 if __name__ == "__main__":
-    app()
+    main()

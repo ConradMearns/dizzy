@@ -62,14 +62,14 @@ Everything in computing changes - it's just a matter of _when_ the change occurs
 
 We often see, especially in the most cursed software projects, that poor decisions will rear their heads to haunt us again later on.
 
-Decisions that seemed either well intentioned, necessary, critical, or even genuinely brilliant can all turn into a curse when the conditions are right. And truly - I don't know what is worse: the number of projects people have retained as sunk costs, due to pride or politics - or the number of people who seemingly have no awareness of the curses they write. 
+Decisions that seemed either well intentioned, necessary, critical, or even genuinely brilliant can all turn into a curse when the conditions are right. And truly - I don't know what is worse: the number of projects people have retained as sunk costs, due to pride or politics - or the number of people who seemingly have no awareness of the curses they write.
 
-(Though, hindsight punishes the early architects all too often. 
+(Though, hindsight punishes the early architects all too often.
 There are too many such cases, when a developer succumbs to the pressures of the labor. When they break, integrity breaks too. We see mitigations, shortcuts, hacks and sloppy writing apparent as the evidence of such mental slips and burnouts.)
 
 A decent Software Architecture is a ward against such curses. It is the draft of constraints that prevent the workarounds, the dirty hacks, and the "clever" tricks that inevitably cause confusion and harm later. A decent architecture promotes modularity for the sake of repairability.
 
-Poor Architectures are those that attract curses rather than features. They are those whose structure itself is vile physarum of traces that span dozens of files, and couples itself to hardcoded strings, special conditionals, and ancient rituals of practices and patterns of by-gone develoeprs.
+Poor Architectures are those that attract curses rather than features. They are those whose structure itself is vile physarum of traces that span dozens of files, and couples itself to hardcoded strings, special conditionals, and ancient rituals of practices and patterns of by-gone developers.
 
 We call this "Coupling"
 
@@ -90,20 +90,21 @@ We call this "Coupling"
 // only to be usurped and made obsolete by advances in hardware development,
 // or algorithms that change the objective completely.
 
-// 
+//
 
 https://longnow.org/ideas/pace-layers/
 
 
 == The False Dichotomies of Deployment Solutions
 
-Monolith vs. Microservice
+Every decision has the potential to become a permanent constraint.
+Microservices on monoliths, AWS or Azure, Svelte or Vue or React...
+The problem is not deciding which option is _correct_ - the choice itself is what become load-bearing.
 
-// Paradigm	Memory Mapping	Mechanism	Key Limitation/Feature
-// C Model	The Stack	Spilled to RAM in "frames"	Efficient, supports recursion.
-// Static Model	Fixed Addresses	Every variable has a permanent home	Fastest, but no recursion.
-// Heap Model	Linked Lists	Scopes are objects in RAM	Supports Closures & GC; slower.
-// Forth Model	Dual Stacks	Data stack vs. Return stack	Extremely tiny footprint; hard to read.
+There are many stories of those who find a themselves in some peril with bad architecture, and how they saved themselves with a large and heroic refactor.
+These stories illustrate the fear and focus of Software Architecture. We can take direct comparisons against the prices others have paid for the wrong decision - and how long such mistakes took to fix.
+
+Such is also the case for vendor lock-in - whether it be a Service maintained by another organization, or an entire cloud provider.
 
 // TODO: Argue that the real issue with modern architectures is not whether
 // Monoliths or Microservices are better — it's that we force that decision
@@ -111,6 +112,28 @@ Monolith vs. Microservice
 // The choice of deployment topology becomes load-bearing for the entire codebase,
 // making it nearly impossible to change later.
 
+
+// == The Same Data, Described a Dozen Times
+// TODO: The same domain primitives (a user, an order, a transaction) get
+// redefined in Pydantic, SQL Alchemy, Protobuf, Rust structs, JSON schemas --
+// each slightly different, each drifting out of sync. This isn't just tedious;
+// it's a breeding ground for subtle bugs. And the underlying data types are
+// often wrong too -- doubles for currency, 64-bit integers for 8-bit port numbers.
+// The tooling doesn't prevent this; it multiplies it.
+// (See transcript 34:18 - 35:36)
+
+== Applications as Islands
+
+The isolation of data within applications hurts both consumers and businesses.
+
+As a consumer, the data we generate from our photos, health integrations, recipes, liked posts, videos, journal entries etc are effectively useless to us.
+Power users of information cannot access their own data from the Walled Gardens of the internet without using complex and bespoke API's, and cannot integrate their applications together on their own.
+
+Similarly, even within a single business teams struggle to share data effectively.
+The interfaces for which data is shared requires bespoke translations and jury-rigged events.
+
+// https://maggieappleton.com/garden-history
+// https://veilid.com/Launch-Slides-Veilid.pdf
 
 == The Map Grossly Mislabels the Territory
 
@@ -142,15 +165,39 @@ Why? Because the code teaches us nothing about how the code works, why the code 
 // A solution like this is vernacular still - but bespoke and artful too. The problem is not so much an obstacle, but a conversation.
 
 
+== Scaling Software without Adequate Support
+
+There will always be a natural limit to the number of experienced software developers who can take on the craft of design and implementation, as well as the discussion and delegation of work, and also ensure timeliness in the execution of a project.
+
+The Standish CHAOS study finds that only 31% of software projects are successful,
+52% are over budget or miss missed deadlines,
+and that 19% of projects fail completely.
+
+https://www.standishgroup.com/sample_research_files/CHAOSReport2015-Final.pdf
+
+Melvin Conway, states that systems designed by organizations are constrained to mirror the communication structures of those organizations.
+
+As software begins, it's design only must necessitate the communication structure of the individual. As software grows, and it's design becomes becomes an argument of the individuals and the many. Boundaries are built around convince and practicality, rather than sustainability, maintainability.
+
+As software scales to serve more, and it's features become uncountable, and the ability for developers, stakeholders, and leadership cannot retain the necessary mental models to make accurate predictions of change.
+
+DIZZY's intent on enforcing rigid constraints is a philosophical and practical choice to shape and guide the communication flow of users, developers, stakeholders, data and logical flow.
+
 = Guiding Principles
 
 // TODO: Introduce the philosophical foundation. These aren't just technical
 // patterns — they're design values that inform every decision in DIZZY.
-//   
+//
 
 == Deferring Decisions
 
 The best decision is often the one you don't have to make yet.
+
+DIZZY is a a philosophy of  software architecture that emphasizes the deference of choice.
+
+Which databases, which message brokers, which languages and whatever other foundations that required are deferred until they are needed.
+
+DIZZY prefers to answer and understand the business problems to solve from first principals first - and let the tradeoff space be explored at a different layer of the architecture.
 
 // DIZZY is designed so that infrastructure choices (which database, which
 // message broker, monolith vs. microservice, which language for which component)
@@ -159,13 +206,7 @@ The best decision is often the one you don't have to make yet.
 
 == Architecting for Reversibility
 
-// TODO: What if we could rewrite _just_ the critical path in Rust?
-- What if we could swap databases in and out of our system as easily as a feature flag?
-- What if our database vendor contract has to be abandoned?
-- What if we chose the wrong query model for our data?
-- What if the deployment paradigm is generating too high of an operational cost?
-
-Reversibility is not about being indecisive — it's about maintaining the freedom to respond to new information. 
+Reversibility is about maintaining the freedom to respond to new information.
 
 DIZZY should not only empower modularization of our system, it should naturally enable A/B testing and hotswapping so that reversing decisions becomes a standard practice, rather than a hail mary.
 
@@ -174,93 +215,166 @@ DIZZY should not only empower modularization of our system, it should naturally 
 // - Move from monolith to microservice deployment without changing procedure code
 // - Rewrite a procedure in a different language while keeping the same schema contract
 
+- What if we could swap databases in and out of our system as easily as a feature flag?
+- What if our database vendor contract has to be abandoned?
+- What if we chose the wrong query model for our data?
+- What if the deployment paradigm is generating too high of an operational cost?
+
+DIZZY's goal is to empower business to adapt and utilize the best conditions for computation without vendor lock-in.
+
+
 == Support (Almost) Any Programming Language
 
-Truly modular software should work across disciplines, languages, networks, and hardware. DIZZY should achieve language independence through language-agnostic schemas and code generation.
+Truly modular software should work across disciplines, languages, networks, and hardware. DIZZY achieves language independence through language-agnostic schemas and code generation.
+By generating interfaces and protocols for the DIZZY Processes, the bare minimum of guarantees can be made to show what components are capable of what tasks.
 
 // The domain model is defined once; implementations can be generated for
 // any target language. A Python policy can emit a command handled by a Rust procedure.
+
+
+== Separate Data from Process
+
+DIZZY is intentionally a mostly functional paradigm. Data (commands, events, models, and query IO) and processes (procedures, policies, projections, and queriers) are explicitly  separated. This is fundamentally different form the traditional Object Oriented Paradigm that traditional DDD is based upon.
+
+This separation is what enables various components of the full DIZZY system to be deployed independently.
+
 
 == Infrastructure _from_ Code
 
 // TODO: Expand on the idea of #strike[Infrastructure as Code] -> Infrastructure _from_ Code.
 // Rather than separately defining infrastructure and hoping it matches your code,
 
-DIZZY derives infrastructure requirements from the domain model itself.
+DIZZY derives infrastructure requirements separate from the domain model.
 
 Just as Programming Languages translate human intent to machine code - so too should DIZZY translate business intent to infrastructure. Automatically, with optimizations for infrastructure that can be refined out of phase with business needs - just as GCC can improve compilation and optimizations without requiring changes to C.
 
-Interstitial Infrastructure
+DIZZY calls this an Interstitial Infrastructure. The goal is to treat Interstitial Infrastructure as a compilation problem.
 
-// The feature definition _is_ the source of truth for what queues, stores,
-// and connections are needed.
+Infrastructure decisions are the final step in a DIZZY deployment, and enable DIZZY to be built as either a monolith, microservices, or something in between.
 
-Commands, Events, and Models are data. They can be communicated over amny number or combinations of message passing channels, such as ZeroMQ, Kafka, HTTP, WebSocket, gRPC, etc.
+Commands, Events, and Models are data. They can be communicated over any number or combinations of message passing channels, such as ZeroMQ, Kafka, HTTP, WebSocket, gRPC, etc.
+
+The deployment of Processes support any potential target as long as it can satisfy channel connectivity requirements.
+
+== Event Driven Eventual Consistency
+
+Events are not records that are ever migrated - they are records of past actions and outcomes. As such, the past cannot be altered - events must be immutable.
+
+Schema evolution may still be a consideration for Queriers and databases, but not for events.
+Instead, any records of history that are intended to be augmented must be done so by the inclusion of additional events. Events cannot be deleted, but an event can notify that they're information is deprecated.
+
+The goal from this constraint is to enable Eventual Consistency for long horizons.
+As well as data reprocessing and auditing.
+
+
+== Consistent Communication
+
+The rigidity of the DIZZY schema is a constraint to enable naive parallelism for both machines, and the laborers who must adapt and add behavior into their system.
+
+Every component has clearly defined inputs and outputs, every dependency chain is already known - and can be agreed on and tested before deployment.
+
+Processes can be horizontally scaled with the same minimal effort as serverless.
+
+And work can scale according to the number of DIZZY flow segments that require change - a countable figure for a codebase, rather than someone arbitrarily derived from an "Agile" backlog.
+
 
 = The DIZZY Architecture at a Glance
 
-// TODO: High-level conceptual overview of the architecture — NOT the spec-level
-// detail. Introduce the core loop (Command -> Procedure -> Event -> Policy -> Command)
-// and the read side (Event -> Projection -> Model -> Query) with the flow diagram.
-// Explain what each component _means_ philosophically, not its MUST/SHOULD/MAY rules.
-// Reference the spec for formal definitions.
-
 #figure(flow)
+
+This is intended to be a very high level, and ill-thorough description of the DIZZY architecture. See the Specification for more detail.
+
+DIZZY can be thought of as an intersection of two spirals or loops.
+
+Firstly, a reactivity loop. Where Commands trigger Procedures, which emit Events that trigger Policies, that emit Commands.
+
+Secondly, a data retrieval and optimization loop. Where Events are projected to Models (databases), which can be queried by Queriers on Query Inputs to return Query Outputs to Procedures and Policies.
+
+The reactivity loop enables processing, algorithms, and business logic to react and change to new information.
+
+The data loop enables change information (Events) to be recorded in highly specialized formats specifically for the purposes of efficient retrieval by Procedures and Policies.
 
 == Commands as Intent
 
-// TODO: Commands represent what we _want_ to happen. They are ephemeral
-expressions of intent — not records of fact. This distinction matters
-because intent can be rejected, retried, or rerouted, while facts cannot.
+Commands represent what users _want_ to happen.
+They are ephemeral expressions of intent — not records of fact.
+This distinction matters because intent can be rejected, retried, or rerouted, while facts cannot.
 
 commands can be repeated, or contain PII, and other data that is meant to be ephemeral
 
 == Events as Truth
 
-// TODO: Events are the single source of truth. Everything else — every model,
-every view, every report — is derived from events. This means we can always rebuild any view of the world from first principles.
+Events are the single source of truth. Everything else — every model, every view, every report — is derived from events. The same event stream can power multiple databases with completely different schemas, each optimized for different queries.
 
-events are immutable logs.
+Events are immutable logs.
 
 Because events capture _what happened_ independently of any particular
 database schema, the same event stream can power multiple databases
 with completely different schemas — each optimized for different queries.
 
-// This means:
-// - You can build a new database with an alternative schema from the same
-//   events, without migrating the old one. Stand up the new projection,
-//   replay events, and you have a new view of the same data.
-// - Migrations become "build a new projection and cut over" rather than
-//   "transform the existing database in place and pray."
-// - Different teams or services can maintain their own models from the
-//   shared event stream — coordination happens through the event contract,
-//   not through shared database access.
-// - Federated subnetworks can subscribe to relevant event subsets and
-//   build local models suited to their own query patterns, without
-//   coupling to the producer's schema choices.
-//
-// The event stream is the canonical representation. Every database is
-// just a cached, queryable projection of that truth — disposable and
-// rebuildable by design.
+Migrations become "build a new projection and cut over" rather than "transform the existing database in place and pray."
 
-== Procedures and Policies as Pure Logic
+This means:
+- You can build a new database with an alternative schema from the same
+  events, without migrating the old one. Stand up the new projection,
+  replay events, and you have a new view of the same data.
+- Migrations become "build a new projection and cut over" rather than
+  "transform the existing database in place and pray."
+- Different teams or services can maintain their own models from the
+  shared event stream — coordination happens through the event contract,
+  not through shared database access.
+- Federated subnetworks can subscribe to relevant event subsets and
+  build local models suited to their own query patterns, without
+  coupling to the producer's schema choices.
 
-The business logic lives in Procedures (command handlers) and Policies (event reactors).
+The event stream is the canonical representation. Every database is
+just a cached, queryable projection of that truth — disposable and
+rebuildable by design.
 
-These are not entirely pure functions of their inputs plus query results.
 
-Any external systems they connect to - API's, exteneral databases, etc - must be represented either solely as another DIZZY component, or be modelled so that Effects are logged within Events.
+=== Procedures: Command Handlers
 
-This is what makes them portable across languages and deployable in any topology.
+Procedures handle commands and emit events. They are not pure functions — they can query projections — but any external systems they connect to must either be modelled as another DIZZY component or have their effects logged within events. This is what makes procedures portable across languages and deployable in any topology.
+
+
+== How It's Made: The Context Object - Callbacks, Queries, and Injection
+
+Implementations of Procedures and Policies are just functions, but they don't have return types.
+Data is forwarded via Emitters, which are functions injected via a context object in the argument list of the function.
+
+This dependency injection is what enables Process Components to be decoupled from the infrastructure that runs them.
+
+The Emitter callbacks map to channel routes such as gRPC, Kafka, ZeroMQ, or can even be ignored.
+
+
+== Projections as the Bridge from Events to Models
+
+Unlike traditional Domain Driven Design Event Sourcing, models are treated as ephemeral and require events to be built from.
+
+This perspective allows the concept of "Aggregates" to be dropped.
+(Aggregates are a standard way of bridging Event Driven Architecture to Object Oriented Design)
+
+Events record the history of all application state changes, but cannot be queried efficiently. To address this, a Projection is trigged per event to update a specific set of model elements.
+
+For example - in traditional EDA DDD, you may have a hard time using Aggregates or Dynamic Consistency Boundaries to represent an event such as "Author Published a Book" - as multiple tables must be adapted.
+
 
 == Models as Disposable Views
 
-TODO: Models are derived and rebuildable.
+Models are derived and rebuildable.
 They exist to make queries fast, not to be the source of truth.
 You can have as many models as you have questions to answer,
 backed by whatever database technology makes sense for each question.
 
 Connect to the Projection concept as the bridge from events to models.
+
+
+= From Description to Deployment: The Generation Pipeline
+
+Feature file -> def -> gen_def -> gen_impl -> impl
+
+Change propagation
+
 
 = Existing Disciplines, New Composition
 
@@ -420,6 +534,15 @@ DIZZY is nothing new.
 // causal ordering vs. total ordering?
 
 
+// == Change Propagation: The Arrows Point Backwards
+// TODO: When you modify a component (add a field to a command, change an event),
+// the ripple effects propagate backwards through the dependency graph. DIZZY
+// tracks these relationships so you get an explicit list of everything affected.
+// "The arrows propagate backwards when you add code elements or functionalities
+// to your feature. And that's where that like high relational aspect comes in."
+// This is the concrete mechanism behind "making changes responsibly."
+// (See transcript 42:12 - 42:43)
+
 // == Sagas and Long-Running Processes
 // TODO: Some business processes span multiple commands and events over time.
 // Durable execution
@@ -450,4 +573,4 @@ For the formal specification of DIZZY components, schemas, and code generation p
 // [Conway] Conway, M., "How Do Committees Invent?", 1968.
 // [Dijkstra] Dijkstra, E., "The Humble Programmer", ACM Turing Lecture, 1972.
 // [Feathers] Feathers, M., "Working Effectively with Legacy Code", Prentice Hall, 2004.
-// [Kleppmann] Kleppmann, M., "Designing Data-Intensive Applications", O'Reilly, 2017.
+// [Kleppmann] Kleppmann, "Designing Data-Intensive Applications", O'Reilly, 2017.

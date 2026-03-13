@@ -1,23 +1,19 @@
-# Whitepaper commands
+test:
+    uv run pytest
 
-# Compile whitepaper to PDF
+test-update:
+    uv run pytest --snapshot-update
+
+check:
+    uv run ty check dizzy/src/dizzy dizzy/tests
+
 whitepaper:
     typst compile whitepaper.typ
 
-# Watch and recompile whitepaper on changes
 whitepaper-watch:
     typst watch whitepaper.typ
 
-# Documentation commands
 
-# Serve documentation locally
-docs-serve:
-    mkdocs serve
-
-# Deploy documentation to GitHub Pages
-docs-deploy:
-    mkdocs gh-deploy
-
-# Force deploy documentation to GitHub Pages
-docs-deploy-force:
-    mkdocs gh-deploy --force
+install-completions:
+    mkdir -p $HOME/.local/share/bash-completion
+    just --completions bash > $HOME/.local/share/bash-completion/just.bash

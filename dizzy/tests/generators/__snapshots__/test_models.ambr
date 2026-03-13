@@ -1,0 +1,15 @@
+# serializer version: 1
+# name: test_render_scaffold_model_snapshot
+  '''
+  id: https://example.org/models/recipes
+  name: recipes
+  description: Full recipe database — recipes, steps, and ingredients
+  prefixes:
+    linkml: https://w3id.org/linkml/
+  default_range: string
+  imports:
+    - linkml:types
+  classes: {}
+  
+  '''
+# ---

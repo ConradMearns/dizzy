@@ -1,0 +1,17 @@
+# serializer version: 1
+# name: test_render_scaffold_commands_snapshot
+  '''
+  id: https://example.org/commands
+  name: commands
+  prefixes:
+    linkml: https://w3id.org/linkml/
+  default_range: string
+  imports:
+    - linkml:types
+  classes:
+    ingest_recipe_text:
+      description: Initiates ingestion of a recipe from a raw text source
+      attributes: {}
+  
+  '''
+# ---

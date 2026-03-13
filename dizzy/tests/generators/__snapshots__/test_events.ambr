@@ -1,0 +1,23 @@
+# serializer version: 1
+# name: test_render_scaffold_events_snapshot
+  '''
+  id: https://example.org/events
+  name: events
+  prefixes:
+    linkml: https://w3id.org/linkml/
+  default_range: string
+  imports:
+    - linkml:types
+  classes:
+    recipe_ingested:
+      description: A recipe was successfully extracted and validated
+      attributes:
+        recipe_id:
+          range: string
+          required: true
+        source_ref:
+          range: string
+          required: true
+  
+  '''
+# ---
