@@ -21,38 +21,6 @@ The goal of dizzy is to create reproducible redistributable software.
 
 So there's an emphasis on not defining architecture and not defining databases, and a flexibility code. 
 
-## GOALS
-- dizzy dedupe app
-2 features
-- [ ] data upload
-- [ ] data retrieval (web)
-
-2 deployment methods
-- [ ] pulumi
-- [ ] docker compose
-
-- [ ] chaos testing
-
-## Action plan
-
-We can take a *.feat.yaml and generate the component environment - 
-a collection of folders that organize our components
-
-it's okay if we don't generate the LinkML from scratch right now either... 
-perhaps let's skip that step again
-
-
-
-## Current Efforts:
-
-- DIZZY STORM (V->P): A handbook for Software Development
-- DIZZY DISCO (N->V): A DIZZY infrastructure compiler
-
-Current DIZZY apps:
-
-- DIZZY DEDUPE: An example application
-- DIZZY TODO: An example application for observing UI interactions
-
 ## Project Structure
 
 This is a **monorepo** organized as follows:
@@ -61,22 +29,6 @@ This is a **monorepo** organized as follows:
 - **`app/`** - Test applications demonstrating DIZZY patterns
 
 The project uses a **uv monorepo** for packaging and **justfiles** to record common commands.
-
-## DIZZY Program Schema
-
-DIZZY applications are structured around **4 Flow Components** that form a continuous cycle:
-
-**Commands → Procedures → Events → Policies → Commands**
-
-This architecture leverages **CQRS (Command Query Responsibility Segregation)**:
-
-- **Commands**: Trigger actions in the system
-- **Procedures**: Execute business logic and emit Events
-- **Events**: Capture state changes
-- **Policies**: React to Events and may trigger new Commands
-
-## Developer Setup
-
 This is a **uv monorepo** with multiple packages and applications managed as a workspace.
 
 ### Prerequisites
