@@ -123,6 +123,60 @@ def _parse_projection_def(raw: dict[str, Any]) -> ProjectionDef:
     )
 
 
+def validate_feat(feat: FeatureDefinition) -> list[str]:
+    """Validate cross-references within a FeatureDefinition.
+
+    Returns a list of error strings; empty list means the feat is valid.
+    """
+    errors: list[str] = []
+
+    for proc_name, proc in feat.procedures.items():
+        if proc.command not in feat.commands:
+            errors.append(
+                f"procedure '{proc_name}': command '{proc.command}' not declared in commands"
+            )
+        for q in proc.queries:
+            if q not in feat.queries:
+                errors.append(
+                    f"procedure '{proc_name}': query '{q}' not declared in queries"
+                )
+        for e in proc.emits:
+            if e not in feat.events:
+                errors.append(
+                    f"procedure '{proc_name}': emits '{e}' not declared in events"
+                )
+
+    for policy_name, policy in feat.policies.items():
+        if policy.event not in feat.events:
+            errors.append(
+                f"policy '{policy_name}': event '{policy.event}' not declared in events"
+            )
+        for e in policy.emits:
+            if e not in feat.commands:
+                errors.append(
+                    f"policy '{policy_name}': emits '{e}' not declared in commands"
+                )
+
+    for proj_name, proj in feat.projections.items():
+        if proj.event not in feat.events:
+            errors.append(
+                f"projection '{proj_name}': event '{proj.event}' not declared in events"
+            )
+        for m in proj.models:
+            if m not in feat.models:
+                errors.append(
+                    f"projection '{proj_name}': model '{m}' not declared in models"
+                )
+
+    for query_name, query in feat.queries.items():
+        if query.model is not None and query.model not in feat.models:
+            errors.append(
+                f"query '{query_name}': model '{query.model}' not declared in models"
+            )
+
+    return errors
+
+
 def load_feat(path: str | Path) -> FeatureDefinition:
     """Load and parse a .feat.yaml file into a FeatureDefinition."""
     raw = yaml.safe_load(Path(path).read_text())

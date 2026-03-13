@@ -3,7 +3,7 @@
 from pathlib import Path
 import typer
 
-from dizzy.feat import load_feat
+from dizzy.feat import load_feat, validate_feat
 from dizzy.generators.commands import write_scaffold_commands
 from dizzy.generators.events import write_scaffold_events
 from dizzy.generators.queries import (
@@ -37,6 +37,12 @@ def def_cmd(
     """Generate def/ stub files from a .feat.yaml feature definition."""
     feat = load_feat(feat_file)
 
+    errors = validate_feat(feat)
+    if errors:
+        for err in errors:
+            typer.echo(f"Error: {err}")
+        raise typer.Exit(code=1)
+
     if feat.commands:
         write_scaffold_commands(feat, output_dir)
 
@@ -63,6 +69,12 @@ def gen(
 ) -> None:
     """Generate gen_def/, gen_int/, and src/ from an authored def/ directory."""
     feat = load_feat(feat_file)
+
+    errors = validate_feat(feat)
+    if errors:
+        for err in errors:
+            typer.echo(f"Error: {err}")
+        raise typer.Exit(code=1)
 
     # Guard: check that all required def/ stubs exist before proceeding
     missing: list[str] = []
