@@ -64,6 +64,30 @@ def gen(
     """Generate gen_def/, gen_int/, and src/ from a scaffolded feature directory."""
     feat = load_feat(feat_file)
 
+    # Guard: check that all required def/ stubs exist before proceeding
+    missing: list[str] = []
+    if feat.commands and not (output_dir / "def" / "commands.yaml").exists():
+        missing.append("def/commands.yaml")
+    if feat.events and not (output_dir / "def" / "events.yaml").exists():
+        missing.append("def/events.yaml")
+    for query_name in feat.queries:
+        stub = output_dir / "def" / "queries" / f"{query_name}.yaml"
+        if not stub.exists():
+            missing.append(f"def/queries/{query_name}.yaml")
+    for schema_name in feat.models:
+        stub = output_dir / "def" / "models" / f"{schema_name}.yaml"
+        if not stub.exists():
+            missing.append(f"def/models/{schema_name}.yaml")
+
+    if missing:
+        typer.echo(
+            "Error: def/ stubs not found. Run `dizzy scaffold <feat_file> <output_dir>` first."
+        )
+        typer.echo("Missing:")
+        for path in missing:
+            typer.echo(f"  {path}")
+        raise typer.Exit(code=1)
+
     # Step 1 — run LinkML toolchain on def/ stubs → gen_def/
     if feat.commands:
         run_linkml_pydantic(

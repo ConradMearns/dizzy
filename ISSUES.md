@@ -1,14 +1,5 @@
 # Known Issues
 
-## No test coverage for 2+ emits in procedures and policies
-
-`render_procedure_context` and `render_policy_context` both handle `emits` via a loop
-and are correct for any count. However, tests only cover 0 emits and 1 emit.
-A case with 2+ emits (multiple emitter fields in the generated dataclass) is untested.
-This gap exists in both `test_procedures.py` and `test_policies.py`.
-
----
-
 ## Projection formatting inconsistencies vs. procedures/policies
 
 Projections differ from procedures and policies in two ways not explained by the spec:
@@ -18,6 +9,24 @@ Projections differ from procedures and policies in two ways not explained by the
 2. The projection `__call__` is formatted as a single line, while policies (same parameter
    structure: `event`, `context`) use multi-line formatting. No semantic reason for the
    difference — likely an inconsistency in how the spec example was written.
+
+---
+
+## Legacy generator scripts can be removed
+
+`generate_linkml_from_feature.py` and `generate_protocols_from_commands.py` at the repo root
+are the original hand-rolled predecessors to the dizzy generator pipeline. They are now fully
+superseded by `dizzy scaffold` and `dizzy gen`. They should be deleted to avoid confusion about
+which pipeline is canonical.
+
+---
+
+## Root pyproject.toml sets up an unnecessary workspace
+
+The root `pyproject.toml` defines a `uv` workspace with `dizzy` as a member subproject.
+The intent is for dizzy to be a standalone package — the workspace wrapper adds complexity
+with no benefit. The root `pyproject.toml` and its dev dependencies (`plotext`, `xxhash`,
+`pandas`, etc.) should be removed and `dizzy/pyproject.toml` promoted to the repo root.
 
 ---
 

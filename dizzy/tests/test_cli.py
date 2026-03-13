@@ -1,5 +1,7 @@
 """End-to-end scaffold + gen integration tests."""
 
+import pytest
+from click.exceptions import Exit as ClickExit
 from pathlib import Path
 
 from dizzy.cli import scaffold, gen
@@ -71,6 +73,15 @@ def test_gen_creates_all_outputs(tmp_path: Path) -> None:
     assert (tmp_path / "gen_int" / "python" / "procedure" / "__init__.py").exists()
     assert (tmp_path / "gen_int" / "python" / "policy" / "__init__.py").exists()
     assert (tmp_path / "gen_int" / "python" / "projection" / "__init__.py").exists()
+
+
+def test_gen_error_when_def_missing(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(ClickExit) as exc_info:
+        gen(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+    assert exc_info.value.exit_code == 1
+    captured = capsys.readouterr()
+    assert "dizzy scaffold" in captured.out
+    assert "def/commands.yaml" in captured.out
 
 
 def test_gen_does_not_overwrite_src(tmp_path: Path) -> None:

@@ -57,6 +57,29 @@ def test_render_policy_context_with_emits() -> None:
     assert "pass" not in result
 
 
+def test_render_policy_context_multiple_emits() -> None:
+    feat = FeatureDefinition(
+        commands={
+            "send_alert": CommandDef(description="Send an alert"),
+            "log_event": CommandDef(description="Log an event"),
+        },
+        events={"scan_complete": EventDef(description="Scan completed")},
+        policies={
+            "react_to_scan": PolicyDef(
+                description="Reacts to scan completion",
+                event="scan_complete",
+                emits=["send_alert", "log_event"],
+            )
+        },
+    )
+    result = render_policy_context("react_to_scan", feat)
+    assert "from gen_def.pydantic.commands import send_alert" in result
+    assert "from gen_def.pydantic.commands import log_event" in result
+    assert "send_alert: Callable[[send_alert], None]" in result
+    assert "log_event: Callable[[log_event], None]" in result
+    assert "pass" not in result
+
+
 # ---------------------------------------------------------------------------
 # render_policy_protocol
 # ---------------------------------------------------------------------------

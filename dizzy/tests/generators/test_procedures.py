@@ -103,6 +103,30 @@ def test_render_procedure_context_no_emits() -> None:
     assert "query: process_queries" in result
 
 
+def test_render_procedure_context_multiple_emits() -> None:
+    feat = FeatureDefinition(
+        commands={"do_thing": CommandDef(description="Do a thing")},
+        events={
+            "thing_started": EventDef(description="Thing was started"),
+            "thing_done": EventDef(description="Thing was done"),
+        },
+        procedures={
+            "handle_thing": ProcedureDef(
+                description="Handles the thing",
+                command="do_thing",
+                queries=[],
+                emits=["thing_started", "thing_done"],
+            )
+        },
+    )
+    result = render_procedure_context("handle_thing", feat)
+    assert "from gen_def.pydantic.events import thing_started" in result
+    assert "from gen_def.pydantic.events import thing_done" in result
+    assert "thing_started: Callable[[thing_started], None]" in result
+    assert "thing_done: Callable[[thing_done], None]" in result
+    assert "pass" not in result
+
+
 # ---------------------------------------------------------------------------
 # render_procedure_protocol
 # ---------------------------------------------------------------------------
