@@ -21,6 +21,24 @@ Projections differ from procedures and policies in two ways not explained by the
 
 ---
 
+## `dizzy gen` gives no useful error when def/ stubs are missing
+
+`gen()` calls `run_linkml_pydantic` / `run_linkml_sqla` directly. If `def/` stubs don't
+exist (i.e. `scaffold` was never run), the subprocess raises `CalledProcessError` with
+no context. A guard at the top of `gen()` that checks for missing def/ files and prints
+a clear message would improve DX significantly.
+
+---
+
+## `test_gen_creates_all_outputs` expected-paths list is not reused
+
+The list of expected output paths in `test_gen_creates_all_outputs` is a long inline
+sequence of `assert ... .exists()` calls. If the output layout changes, every assertion
+must be updated by hand. Extracting the expected paths as a constant or fixture would
+make the test easier to maintain and could be reused by other tests.
+
+---
+
 ## Duplicated type maps across generator modules
 
 `_LINKML_TYPE_MAP` and `_PYTHON_TYPE_MAP` are copy-pasted into every generator module

@@ -105,9 +105,9 @@ Implement and test `dizzy scaffold` before any gen work begins.
 
 ### `generators/linkml_runner.py`
 
-- [ ] Implement `run_linkml_pydantic(def_file: Path, output_file: Path) -> None` — shells out to `linkml gen-pydantic <def_file>` and writes result to `output_file`
-- [ ] Implement `run_linkml_sqla(def_file: Path, output_file: Path) -> None` — shells out to `linkml gen-sqla <def_file>` and writes result to `output_file`
-- [ ] Write `tests/generators/test_linkml_runner.py`:
+- [x] Implement `run_linkml_pydantic(def_file: Path, output_file: Path) -> None` — shells out to `linkml gen-pydantic <def_file>` and writes result to `output_file`
+- [x] Implement `run_linkml_sqla(def_file: Path, output_file: Path) -> None` — shells out to `linkml gen-sqla <def_file>` and writes result to `output_file`
+- [x] Write `tests/generators/test_linkml_runner.py`:
   - Verify `linkml gen-pydantic` can be run against `def/commands.yaml` stub and produces valid Python
   - Verify `linkml gen-pydantic` can be run against `def/events.yaml` stub and produces valid Python
   - Verify `linkml gen-pydantic` can be run against `def/queries/*_input.yaml` stub and produces valid Python
@@ -131,16 +131,16 @@ Implement and test `dizzy scaffold` before any gen work begins.
 
 ### `__init__.py` emitter
 
-- [ ] Implement helper that writes an empty `__init__.py` in every generated directory
-- [ ] Add assertions to integration snapshot tests that `__init__.py` exists in each generated dir
+- [x] Implement helper that writes an empty `__init__.py` in every generated directory
+- [x] Add assertions to integration snapshot tests that `__init__.py` exists in each generated dir
 
 ## Phase 6 — CLI: `dizzy gen`
 
-- [ ] Write `tests/test_cli.py` gen integration tests (call `gen()` directly — typer commands are plain functions):
+- [x] Write `tests/test_cli.py` gen integration tests (call `gen()` directly — typer commands are plain functions):
   - `test_gen_creates_all_outputs` — calls `gen()`, asserts all `gen_def/`, `gen_int/`, `src/` files exist
   - `test_gen_does_not_overwrite_src` — calls `gen()` twice, asserts src stubs unchanged
-- [ ] Implement `dizzy gen <feat_file> <output_dir>` in `cli.py` — runs linkml runner then Protocol generators, prints per-section summary and next-steps message
-- [ ] Run `just test` — all tests pass
+- [x] Implement `dizzy gen <feat_file> <output_dir>` in `cli.py` — runs linkml runner then Protocol generators, prints per-section summary and next-steps message
+- [x] Run `just test` — all tests pass
 
 ## Phase 7 — Install & Manual Smoke Test
 

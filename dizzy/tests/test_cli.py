@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from dizzy.cli import scaffold
+from dizzy.cli import scaffold, gen
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
@@ -28,3 +28,58 @@ def test_scaffold_does_not_overwrite(tmp_path: Path) -> None:
 
     assert commands_path.read_text() == "# custom content\n"
     assert (tmp_path / "def" / "events.yaml").read_text() != "# custom content\n"
+
+
+def test_gen_creates_all_outputs(tmp_path: Path) -> None:
+    scaffold(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+    gen(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+
+    # gen_def/ — linkml outputs
+    assert (tmp_path / "gen_def" / "pydantic" / "commands.py").exists()
+    assert (tmp_path / "gen_def" / "pydantic" / "events.py").exists()
+    assert (tmp_path / "gen_def" / "pydantic" / "query" / "get_recipe_text.py").exists()
+    assert (tmp_path / "gen_def" / "pydantic" / "query" / "get_recipe.py").exists()
+    assert (tmp_path / "gen_def" / "pydantic" / "models" / "recipes.py").exists()
+    assert (tmp_path / "gen_def" / "sqla" / "models" / "recipes.py").exists()
+
+    # gen_int/ — protocol outputs
+    assert (tmp_path / "gen_int" / "python" / "query" / "get_recipe_text.py").exists()
+    assert (tmp_path / "gen_int" / "python" / "query" / "get_recipe.py").exists()
+    assert (tmp_path / "gen_int" / "python" / "procedure" / "extract_and_transform_recipe_context.py").exists()
+    assert (tmp_path / "gen_int" / "python" / "procedure" / "extract_and_transform_recipe_protocol.py").exists()
+    assert (tmp_path / "gen_int" / "python" / "policy" / "index_recipe_on_ingest_context.py").exists()
+    assert (tmp_path / "gen_int" / "python" / "policy" / "index_recipe_on_ingest_protocol.py").exists()
+    assert (tmp_path / "gen_int" / "python" / "projection" / "recipe_library_projection.py").exists()
+
+    # src/ — implementation stubs
+    assert (tmp_path / "src" / "query" / "get_recipe_text.py").exists()
+    assert (tmp_path / "src" / "query" / "get_recipe.py").exists()
+    assert (tmp_path / "src" / "procedure" / "extract_and_transform_recipe.py").exists()
+    assert (tmp_path / "src" / "policy" / "index_recipe_on_ingest.py").exists()
+    assert (tmp_path / "src" / "projection" / "recipe_library.py").exists()
+
+    # __init__.py in every generated directory
+    assert (tmp_path / "gen_def" / "__init__.py").exists()
+    assert (tmp_path / "gen_def" / "pydantic" / "__init__.py").exists()
+    assert (tmp_path / "gen_def" / "pydantic" / "query" / "__init__.py").exists()
+    assert (tmp_path / "gen_def" / "pydantic" / "models" / "__init__.py").exists()
+    assert (tmp_path / "gen_def" / "sqla" / "__init__.py").exists()
+    assert (tmp_path / "gen_def" / "sqla" / "models" / "__init__.py").exists()
+    assert (tmp_path / "gen_int" / "__init__.py").exists()
+    assert (tmp_path / "gen_int" / "python" / "__init__.py").exists()
+    assert (tmp_path / "gen_int" / "python" / "query" / "__init__.py").exists()
+    assert (tmp_path / "gen_int" / "python" / "procedure" / "__init__.py").exists()
+    assert (tmp_path / "gen_int" / "python" / "policy" / "__init__.py").exists()
+    assert (tmp_path / "gen_int" / "python" / "projection" / "__init__.py").exists()
+
+
+def test_gen_does_not_overwrite_src(tmp_path: Path) -> None:
+    scaffold(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+    gen(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+
+    src_file = tmp_path / "src" / "query" / "get_recipe_text.py"
+    src_file.write_text("# my implementation\n")
+
+    gen(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+
+    assert src_file.read_text() == "# my implementation\n"
