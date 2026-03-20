@@ -1,0 +1,38 @@
+description: Recipe App
+
+events:
+  receipt_ingested: New Receipt Added
+  receipt_item_ingested: New Receipt Item Added
+
+commands:
+  ingest_receipt_image: Path to receipt image
+
+models:
+  receipts: Schema for recipes
+
+# queries:
+#   get_recipe_text:
+#     description: Retrieves raw recipe text given a source identifier (URL, file path, or inline text)
+#     input: source_ref
+#     output: raw_text
+
+procedures:
+  extract_receipt_data_from_image:
+    description: Use a Large Language Model to extract receipt data from an image
+    command: ingest_receipt_image
+    events:
+      - receipt_ingested
+      - receipt_item_ingested
+
+    # queries:
+    #   - get_recipe_text
+    #   - llm_completion
+
+
+
+# projections:
+#   add_new_recipe:
+#     description: Adds ingested recipe to the recipe library
+#     event: new_recipe_added
+#     models:
+#       - recipes
