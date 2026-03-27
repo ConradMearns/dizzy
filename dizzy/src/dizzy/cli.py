@@ -23,6 +23,7 @@ from dizzy.generators.policies import (
     write_policy_src_stub,
 )
 from dizzy.generators.projections import write_projection, write_projection_src_stub
+from dizzy.generators.adapters import write_adapter
 from dizzy.generators.linkml_runner import run_linkml_pydantic, run_linkml_sqla
 from dizzy.generators.init_emitter import write_init_files
 
@@ -124,12 +125,20 @@ def gen(
             output_dir / "def" / "models" / f"{schema_name}.yaml",
             output_dir / "gen_def" / "pydantic" / "models" / f"{schema_name}.py",
         )
-        run_linkml_sqla(
-            output_dir / "def" / "models" / f"{schema_name}.yaml",
-            output_dir / "gen_def" / "sqla" / "models" / f"{schema_name}.py",
-        )
+        if "sqla" in feat.models[schema_name].adapters:
+            run_linkml_sqla(
+                output_dir / "def" / "models" / f"{schema_name}.yaml",
+                output_dir / "gen_def" / "sqla" / "models" / f"{schema_name}.py",
+            )
 
-    # Step 2 — generate gen_int/ Protocol files from feat structure
+    # Step 2 — generate adapter classes
+    unique_adapters: set[str] = set()
+    for model_def in feat.models.values():
+        unique_adapters.update(model_def.adapters)
+    for adapter_name in unique_adapters:
+        write_adapter(adapter_name, output_dir)
+
+    # Step 3 — generate gen_int/ Protocol files from feat structure
     for query_name in feat.queries:
         write_gen_query_protocol(query_name, feat, output_dir)
 

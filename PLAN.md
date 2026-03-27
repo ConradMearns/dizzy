@@ -11,24 +11,24 @@ Goal: parsers and generators compile against the new types; `dizzy def` and `diz
 cleanly on `receipts.feat.yaml`.
 
 **`feat.py` — data model**
-- [ ] Add `ModelDef` dataclass with `description: str` and `adapters: list[str]`
-- [ ] Change `FeatureDefinition.models` from `dict[str, str]` to `dict[str, ModelDef]`
-- [ ] Add `adapter: str | None = None` to `QueryDef`
-- [ ] Replace `models: list[str]` with `model: str | None` and `adapter: str | None` on `ProjectionDef`
-- [ ] Update `load_feat` — parse models as full object form into `ModelDef`
-- [ ] Update `_parse_query_def` to read `adapter`
-- [ ] Update `_parse_projection_def` to read singular `model` + `adapter` (drop `models` list)
+- [x] Add `ModelDef` dataclass with `description: str` and `adapters: list[str]`
+- [x] Change `FeatureDefinition.models` from `dict[str, str]` to `dict[str, ModelDef]`
+- [x] Add `adapter: str | None = None` to `QueryDef`
+- [x] Replace `models: list[str]` with `model: str | None` and `adapter: str | None` on `ProjectionDef`
+- [x] Update `load_feat` — parse models as full object form into `ModelDef`
+- [x] Update `_parse_query_def` to read `adapter`
+- [x] Update `_parse_projection_def` to read singular `model` + `adapter` (drop `models` list)
 
 **Generator minimal fixes — compile against new types, no new behaviour**
-- [ ] `generators/models.py` — access `model_def.description` instead of raw string
-- [ ] `generators/queries.py` — read `query.adapter` (may be `None`); keep existing output for now
-- [ ] `generators/projections.py` — replace loop over `projection.models` with `projection.model`; keep existing output for now
-- [ ] `cli.py` — remove `run_linkml_sqla` call for models that don't declare `sqla` as an adapter (guard on `feat.models[name].adapters`)
+- [x] `generators/models.py` — access `model_def.description` instead of raw string
+- [x] `generators/queries.py` — read `query.adapter` (may be `None`); keep existing output for now
+- [x] `generators/projections.py` — replace loop over `projection.models` with `projection.model`; keep existing output for now
+- [x] `cli.py` — remove `run_linkml_sqla` call for models that don't declare `sqla` as an adapter (guard on `feat.models[name].adapters`)
 
 **Migrate feat files**
-- [ ] `receipts.feat.yaml` — models: full object form with `adapters`; add a query and a projection that use the model so the demo exercises the full path
-- [ ] `recipe.feat.yaml` (test fixture) — models: full object form with `adapters`; queries: add `adapter`; projections: singular `model` + `adapter`
-- [ ] `partial.feat.yaml` (test fixture) — no models/projections; verify it loads cleanly as-is
+- [x] `receipts.feat.yaml` — models: full object form with `adapters`; add a query and a projection that use the model so the demo exercises the full path
+- [x] `recipe.feat.yaml` (test fixture) — models: full object form with `adapters`; queries: add `adapter`; projections: singular `model` + `adapter`
+- [x] `partial.feat.yaml` (test fixture) — no models/projections; verify it loads cleanly as-is
 
 **Validate**
 ```
@@ -44,16 +44,16 @@ dizzy gen receipts.feat.yaml demo/
 
 Goal: `validate_feat` rejects bad adapter bindings; all validation tests pass.
 
-- [ ] Update existing model reference checks to use `ModelDef` (was plain string)
-- [ ] Update projection model check for singular `model` field
-- [ ] Add: query with `model` but no `adapter` → error
-- [ ] Add: query with `adapter` but no `model` → error
-- [ ] Add: query adapter not in `model.adapters` → error
-- [ ] Add: projection with `model` but no `adapter` → error
-- [ ] Add: projection with `adapter` but no `model` → error
-- [ ] Add: projection adapter not in `model.adapters` → error
-- [ ] `test_validation.py` — update `test_projection_references_unknown_model` and `test_query_references_unknown_model` to use `ModelDef`
-- [ ] `test_validation.py` — add a test for each new error rule above
+- [x] Update existing model reference checks to use `ModelDef` (was plain string)
+- [x] Update projection model check for singular `model` field
+- [x] Add: query with `model` but no `adapter` → error
+- [x] Add: query with `adapter` but no `model` → error
+- [x] Add: query adapter not in `model.adapters` → error
+- [x] Add: projection with `model` but no `adapter` → error
+- [x] Add: projection with `adapter` but no `model` → error
+- [x] Add: projection adapter not in `model.adapters` → error
+- [x] `test_validation.py` — update `test_projection_references_unknown_model` and `test_query_references_unknown_model` to use `ModelDef`
+- [x] `test_validation.py` — add a test for each new error rule above
 
 **Validate**
 ```
@@ -67,16 +67,16 @@ pytest dizzy/tests/test_validation.py -v
 
 Goal: `dizzy gen` writes shared adapter class files under `gen_int/python/adapters/`.
 
-- [ ] Create `generators/adapters.py` with adapter registry: `sqla → SqlaAdapter(session: Session)`, `relative_filesystem → RelativeFilesystemAdapter(root: Path)`
-- [ ] Implement `render_adapter(adapter_name) -> str` — produces the dataclass source
-- [ ] Implement `write_adapter(adapter_name, output_dir)` — writes to `gen_int/python/adapters/<name>.py`, always overwrites
-- [ ] Emit a warning (not an error) for unrecognised adapter names
-- [ ] `cli.py` — collect unique adapters across all `feat.models` values; call `write_adapter` for each
-- [ ] Create `tests/generators/test_adapters.py`:
-  - [ ] `render_adapter("sqla")` contains `SqlaAdapter`, `session: Session`, correct import
-  - [ ] `render_adapter("relative_filesystem")` contains `RelativeFilesystemAdapter`, `root: Path`, correct import
-  - [ ] `write_adapter` creates file at correct path and always overwrites
-  - [ ] Unknown adapter name emits a warning
+- [x] Create `generators/adapters.py` with adapter registry: `sqla → SqlaAdapter(session: Session)`, `relative_filesystem → RelativeFilesystemAdapter(root: Path)`
+- [x] Implement `render_adapter(adapter_name) -> str` — produces the dataclass source
+- [x] Implement `write_adapter(adapter_name, output_dir)` — writes to `gen_int/python/adapters/<name>.py`, always overwrites
+- [x] Emit a warning (not an error) for unrecognised adapter names
+- [x] `cli.py` — collect unique adapters across all `feat.models` values; call `write_adapter` for each
+- [x] Create `tests/generators/test_adapters.py`:
+  - [x] `render_adapter("sqla")` contains `SqlaAdapter`, `session: Session`, correct import
+  - [x] `render_adapter("relative_filesystem")` contains `RelativeFilesystemAdapter`, `root: Path`, correct import
+  - [x] `write_adapter` creates file at correct path and always overwrites
+  - [x] Unknown adapter name emits a warning
 
 **Validate**
 ```
@@ -92,13 +92,13 @@ pytest dizzy/tests/generators/test_adapters.py -v
 
 Goal: generated query protocol files import and use the correct adapter class instead of `Any`.
 
-- [ ] `generators/queries.py` — when `query.adapter` is set, import adapter class from `gen_int.python.adapters.<adapter>`; emit `adapter: <AdapterClass>` field on context dataclass
-- [ ] `generators/queries.py` — when `query.adapter` is `None`, emit `pass` (unchanged)
-- [ ] Remove `Any` from query protocol imports when no longer needed
-- [ ] `test_queries.py` — update `test_render_gen_query_protocol_imports`: expect adapter import not `Any`
-- [ ] `test_queries.py` — update `test_render_gen_query_protocol_context_class`: expect `adapter: <AdapterClass>` not `<model>: Any`
-- [ ] `test_queries.py` — update `test_render_gen_query_protocol_second_query` similarly
-- [ ] Regenerate `__snapshots__/test_queries.ambr` (`pytest --snapshot-update`)
+- [x] `generators/queries.py` — when `query.adapter` is set, import adapter class from `gen_int.python.adapters.<adapter>`; emit `adapter: <AdapterClass>` field on context dataclass
+- [x] `generators/queries.py` — when `query.adapter` is `None`, emit `pass` (unchanged)
+- [x] Remove `Any` from query protocol imports when no longer needed
+- [x] `test_queries.py` — update `test_render_gen_query_protocol_imports`: expect adapter import not `Any`
+- [x] `test_queries.py` — update `test_render_gen_query_protocol_context_class`: expect `adapter: <AdapterClass>` not `<model>: Any`
+- [x] `test_queries.py` — update `test_render_gen_query_protocol_second_query` similarly
+- [x] Regenerate `__snapshots__/test_queries.ambr` (`pytest --snapshot-update`)
 
 **Validate**
 ```
@@ -114,13 +114,13 @@ pytest dizzy/tests/generators/test_queries.py -v
 
 Goal: generated projection protocol files use singular model + adapter class.
 
-- [ ] `generators/projections.py` — when `projection.adapter` is set, import adapter class; emit single `adapter: <AdapterClass>` field on context dataclass
-- [ ] `generators/projections.py` — when `projection.model` is `None`, emit `pass`
-- [ ] Remove `Any` from projection imports when no longer needed
-- [ ] `test_projections.py` — remove `test_render_projection_multiple_models` (no longer valid)
-- [ ] `test_projections.py` — update `test_render_projection_imports`: expect adapter import not `Any`
-- [ ] `test_projections.py` — update `test_render_projection_context_dataclass`: expect `adapter: <AdapterClass>` not `recipes: Any`
-- [ ] Regenerate `__snapshots__/test_projections.ambr` (`pytest --snapshot-update`)
+- [x] `generators/projections.py` — when `projection.adapter` is set, import adapter class; emit single `adapter: <AdapterClass>` field on context dataclass
+- [x] `generators/projections.py` — when `projection.model` is `None`, emit `pass`
+- [x] Remove `Any` from projection imports when no longer needed
+- [x] `test_projections.py` — remove `test_render_projection_multiple_models` (no longer valid)
+- [x] `test_projections.py` — update `test_render_projection_imports`: expect adapter import not `Any`
+- [x] `test_projections.py` — update `test_render_projection_context_dataclass`: expect `adapter: <AdapterClass>` not `recipes: Any`
+- [x] Regenerate `__snapshots__/test_projections.ambr` (`pytest --snapshot-update`)
 
 **Validate**
 ```
@@ -136,9 +136,9 @@ pytest dizzy/tests/generators/test_projections.py -v
 
 Goal: all tests green, no stale assertions or snapshots.
 
-- [ ] `test_models.py` — update any inline `FeatureDefinition(models={"x": "str"})` to use `ModelDef`
-- [ ] `test_validation.py` — confirm all inline feat constructions use `ModelDef`
-- [ ] Run full suite and fix any remaining failures
+- [x] `test_models.py` — update any inline `FeatureDefinition(models={"x": "str"})` to use `ModelDef`
+- [x] `test_validation.py` — confirm all inline feat constructions use `ModelDef`
+- [x] Run full suite and fix any remaining failures
 
 **Validate**
 ```

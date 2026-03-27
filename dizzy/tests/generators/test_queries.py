@@ -10,7 +10,6 @@ from dizzy.generators.queries import (
 )
 
 
-
 def test_render_scaffold_query_linkml_header(recipe_feat: FeatureDefinition) -> None:
     result = render_scaffold_query("get_recipe_text", recipe_feat)
     assert "id: https://example.org/queries/get_recipe_text" in result
@@ -52,16 +51,17 @@ def test_render_gen_query_protocol_auto_generated(recipe_feat: FeatureDefinition
 def test_render_gen_query_protocol_imports(recipe_feat: FeatureDefinition) -> None:
     result = render_gen_query_protocol("get_recipe_text", recipe_feat)
     assert "from dataclasses import dataclass" in result
-    assert "from typing import Protocol, Any" in result
+    assert "from typing import Protocol" in result
+    assert "Any" not in result
     assert "from gen_def.pydantic.query.get_recipe_text import GetRecipeTextInput, GetRecipeTextOutput" in result
+    assert "from gen_int.python.adapters.relative_filesystem import RelativeFilesystemAdapter" in result
 
 
 def test_render_gen_query_protocol_context_class(recipe_feat: FeatureDefinition) -> None:
     result = render_gen_query_protocol("get_recipe_text", recipe_feat)
     assert "@dataclass" in result
     assert "class get_recipe_text_context:" in result
-    assert "recipes: Any" in result
-    assert "SQLAlchemy session for the recipes schema" in result
+    assert "adapter: RelativeFilesystemAdapter" in result
 
 
 def test_render_gen_query_protocol_protocol_class(recipe_feat: FeatureDefinition) -> None:
@@ -80,7 +80,8 @@ def test_render_gen_query_protocol_second_query(recipe_feat: FeatureDefinition) 
     assert "class get_recipe_context:" in result
     assert "class get_recipe_query(Protocol):" in result
     assert "Retrieves a structured recipe by ID" in result
-    assert "recipes: Any" in result
+    assert "adapter: SqlaAdapter" in result
+    assert "from gen_int.python.adapters.sqla import SqlaAdapter" in result
 
 
 def test_write_scaffold_query_creates_file(

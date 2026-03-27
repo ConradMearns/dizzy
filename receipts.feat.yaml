@@ -1,4 +1,4 @@
-description: Recipe App
+description: Receipts App
 
 events:
   receipt_ingested: New Receipt Added
@@ -8,31 +8,38 @@ commands:
   ingest_receipt_image: Path to receipt image
 
 models:
-  receipts: Schema for recipes
+  receipts:
+    description: Schema for receipts
+    adapters:
+      - sqla
+      - relative_filesystem
 
-# queries:
-#   get_recipe_text:
-#     description: Retrieves raw recipe text given a source identifier (URL, file path, or inline text)
-#     input: source_ref
-#     output: raw_text
+queries:
+  get_receipt:
+    description: Retrieves a receipt by ID
+    model: receipts
+    adapter: sqla
+  get_receipt_image:
+    description: Retrieves a raw receipt image from the filesystem
+    model: receipts
+    adapter: relative_filesystem
 
 procedures:
   extract_receipt_data_from_image:
     description: Use a Large Language Model to extract receipt data from an image
     command: ingest_receipt_image
-    events:
+    emits:
       - receipt_ingested
       - receipt_item_ingested
 
-    # queries:
-    #   - get_recipe_text
-    #   - llm_completion
-
-
-
-# projections:
-#   add_new_recipe:
-#     description: Adds ingested recipe to the recipe library
-#     event: new_recipe_added
-#     models:
-#       - recipes
+projections:
+  receipt_store:
+    description: Stores ingested receipt in the receipts model
+    event: receipt_ingested
+    model: receipts
+    adapter: sqla
+  receipt_file_archive:
+    description: Archives the ingested receipt to the filesystem
+    event: receipt_ingested
+    model: receipts
+    adapter: relative_filesystem

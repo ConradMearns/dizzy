@@ -7,7 +7,7 @@ from dizzy.feat import FeatureDefinition
 
 def render_scaffold_model(schema_name: str, feat: FeatureDefinition) -> str:
     """Render a minimal LinkML stub for def/models/<schema_name>.yaml."""
-    description = feat.models.get(schema_name, "")
+    description = feat.models[schema_name].description
     lines = [
         f"id: https://example.org/models/{schema_name}",
         f"name: {schema_name}",

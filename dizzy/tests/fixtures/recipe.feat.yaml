@@ -1,15 +1,21 @@
 description: Recipe App
 
 models:
-  recipes: Full recipe database — recipes, steps, and ingredients
+  recipes:
+    description: Full recipe database — recipes, steps, and ingredients
+    adapters:
+      - sqla
+      - relative_filesystem
 
 queries:
   get_recipe_text:
     description: Retrieves raw recipe text given a source reference
     model: recipes
+    adapter: relative_filesystem
   get_recipe:
     description: Retrieves a structured recipe by ID
     model: recipes
+    adapter: sqla
 
 commands:
   ingest_recipe_text: Initiates ingestion of a recipe from a raw text source
@@ -45,5 +51,5 @@ projections:
   recipe_library:
     description: Adds ingested recipe to the recipe library
     event: recipe_ingested
-    models:
-      - recipes
+    model: recipes
+    adapter: sqla

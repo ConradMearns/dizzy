@@ -644,6 +644,33 @@
     ''',
     'gen_int/__init__.py': '',
     'gen_int/python/__init__.py': '',
+    'gen_int/python/adapters/__init__.py': '',
+    'gen_int/python/adapters/relative_filesystem.py': '''
+      # AUTO-GENERATED — do not edit
+      from dataclasses import dataclass
+      from pathlib import Path
+      
+      
+      @dataclass
+      class RelativeFilesystemAdapter:
+          """Adapter providing a root path for relative filesystem access."""
+      
+          root: Path
+  
+    ''',
+    'gen_int/python/adapters/sqla.py': '''
+      # AUTO-GENERATED — do not edit
+      from dataclasses import dataclass
+      from sqlalchemy.orm import Session
+      
+      
+      @dataclass
+      class SqlaAdapter:
+          """Adapter providing a SQLAlchemy session."""
+      
+          session: Session
+  
+    ''',
     'gen_int/python/policy/__init__.py': '',
     'gen_int/python/policy/index_recipe_on_ingest_context.py': '''
       # AUTO-GENERATED — do not edit
@@ -732,15 +759,15 @@
     'gen_int/python/projection/recipe_library_projection.py': '''
       # AUTO-GENERATED — do not edit
       from dataclasses import dataclass
-      from typing import Protocol, Any
+      from typing import Protocol
       
       from gen_def.pydantic.events import recipe_ingested
+      from gen_int.python.adapters.sqla import SqlaAdapter
       
       
       @dataclass
       class recipe_library_context:
-          """SQLAlchemy sessions for schemas written by this projection."""
-          recipes: Any  # SQLAlchemy session for the recipes schema
+          adapter: SqlaAdapter
       
       
       class recipe_library_projection(Protocol):
@@ -755,15 +782,15 @@
     'gen_int/python/query/get_recipe.py': '''
       # AUTO-GENERATED — do not edit
       from dataclasses import dataclass
-      from typing import Protocol, Any
+      from typing import Protocol
       
       from gen_def.pydantic.query.get_recipe import GetRecipeInput, GetRecipeOutput
+      from gen_int.python.adapters.sqla import SqlaAdapter
       
       
       @dataclass
       class get_recipe_context:
-          """SQLAlchemy session for the schema read by this query."""
-          recipes: Any  # SQLAlchemy session for the recipes schema
+          adapter: SqlaAdapter
       
       
       class get_recipe_query(Protocol):
@@ -778,15 +805,15 @@
     'gen_int/python/query/get_recipe_text.py': '''
       # AUTO-GENERATED — do not edit
       from dataclasses import dataclass
-      from typing import Protocol, Any
+      from typing import Protocol
       
       from gen_def.pydantic.query.get_recipe_text import GetRecipeTextInput, GetRecipeTextOutput
+      from gen_int.python.adapters.relative_filesystem import RelativeFilesystemAdapter
       
       
       @dataclass
       class get_recipe_text_context:
-          """SQLAlchemy session for the schema read by this query."""
-          recipes: Any  # SQLAlchemy session for the recipes schema
+          adapter: RelativeFilesystemAdapter
       
       
       class get_recipe_text_query(Protocol):

@@ -5,6 +5,11 @@ from pathlib import Path
 from dizzy.feat import FeatureDefinition
 
 
+def _adapter_class_name(adapter_name: str) -> str:
+    """Convert snake_case adapter identifier to PascalCase + Adapter suffix."""
+    return "".join(word.capitalize() for word in adapter_name.split("_")) + "Adapter"
+
+
 def render_projection(projection_name: str, feat: FeatureDefinition) -> str:
     """Render gen_int/python/projection/<projection_name>_projection.py."""
     projection = feat.projections[projection_name]
@@ -12,22 +17,33 @@ def render_projection(projection_name: str, feat: FeatureDefinition) -> str:
     protocol_class = f"{projection_name}_projection"
     description = projection.description.strip()
 
-    lines = [
+    adapter_import = ""
+    if projection.adapter is not None:
+        adapter_cls = _adapter_class_name(projection.adapter)
+        adapter_import = (
+            f"from gen_int.python.adapters.{projection.adapter} import {adapter_cls}"
+        )
+        context_body = [f"    adapter: {adapter_cls}"]
+    else:
+        context_body = ["    pass"]
+
+    imports = [
         "# AUTO-GENERATED — do not edit",
         "from dataclasses import dataclass",
-        "from typing import Protocol, Any",
+        "from typing import Protocol",
         "",
         f"from gen_def.pydantic.events import {projection.event}",
+    ]
+    if adapter_import:
+        imports.append(adapter_import)
+
+    lines = imports + [
         "",
         "",
         "@dataclass",
         f"class {context_class}:",
-        '    """SQLAlchemy sessions for schemas written by this projection."""',
+        *context_body,
     ]
-    for model_name in projection.models:
-        lines.append(
-            f"    {model_name}: Any  # SQLAlchemy session for the {model_name} schema"
-        )
 
     lines += [
         "",

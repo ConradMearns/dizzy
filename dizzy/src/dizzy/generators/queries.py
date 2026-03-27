@@ -46,6 +46,11 @@ def write_scaffold_query(
     dest.write_text(render_scaffold_query(query_name, feat))
 
 
+def _adapter_class_name(adapter_name: str) -> str:
+    """Convert snake_case adapter identifier to PascalCase + Adapter suffix."""
+    return "".join(word.capitalize() for word in adapter_name.split("_")) + "Adapter"
+
+
 def render_gen_query_protocol(query_name: str, feat: FeatureDefinition) -> str:
     """Render gen_int/python/query/<query_name>.py — Protocol + context dataclass."""
     query = feat.queries[query_name]
@@ -55,23 +60,27 @@ def render_gen_query_protocol(query_name: str, feat: FeatureDefinition) -> str:
     context_class = f"{query_name}_context"
     protocol_class = f"{query_name}_query"
 
-    if query.model is not None:
-        context_body = [
-            '    """SQLAlchemy session for the schema read by this query."""',
-            f"    {query.model}: Any  # SQLAlchemy session for the {query.model} schema",
-        ]
+    adapter_import = ""
+    if query.adapter is not None:
+        adapter_cls = _adapter_class_name(query.adapter)
+        adapter_import = (
+            f"from gen_int.python.adapters.{query.adapter} import {adapter_cls}"
+        )
+        context_body = [f"    adapter: {adapter_cls}"]
     else:
-        context_body = [
-            '    """No model dependency for this query."""',
-            "    pass",
-        ]
+        context_body = ["    pass"]
 
-    lines = [
+    imports = [
         "# AUTO-GENERATED — do not edit",
         "from dataclasses import dataclass",
-        "from typing import Protocol, Any",
+        "from typing import Protocol",
         "",
         f"from gen_def.pydantic.query.{query_name} import {input_class}, {output_class}",
+    ]
+    if adapter_import:
+        imports.append(adapter_import)
+
+    lines = imports + [
         "",
         "",
         "@dataclass",

@@ -6,6 +6,7 @@ from dizzy.feat import (
     CommandDef,
     EventDef,
     FeatureDefinition,
+    ModelDef,
     PolicyDef,
     ProcedureDef,
     ProjectionDef,
@@ -99,11 +100,11 @@ def test_projection_references_unknown_event():
 
 def test_projection_references_unknown_model():
     feat = FeatureDefinition(
-        models={"real_model": "a real model"},
+        models={"real_model": ModelDef(description="a real model", adapters=["sqla"])},
         events={"some_event": EventDef(description="event")},
         projections={
             "my_proj": ProjectionDef(
-                description="proj", event="some_event", models=["ghost_model"]
+                description="proj", event="some_event", model="ghost_model", adapter="sqla"
             )
         },
     )
@@ -113,8 +114,71 @@ def test_projection_references_unknown_model():
 
 def test_query_references_unknown_model():
     feat = FeatureDefinition(
-        models={"real_model": "a real model"},
-        queries={"my_query": QueryDef(description="query", model="ghost_model")},
+        models={"real_model": ModelDef(description="a real model", adapters=["sqla"])},
+        queries={"my_query": QueryDef(description="query", model="ghost_model", adapter="sqla")},
     )
     errors = validate_feat(feat)
     assert any("model 'ghost_model'" in e for e in errors)
+
+
+def test_query_model_without_adapter():
+    feat = FeatureDefinition(
+        models={"recipes": ModelDef(description="recipes", adapters=["sqla"])},
+        queries={"my_query": QueryDef(description="query", model="recipes")},
+    )
+    errors = validate_feat(feat)
+    assert any("model declared without adapter" in e for e in errors)
+
+
+def test_query_adapter_without_model():
+    feat = FeatureDefinition(
+        queries={"my_query": QueryDef(description="query", adapter="sqla")},
+    )
+    errors = validate_feat(feat)
+    assert any("adapter declared without model" in e for e in errors)
+
+
+def test_query_adapter_not_in_model_adapters():
+    feat = FeatureDefinition(
+        models={"recipes": ModelDef(description="recipes", adapters=["sqla"])},
+        queries={"my_query": QueryDef(description="query", model="recipes", adapter="relative_filesystem")},
+    )
+    errors = validate_feat(feat)
+    assert any("adapter 'relative_filesystem' not declared on model 'recipes'" in e for e in errors)
+
+
+def test_projection_model_without_adapter():
+    feat = FeatureDefinition(
+        models={"recipes": ModelDef(description="recipes", adapters=["sqla"])},
+        events={"some_event": EventDef(description="event")},
+        projections={
+            "my_proj": ProjectionDef(description="proj", event="some_event", model="recipes")
+        },
+    )
+    errors = validate_feat(feat)
+    assert any("model declared without adapter" in e for e in errors)
+
+
+def test_projection_adapter_without_model():
+    feat = FeatureDefinition(
+        events={"some_event": EventDef(description="event")},
+        projections={
+            "my_proj": ProjectionDef(description="proj", event="some_event", adapter="sqla")
+        },
+    )
+    errors = validate_feat(feat)
+    assert any("adapter declared without model" in e for e in errors)
+
+
+def test_projection_adapter_not_in_model_adapters():
+    feat = FeatureDefinition(
+        models={"recipes": ModelDef(description="recipes", adapters=["sqla"])},
+        events={"some_event": EventDef(description="event")},
+        projections={
+            "my_proj": ProjectionDef(
+                description="proj", event="some_event", model="recipes", adapter="relative_filesystem"
+            )
+        },
+    )
+    errors = validate_feat(feat)
+    assert any("adapter 'relative_filesystem' not declared on model 'recipes'" in e for e in errors)

@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import Any
 
-from dizzy.feat import EventDef, FeatureDefinition, ProjectionDef
+from dizzy.feat import EventDef, FeatureDefinition, ModelDef, ProjectionDef
 from dizzy.generators.projections import render_projection
 
 
@@ -20,7 +20,9 @@ def test_render_projection_auto_generated(recipe_feat: FeatureDefinition) -> Non
 def test_render_projection_imports(recipe_feat: FeatureDefinition) -> None:
     result = render_projection("recipe_library", recipe_feat)
     assert "from dataclasses import dataclass" in result
-    assert "from typing import Protocol, Any" in result
+    assert "from typing import Protocol" in result
+    assert "Any" not in result
+    assert "from gen_int.python.adapters.sqla import SqlaAdapter" in result
 
 
 def test_render_projection_event_import(recipe_feat: FeatureDefinition) -> None:
@@ -32,8 +34,7 @@ def test_render_projection_context_dataclass(recipe_feat: FeatureDefinition) -> 
     result = render_projection("recipe_library", recipe_feat)
     assert "@dataclass" in result
     assert "class recipe_library_context:" in result
-    assert '"""SQLAlchemy sessions for schemas written by this projection."""' in result
-    assert "recipes: Any  # SQLAlchemy session for the recipes schema" in result
+    assert "adapter: SqlaAdapter" in result
 
 
 def test_render_projection_protocol_class(recipe_feat: FeatureDefinition) -> None:
@@ -53,24 +54,20 @@ def test_render_projection_call_signature(recipe_feat: FeatureDefinition) -> Non
     assert "..." in result
 
 
-def test_render_projection_multiple_models() -> None:
+def test_render_projection_no_adapter_emits_pass() -> None:
     feat = FeatureDefinition(
         events={"order_placed": EventDef(description="An order was placed")},
         projections={
             "order_summary": ProjectionDef(
                 description="Builds order summary read model",
                 event="order_placed",
-                models=["orders", "customers"],
             )
         },
     )
     result = render_projection("order_summary", feat)
-    assert "orders: Any  # SQLAlchemy session for the orders schema" in result
-    assert "customers: Any  # SQLAlchemy session for the customers schema" in result
     assert "class order_summary_context:" in result
+    assert "pass" in result
     assert "class order_summary_projection(Protocol):" in result
-    assert "event: order_placed" in result
-    assert "context: order_summary_context" in result
 
 
 # ---------------------------------------------------------------------------

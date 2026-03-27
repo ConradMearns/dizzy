@@ -26,9 +26,16 @@ class EventDef:
 
 
 @dataclass
+class ModelDef:
+    description: str
+    adapters: list[str]
+
+
+@dataclass
 class QueryDef:
     description: str
     model: str | None = None
+    adapter: str | None = None
 
 
 @dataclass
@@ -50,13 +57,14 @@ class PolicyDef:
 class ProjectionDef:
     description: str
     event: str
-    models: list[str] = field(default_factory=list)
+    model: str | None = None
+    adapter: str | None = None
 
 
 @dataclass
 class FeatureDefinition:
     description: str | None = None
-    models: dict[str, str] = field(default_factory=dict)
+    models: dict[str, ModelDef] = field(default_factory=dict)
     queries: dict[str, QueryDef] = field(default_factory=dict)
     commands: dict[str, CommandDef] = field(default_factory=dict)
     events: dict[str, EventDef] = field(default_factory=dict)
@@ -69,6 +77,15 @@ def _parse_attribute_def(raw: dict[str, Any]) -> AttributeDef:
     return AttributeDef(
         type=raw["type"],
         required=bool(raw.get("required", False)),
+    )
+
+
+def _parse_model_def(raw: Any) -> ModelDef:
+    if isinstance(raw, str):
+        raise ValueError("model entries must be a mapping with description and adapters")
+    return ModelDef(
+        description=raw["description"],
+        adapters=list(raw.get("adapters") or []),
     )
 
 
@@ -95,7 +112,11 @@ def _parse_event_def(raw: Any) -> EventDef:
 def _parse_query_def(raw: Any) -> QueryDef:
     if isinstance(raw, str):
         raise ValueError("query entries must be a mapping with description and model")
-    return QueryDef(description=raw["description"], model=raw.get("model"))
+    return QueryDef(
+        description=raw["description"],
+        model=raw.get("model"),
+        adapter=raw.get("adapter"),
+    )
 
 
 def _parse_procedure_def(raw: dict[str, Any]) -> ProcedureDef:
@@ -119,7 +140,8 @@ def _parse_projection_def(raw: dict[str, Any]) -> ProjectionDef:
     return ProjectionDef(
         description=raw["description"],
         event=raw["event"],
-        models=list(raw.get("models") or []),
+        model=raw.get("model"),
+        adapter=raw.get("adapter"),
     )
 
 
@@ -162,16 +184,43 @@ def validate_feat(feat: FeatureDefinition) -> list[str]:
             errors.append(
                 f"projection '{proj_name}': event '{proj.event}' not declared in events"
             )
-        for m in proj.models:
-            if m not in feat.models:
-                errors.append(
-                    f"projection '{proj_name}': model '{m}' not declared in models"
-                )
+        if proj.model is not None and proj.model not in feat.models:
+            errors.append(
+                f"projection '{proj_name}': model '{proj.model}' not declared in models"
+            )
 
     for query_name, query in feat.queries.items():
         if query.model is not None and query.model not in feat.models:
             errors.append(
                 f"query '{query_name}': model '{query.model}' not declared in models"
+            )
+        if query.model is not None and query.adapter is None:
+            errors.append(f"query '{query_name}': model declared without adapter")
+        if query.adapter is not None and query.model is None:
+            errors.append(f"query '{query_name}': adapter declared without model")
+        if (
+            query.model is not None
+            and query.adapter is not None
+            and query.model in feat.models
+            and query.adapter not in feat.models[query.model].adapters
+        ):
+            errors.append(
+                f"query '{query_name}': adapter '{query.adapter}' not declared on model '{query.model}'"
+            )
+
+    for proj_name, proj in feat.projections.items():
+        if proj.model is not None and proj.adapter is None:
+            errors.append(f"projection '{proj_name}': model declared without adapter")
+        if proj.adapter is not None and proj.model is None:
+            errors.append(f"projection '{proj_name}': adapter declared without model")
+        if (
+            proj.model is not None
+            and proj.adapter is not None
+            and proj.model in feat.models
+            and proj.adapter not in feat.models[proj.model].adapters
+        ):
+            errors.append(
+                f"projection '{proj_name}': adapter '{proj.adapter}' not declared on model '{proj.model}'"
             )
 
     return errors
@@ -182,8 +231,8 @@ def load_feat(path: str | Path) -> FeatureDefinition:
     raw = yaml.safe_load(Path(path).read_text())
 
     models = {
-        name: desc
-        for name, desc in (raw.get("models") or {}).items()
+        name: _parse_model_def(val)
+        for name, val in (raw.get("models") or {}).items()
     }
     queries = {
         name: _parse_query_def(val)

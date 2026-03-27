@@ -3,15 +3,15 @@
   '''
   # AUTO-GENERATED — do not edit
   from dataclasses import dataclass
-  from typing import Protocol, Any
+  from typing import Protocol
   
   from gen_def.pydantic.events import recipe_ingested
+  from gen_int.python.adapters.sqla import SqlaAdapter
   
   
   @dataclass
   class recipe_library_context:
-      """SQLAlchemy sessions for schemas written by this projection."""
-      recipes: Any  # SQLAlchemy session for the recipes schema
+      adapter: SqlaAdapter
   
   
   class recipe_library_projection(Protocol):
