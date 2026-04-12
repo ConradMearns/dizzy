@@ -1,0 +1,31 @@
+# serializer version: 1
+# name: test_render_relative_filesystem_adapter
+  '''
+  # AUTO-GENERATED — do not edit
+  from dataclasses import dataclass
+  from pathlib import Path
+  
+  
+  @dataclass
+  class RelativeFilesystemAdapter:
+      """Adapter providing a root path for relative filesystem access."""
+  
+      root: Path
+  
+  '''
+# ---
+# name: test_render_sqla_adapter
+  '''
+  # AUTO-GENERATED — do not edit
+  from dataclasses import dataclass
+  from sqlalchemy.orm import Session
+  
+  
+  @dataclass
+  class SqlaAdapter:
+      """Adapter providing a SQLAlchemy session."""
+  
+      session: Session
+  
+  '''
+# ---

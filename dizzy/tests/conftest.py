@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from dizzy.feat import FeatureDefinition, load_feat
+from dizzy.feat_loader import FeatureDefinition, load_feat
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
@@ -19,5 +19,3 @@ def recipe_feat() -> FeatureDefinition:
 def partial_feat() -> FeatureDefinition:
     """Partial feat — commands, queries, procedures only (no models/events/policies/projections)."""
     return load_feat(FIXTURES_DIR / "partial.feat.yaml")
-
-

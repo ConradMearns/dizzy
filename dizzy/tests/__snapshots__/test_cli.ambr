@@ -26,13 +26,7 @@
       classes:
         recipe_ingested:
           description: A recipe was successfully extracted and validated
-          attributes:
-            recipe_id:
-              range: string
-              required: true
-            source_ref:
-              range: string
-              required: true
+          attributes: {}
   
     ''',
     'def/models/recipes.yaml': '''
@@ -287,8 +281,7 @@
           """
           linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/events'})
       
-          recipe_id: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['recipe_ingested']} })
-          source_ref: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['recipe_ingested']} })
+          pass
       
       
       # Model rebuild

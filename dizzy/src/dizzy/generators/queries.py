@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from dizzy.feat import FeatureDefinition
+from dizzy.feat_loader import FeatureDefinition
 
 
 def _to_camel(snake: str) -> str:

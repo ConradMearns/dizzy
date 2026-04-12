@@ -39,3 +39,19 @@
   
   '''
 # ---
+# name: test_render_src_policy_stub_snapshot
+  '''
+  # Implementation stub — fill in your logic here
+  from gen_int.python.policy.index_recipe_on_ingest_protocol import index_recipe_on_ingest_protocol
+  from gen_int.python.policy.index_recipe_on_ingest_context import index_recipe_on_ingest_context
+  from gen_def.pydantic.events import recipe_ingested
+  
+  
+  def index_recipe_on_ingest(
+      event: recipe_ingested,
+      context: index_recipe_on_ingest_context,
+  ) -> None:
+      raise NotImplementedError
+  
+  '''
+# ---

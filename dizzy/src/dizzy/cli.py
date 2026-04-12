@@ -3,7 +3,7 @@
 from pathlib import Path
 import typer
 
-from dizzy.feat import load_feat, validate_feat
+from dizzy.feat_loader import load_feat, validate_feat
 from dizzy.generators.commands import write_scaffold_commands
 from dizzy.generators.events import write_scaffold_events
 from dizzy.generators.queries import (
@@ -125,7 +125,7 @@ def gen(
             output_dir / "def" / "models" / f"{schema_name}.yaml",
             output_dir / "gen_def" / "pydantic" / "models" / f"{schema_name}.py",
         )
-        if "sqla" in feat.models[schema_name].adapters:
+        if "sqla" in (feat.models[schema_name].adapters or []):
             run_linkml_sqla(
                 output_dir / "def" / "models" / f"{schema_name}.yaml",
                 output_dir / "gen_def" / "sqla" / "models" / f"{schema_name}.py",
@@ -134,7 +134,7 @@ def gen(
     # Step 2 — generate adapter classes
     unique_adapters: set[str] = set()
     for model_def in feat.models.values():
-        unique_adapters.update(model_def.adapters)
+        unique_adapters.update(model_def.adapters or [])
     for adapter_name in unique_adapters:
         write_adapter(adapter_name, output_dir)
 

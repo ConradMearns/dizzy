@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from dizzy.feat import FeatureDefinition
+from dizzy.feat_loader import FeatureDefinition
 
 
 def render_policy_context(policy_name: str, feat: FeatureDefinition) -> str:

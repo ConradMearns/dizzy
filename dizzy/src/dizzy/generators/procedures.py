@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from dizzy.feat import FeatureDefinition
+from dizzy.feat_loader import FeatureDefinition
 
 
 def render_procedure_context(procedure_name: str, feat: FeatureDefinition) -> str:
