@@ -2,14 +2,13 @@
 
 from pathlib import Path
 
-from dizzy.feat_loader import FeatureDefinition
+from dizzy.feat_schema import PolicyDef
 
 
-def render_policy_context(policy_name: str, feat: FeatureDefinition) -> str:
-    """Render gen_int/python/policy/<policy_name>_context.py."""
-    policy = feat.policies[policy_name]
-    emitters_class = f"{policy_name}_emitters"
-    context_class = f"{policy_name}_context"
+def render_policy_context(policy: PolicyDef) -> str:
+    """Render gen_int/python/policy/<policy.name>_context.py."""
+    emitters_class = f"{policy.name}_emitters"
+    context_class = f"{policy.name}_context"
 
     lines = ["# AUTO-GENERATED — do not edit"]
     lines.append("from dataclasses import dataclass")
@@ -41,22 +40,19 @@ def render_policy_context(policy_name: str, feat: FeatureDefinition) -> str:
     return "\n".join(lines)
 
 
-def write_policy_context(
-    policy_name: str, feat: FeatureDefinition, output_dir: Path
-) -> None:
-    """Write gen_int/python/policy/<policy_name>_context.py (always overwritten)."""
+def write_policy_context(policy: PolicyDef, output_dir: Path) -> None:
+    """Write gen_int/python/policy/<policy.name>_context.py (always overwritten)."""
     dest = (
-        output_dir / "gen_int" / "python" / "policy" / f"{policy_name}_context.py"
+        output_dir / "gen_int" / "python" / "policy" / f"{policy.name}_context.py"
     )
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(render_policy_context(policy_name, feat))
+    dest.write_text(render_policy_context(policy))
 
 
-def render_policy_protocol(policy_name: str, feat: FeatureDefinition) -> str:
-    """Render gen_int/python/policy/<policy_name>_protocol.py."""
-    policy = feat.policies[policy_name]
-    context_class = f"{policy_name}_context"
-    protocol_class = f"{policy_name}_protocol"
+def render_policy_protocol(policy: PolicyDef) -> str:
+    """Render gen_int/python/policy/<policy.name>_protocol.py."""
+    context_class = f"{policy.name}_context"
+    protocol_class = f"{policy.name}_protocol"
     description = policy.description.strip()
 
     lines = [
@@ -64,7 +60,7 @@ def render_policy_protocol(policy_name: str, feat: FeatureDefinition) -> str:
         "from typing import Protocol",
         "",
         f"from gen_def.pydantic.events import {policy.event}",
-        f"from gen_int.python.policy.{policy_name}_context import (",
+        f"from gen_int.python.policy.{policy.name}_context import (",
         f"    {context_class},",
         ")",
         "",
@@ -83,30 +79,27 @@ def render_policy_protocol(policy_name: str, feat: FeatureDefinition) -> str:
     return "\n".join(lines)
 
 
-def write_policy_protocol(
-    policy_name: str, feat: FeatureDefinition, output_dir: Path
-) -> None:
-    """Write gen_int/python/policy/<policy_name>_protocol.py (always overwritten)."""
+def write_policy_protocol(policy: PolicyDef, output_dir: Path) -> None:
+    """Write gen_int/python/policy/<policy.name>_protocol.py (always overwritten)."""
     dest = (
-        output_dir / "gen_int" / "python" / "policy" / f"{policy_name}_protocol.py"
+        output_dir / "gen_int" / "python" / "policy" / f"{policy.name}_protocol.py"
     )
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(render_policy_protocol(policy_name, feat))
+    dest.write_text(render_policy_protocol(policy))
 
 
-def render_src_policy_stub(policy_name: str, feat: FeatureDefinition) -> str:
-    """Render a src/policy/<policy_name>.py implementation stub."""
-    policy = feat.policies[policy_name]
-    context_class = f"{policy_name}_context"
-    protocol_class = f"{policy_name}_protocol"
+def render_src_policy_stub(policy: PolicyDef) -> str:
+    """Render a src/policy/<policy.name>.py implementation stub."""
+    context_class = f"{policy.name}_context"
+    protocol_class = f"{policy.name}_protocol"
     lines = [
         "# Implementation stub — fill in your logic here",
-        f"from gen_int.python.policy.{policy_name}_protocol import {protocol_class}",
-        f"from gen_int.python.policy.{policy_name}_context import {context_class}",
+        f"from gen_int.python.policy.{policy.name}_protocol import {protocol_class}",
+        f"from gen_int.python.policy.{policy.name}_context import {context_class}",
         f"from gen_def.pydantic.events import {policy.event}",
         "",
         "",
-        f"def {policy_name}(",
+        f"def {policy.name}(",
         f"    event: {policy.event},",
         f"    context: {context_class},",
         ") -> None:",
@@ -116,12 +109,10 @@ def render_src_policy_stub(policy_name: str, feat: FeatureDefinition) -> str:
     return "\n".join(lines)
 
 
-def write_policy_src_stub(
-    policy_name: str, feat: FeatureDefinition, output_dir: Path
-) -> None:
-    """Write src/policy/<policy_name>.py; skip if file already exists."""
-    dest = output_dir / "src" / "policy" / f"{policy_name}.py"
+def write_policy_src_stub(policy: PolicyDef, output_dir: Path) -> None:
+    """Write src/policy/<policy.name>.py; skip if file already exists."""
+    dest = output_dir / "src" / "policy" / f"{policy.name}.py"
     if dest.exists():
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(render_src_policy_stub(policy_name, feat))
+    dest.write_text(render_src_policy_stub(policy))

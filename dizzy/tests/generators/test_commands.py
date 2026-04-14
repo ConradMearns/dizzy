@@ -6,8 +6,8 @@ from dizzy.generators.commands import render_scaffold_commands
 
 
 def test_render_scaffold_commands_snapshot(recipe_feat, snapshot: SnapshotAssertion):
-    assert render_scaffold_commands(recipe_feat) == snapshot
+    assert render_scaffold_commands(recipe_feat.commands) == snapshot
 
 
 def test_render_scaffold_commands_partial(partial_feat, snapshot: SnapshotAssertion):
-    assert render_scaffold_commands(partial_feat) == snapshot
+    assert render_scaffold_commands(partial_feat.commands) == snapshot

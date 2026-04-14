@@ -2,15 +2,14 @@
 
 from pathlib import Path
 
-from dizzy.feat_loader import FeatureDefinition
+from dizzy.feat_schema import ProcedureDef
 
 
-def render_procedure_context(procedure_name: str, feat: FeatureDefinition) -> str:
-    """Render gen_int/python/procedure/<procedure_name>_context.py."""
-    proc = feat.procedures[procedure_name]
-    emitters_class = f"{procedure_name}_emitters"
-    queries_class = f"{procedure_name}_queries"
-    context_class = f"{procedure_name}_context"
+def render_procedure_context(proc: ProcedureDef) -> str:
+    """Render gen_int/python/procedure/<proc.name>_context.py."""
+    emitters_class = f"{proc.name}_emitters"
+    queries_class = f"{proc.name}_queries"
+    context_class = f"{proc.name}_context"
 
     lines = ["# AUTO-GENERATED — do not edit"]
     lines.append("from dataclasses import dataclass")
@@ -59,26 +58,23 @@ def render_procedure_context(procedure_name: str, feat: FeatureDefinition) -> st
     return "\n".join(lines)
 
 
-def write_procedure_context(
-    procedure_name: str, feat: FeatureDefinition, output_dir: Path
-) -> None:
-    """Write gen_int/python/procedure/<procedure_name>_context.py (always overwritten)."""
+def write_procedure_context(proc: ProcedureDef, output_dir: Path) -> None:
+    """Write gen_int/python/procedure/<proc.name>_context.py (always overwritten)."""
     dest = (
         output_dir
         / "gen_int"
         / "python"
         / "procedure"
-        / f"{procedure_name}_context.py"
+        / f"{proc.name}_context.py"
     )
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(render_procedure_context(procedure_name, feat))
+    dest.write_text(render_procedure_context(proc))
 
 
-def render_procedure_protocol(procedure_name: str, feat: FeatureDefinition) -> str:
-    """Render gen_int/python/procedure/<procedure_name>_protocol.py."""
-    proc = feat.procedures[procedure_name]
-    context_class = f"{procedure_name}_context"
-    protocol_class = f"{procedure_name}_protocol"
+def render_procedure_protocol(proc: ProcedureDef) -> str:
+    """Render gen_int/python/procedure/<proc.name>_protocol.py."""
+    context_class = f"{proc.name}_context"
+    protocol_class = f"{proc.name}_protocol"
     description = proc.description.strip()
 
     lines = [
@@ -86,7 +82,7 @@ def render_procedure_protocol(procedure_name: str, feat: FeatureDefinition) -> s
         "from typing import Protocol",
         "",
         f"from gen_def.pydantic.commands import {proc.command}",
-        f"from gen_int.python.procedure.{procedure_name}_context import (",
+        f"from gen_int.python.procedure.{proc.name}_context import (",
         f"    {context_class},",
         ")",
         "",
@@ -105,34 +101,31 @@ def render_procedure_protocol(procedure_name: str, feat: FeatureDefinition) -> s
     return "\n".join(lines)
 
 
-def write_procedure_protocol(
-    procedure_name: str, feat: FeatureDefinition, output_dir: Path
-) -> None:
-    """Write gen_int/python/procedure/<procedure_name>_protocol.py (always overwritten)."""
+def write_procedure_protocol(proc: ProcedureDef, output_dir: Path) -> None:
+    """Write gen_int/python/procedure/<proc.name>_protocol.py (always overwritten)."""
     dest = (
         output_dir
         / "gen_int"
         / "python"
         / "procedure"
-        / f"{procedure_name}_protocol.py"
+        / f"{proc.name}_protocol.py"
     )
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(render_procedure_protocol(procedure_name, feat))
+    dest.write_text(render_procedure_protocol(proc))
 
 
-def render_src_procedure_stub(procedure_name: str, feat: FeatureDefinition) -> str:
-    """Render a src/procedure/<procedure_name>.py implementation stub."""
-    proc = feat.procedures[procedure_name]
-    context_class = f"{procedure_name}_context"
-    protocol_class = f"{procedure_name}_protocol"
+def render_src_procedure_stub(proc: ProcedureDef) -> str:
+    """Render a src/procedure/<proc.name>.py implementation stub."""
+    context_class = f"{proc.name}_context"
+    protocol_class = f"{proc.name}_protocol"
     lines = [
         "# Implementation stub — fill in your logic here",
-        f"from gen_int.python.procedure.{procedure_name}_protocol import {protocol_class}",
-        f"from gen_int.python.procedure.{procedure_name}_context import {context_class}",
+        f"from gen_int.python.procedure.{proc.name}_protocol import {protocol_class}",
+        f"from gen_int.python.procedure.{proc.name}_context import {context_class}",
         f"from gen_def.pydantic.commands import {proc.command}",
         "",
         "",
-        f"def {procedure_name}(",
+        f"def {proc.name}(",
         f"    context: {context_class},",
         f"    command: {proc.command},",
         ") -> None:",
@@ -142,12 +135,10 @@ def render_src_procedure_stub(procedure_name: str, feat: FeatureDefinition) -> s
     return "\n".join(lines)
 
 
-def write_procedure_src_stub(
-    procedure_name: str, feat: FeatureDefinition, output_dir: Path
-) -> None:
-    """Write src/procedure/<procedure_name>.py; skip if file already exists."""
-    dest = output_dir / "src" / "procedure" / f"{procedure_name}.py"
+def write_procedure_src_stub(proc: ProcedureDef, output_dir: Path) -> None:
+    """Write src/procedure/<proc.name>.py; skip if file already exists."""
+    dest = output_dir / "src" / "procedure" / f"{proc.name}.py"
     if dest.exists():
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(render_src_procedure_stub(procedure_name, feat))
+    dest.write_text(render_src_procedure_stub(proc))

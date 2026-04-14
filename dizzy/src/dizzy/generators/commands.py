@@ -2,9 +2,10 @@
 
 from pathlib import Path
 
-from dizzy.feat_loader import FeatureDefinition
+from dizzy.feat_schema import CommandDef
 
-def render_scaffold_commands(feat: FeatureDefinition) -> str:
+
+def render_scaffold_commands(commands: list[CommandDef]) -> str:
     """Render a LinkML stub for def/commands.yaml from the feat definition."""
     lines = [
         "id: https://example.org/commands",
@@ -16,20 +17,18 @@ def render_scaffold_commands(feat: FeatureDefinition) -> str:
         "  - linkml:types",
         "classes:",
     ]
-    for name, cmd in feat.commands.items():
-        lines.append(f"  {name}:")
+    for cmd in commands:
+        lines.append(f"  {cmd.name}:")
         lines.append(f"    description: {cmd.description}")
         lines.append("    attributes: {}")
     lines.append("")
     return "\n".join(lines)
 
 
-def write_scaffold_commands(feat: FeatureDefinition, output_dir: Path) -> None:
+def write_scaffold_commands(commands: list[CommandDef], output_dir: Path) -> None:
     """Write def/commands.yaml; skip if file already exists."""
     dest = output_dir / "def" / "commands.yaml"
     if dest.exists():
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(render_scaffold_commands(feat))
-
-
+    dest.write_text(render_scaffold_commands(commands))

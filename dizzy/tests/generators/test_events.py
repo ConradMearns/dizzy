@@ -6,4 +6,4 @@ from dizzy.generators.events import render_scaffold_events
 
 
 def test_render_scaffold_events_snapshot(recipe_feat, snapshot: SnapshotAssertion):
-    assert render_scaffold_events(recipe_feat) == snapshot
+    assert render_scaffold_events(recipe_feat.events) == snapshot
