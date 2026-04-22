@@ -1,5 +1,29 @@
 # serializer version: 1
-# name: test_render_gen_query_protocol_snapshot
+# name: test_render_gen_query_protocol_no_adapter
+  '''
+  # AUTO-GENERATED — do not edit
+  from dataclasses import dataclass
+  from typing import Protocol
+  
+  from gen_def.pydantic.query.find_thing import FindThingInput, FindThingOutput
+  
+  
+  @dataclass
+  class find_thing_context:
+      pass
+  
+  
+  class find_thing_query(Protocol):
+      """Finds a thing without a model dependency"""
+  
+      def __call__(
+          self, input: FindThingInput, context: find_thing_context
+      ) -> FindThingOutput:
+          ...
+  
+  '''
+# ---
+# name: test_render_gen_query_protocol_with_adapter
   '''
   # AUTO-GENERATED — do not edit
   from dataclasses import dataclass
@@ -41,6 +65,18 @@
     GetRecipeTextOutput:
       description: Output for get_recipe_text
       attributes: {}
+  
+  '''
+# ---
+# name: test_render_src_query_stub
+  '''
+  # Implementation stub — fill in your logic here
+  from gen_int.python.query.get_recipe_text import get_recipe_text_query, get_recipe_text_context
+  from gen_def.pydantic.query.get_recipe_text import GetRecipeTextInput, GetRecipeTextOutput
+  
+  
+  def get_recipe_text(input: GetRecipeTextInput, context: get_recipe_text_context) -> GetRecipeTextOutput:
+      raise NotImplementedError
   
   '''
 # ---

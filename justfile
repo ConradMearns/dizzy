@@ -1,3 +1,6 @@
+gen-feat-pydantic:
+    uv run gen-pydantic dizzy/src/dizzy/def/feat.yaml > dizzy/src/dizzy/feat_schema.py
+
 test:
     uv run pytest
 

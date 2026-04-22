@@ -4,9 +4,15 @@ from pathlib import Path
 
 import pytest
 
-from dizzy.feat import FeatureDefinition, load_feat
+from dizzy.feat_loader import load_feat
+from dizzy.feat_schema import FeatureDefinition
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
+
+
+def by_name(items: list, name: str):
+    """Find a Def object in a list by its name field."""
+    return next(item for item in items if item.name == name)
 
 
 @pytest.fixture
@@ -19,5 +25,3 @@ def recipe_feat() -> FeatureDefinition:
 def partial_feat() -> FeatureDefinition:
     """Partial feat — commands, queries, procedures only (no models/events/policies/projections)."""
     return load_feat(FIXTURES_DIR / "partial.feat.yaml")
-
-

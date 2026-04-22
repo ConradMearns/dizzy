@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from dizzy.feat import FeatureDefinition
+from dizzy.feat_schema import QueryDef
 
 
 def _to_camel(snake: str) -> str:
@@ -10,13 +10,12 @@ def _to_camel(snake: str) -> str:
     return "".join(word.capitalize() for word in snake.split("_"))
 
 
-def render_scaffold_query(query_name: str, feat: FeatureDefinition) -> str:
-    """Render a combined LinkML stub for def/queries/<query_name>.yaml."""
-    query = feat.queries[query_name]
-    camel = _to_camel(query_name)
+def render_scaffold_query(query: QueryDef) -> str:
+    """Render a combined LinkML stub for def/queries/<query.name>.yaml."""
+    camel = _to_camel(query.name)
     lines = [
-        f"id: https://example.org/queries/{query_name}",
-        f"name: {query_name}",
+        f"id: https://example.org/queries/{query.name}",
+        f"name: {query.name}",
         f"description: {query.description}",
         "prefixes:",
         "  linkml: https://w3id.org/linkml/",
@@ -25,25 +24,23 @@ def render_scaffold_query(query_name: str, feat: FeatureDefinition) -> str:
         "  - linkml:types",
         "classes:",
         f"  {camel}Input:",
-        f"    description: Input for {query_name}",
+        f"    description: Input for {query.name}",
         "    attributes: {}",
         f"  {camel}Output:",
-        f"    description: Output for {query_name}",
+        f"    description: Output for {query.name}",
         "    attributes: {}",
         "",
     ]
     return "\n".join(lines)
 
 
-def write_scaffold_query(
-    query_name: str, feat: FeatureDefinition, output_dir: Path
-) -> None:
-    """Write def/queries/<query_name>.yaml; skip if file already exists."""
-    dest = output_dir / "def" / "queries" / f"{query_name}.yaml"
+def write_scaffold_query(query: QueryDef, output_dir: Path) -> None:
+    """Write def/queries/<query.name>.yaml; skip if file already exists."""
+    dest = output_dir / "def" / "queries" / f"{query.name}.yaml"
     if dest.exists():
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(render_scaffold_query(query_name, feat))
+    dest.write_text(render_scaffold_query(query))
 
 
 def _adapter_class_name(adapter_name: str) -> str:
@@ -51,14 +48,13 @@ def _adapter_class_name(adapter_name: str) -> str:
     return "".join(word.capitalize() for word in adapter_name.split("_")) + "Adapter"
 
 
-def render_gen_query_protocol(query_name: str, feat: FeatureDefinition) -> str:
-    """Render gen_int/python/query/<query_name>.py — Protocol + context dataclass."""
-    query = feat.queries[query_name]
-    camel = _to_camel(query_name)
+def render_gen_query_protocol(query: QueryDef) -> str:
+    """Render gen_int/python/query/<query.name>.py — Protocol + context dataclass."""
+    camel = _to_camel(query.name)
     input_class = f"{camel}Input"
     output_class = f"{camel}Output"
-    context_class = f"{query_name}_context"
-    protocol_class = f"{query_name}_query"
+    context_class = f"{query.name}_context"
+    protocol_class = f"{query.name}_query"
 
     adapter_import = ""
     if query.adapter is not None:
@@ -75,7 +71,7 @@ def render_gen_query_protocol(query_name: str, feat: FeatureDefinition) -> str:
         "from dataclasses import dataclass",
         "from typing import Protocol",
         "",
-        f"from gen_def.pydantic.query.{query_name} import {input_class}, {output_class}",
+        f"from gen_def.pydantic.query.{query.name} import {input_class}, {output_class}",
     ]
     if adapter_import:
         imports.append(adapter_import)
@@ -100,13 +96,11 @@ def render_gen_query_protocol(query_name: str, feat: FeatureDefinition) -> str:
     return "\n".join(lines)
 
 
-def write_gen_query_protocol(
-    query_name: str, feat: FeatureDefinition, output_dir: Path
-) -> None:
-    """Write gen_int/python/query/<query_name>.py (always overwritten)."""
-    dest = output_dir / "gen_int" / "python" / "query" / f"{query_name}.py"
+def write_gen_query_protocol(query: QueryDef, output_dir: Path) -> None:
+    """Write gen_int/python/query/<query.name>.py (always overwritten)."""
+    dest = output_dir / "gen_int" / "python" / "query" / f"{query.name}.py"
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(render_gen_query_protocol(query_name, feat))
+    dest.write_text(render_gen_query_protocol(query))
 
 
 def render_src_query_stub(query_name: str) -> str:
@@ -129,9 +123,7 @@ def render_src_query_stub(query_name: str) -> str:
     return "\n".join(lines)
 
 
-def write_src_query_stub(
-    query_name: str, output_dir: Path
-) -> None:
+def write_src_query_stub(query_name: str, output_dir: Path) -> None:
     """Write src/query/<query_name>.py; skip if file already exists."""
     dest = output_dir / "src" / "query" / f"{query_name}.py"
     if dest.exists():

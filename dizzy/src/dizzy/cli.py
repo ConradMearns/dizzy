@@ -3,7 +3,7 @@
 from pathlib import Path
 import typer
 
-from dizzy.feat import load_feat, validate_feat
+from dizzy.feat_loader import load_feat, validate_feat
 from dizzy.generators.commands import write_scaffold_commands
 from dizzy.generators.events import write_scaffold_events
 from dizzy.generators.queries import (
@@ -45,16 +45,16 @@ def def_cmd(
         raise typer.Exit(code=1)
 
     if feat.commands:
-        write_scaffold_commands(feat, output_dir)
+        write_scaffold_commands(feat.commands, output_dir)
 
     if feat.events:
-        write_scaffold_events(feat, output_dir)
+        write_scaffold_events(feat.events, output_dir)
 
-    for query_name in feat.queries:
-        write_scaffold_query(query_name, feat, output_dir)
+    for query in feat.queries or []:
+        write_scaffold_query(query, output_dir)
 
-    for schema_name in feat.models:
-        write_scaffold_model(schema_name, feat, output_dir)
+    for model in feat.models or []:
+        write_scaffold_model(model, output_dir)
 
     typer.echo("Generated def/ stubs. Next steps:")
     typer.echo("  1. Fill in class definitions in def/models/*.yaml")
@@ -83,14 +83,14 @@ def gen(
         missing.append("def/commands.yaml")
     if feat.events and not (output_dir / "def" / "events.yaml").exists():
         missing.append("def/events.yaml")
-    for query_name in feat.queries:
-        stub = output_dir / "def" / "queries" / f"{query_name}.yaml"
+    for query in feat.queries or []:
+        stub = output_dir / "def" / "queries" / f"{query.name}.yaml"
         if not stub.exists():
-            missing.append(f"def/queries/{query_name}.yaml")
-    for schema_name in feat.models:
-        stub = output_dir / "def" / "models" / f"{schema_name}.yaml"
+            missing.append(f"def/queries/{query.name}.yaml")
+    for model in feat.models or []:
+        stub = output_dir / "def" / "models" / f"{model.name}.yaml"
         if not stub.exists():
-            missing.append(f"def/models/{schema_name}.yaml")
+            missing.append(f"def/models/{model.name}.yaml")
 
     if missing:
         typer.echo(
@@ -114,63 +114,72 @@ def gen(
             output_dir / "gen_def" / "pydantic" / "events.py",
         )
 
-    for query_name in feat.queries:
+    for query in feat.queries or []:
         run_linkml_pydantic(
-            output_dir / "def" / "queries" / f"{query_name}.yaml",
-            output_dir / "gen_def" / "pydantic" / "query" / f"{query_name}.py",
+            output_dir / "def" / "queries" / f"{query.name}.yaml",
+            output_dir / "gen_def" / "pydantic" / "query" / f"{query.name}.py",
         )
 
-    for schema_name in feat.models:
+    for model in feat.models or []:
         run_linkml_pydantic(
-            output_dir / "def" / "models" / f"{schema_name}.yaml",
-            output_dir / "gen_def" / "pydantic" / "models" / f"{schema_name}.py",
+            output_dir / "def" / "models" / f"{model.name}.yaml",
+            output_dir / "gen_def" / "pydantic" / "models" / f"{model.name}.py",
         )
-        if "sqla" in feat.models[schema_name].adapters:
+        if "sqla" in (model.adapters or []):
             run_linkml_sqla(
-                output_dir / "def" / "models" / f"{schema_name}.yaml",
-                output_dir / "gen_def" / "sqla" / "models" / f"{schema_name}.py",
+                output_dir / "def" / "models" / f"{model.name}.yaml",
+                output_dir / "gen_def" / "sqla" / "models" / f"{model.name}.py",
             )
 
     # Step 2 — generate adapter classes
     unique_adapters: set[str] = set()
-    for model_def in feat.models.values():
-        unique_adapters.update(model_def.adapters)
+    for model in feat.models or []:
+        unique_adapters.update(model.adapters or [])
     for adapter_name in unique_adapters:
         write_adapter(adapter_name, output_dir)
 
     # Step 3 — generate gen_int/ Protocol files from feat structure
-    for query_name in feat.queries:
-        write_gen_query_protocol(query_name, feat, output_dir)
+    for query in feat.queries or []:
+        write_gen_query_protocol(query, output_dir)
 
-    for procedure_name in feat.procedures:
-        write_procedure_context(procedure_name, feat, output_dir)
-        write_procedure_protocol(procedure_name, feat, output_dir)
+    for proc in feat.procedures or []:
+        write_procedure_context(proc, output_dir)
+        write_procedure_protocol(proc, output_dir)
 
-    for policy_name in feat.policies:
-        write_policy_context(policy_name, feat, output_dir)
-        write_policy_protocol(policy_name, feat, output_dir)
+    for policy in feat.policies or []:
+        write_policy_context(policy, output_dir)
+        write_policy_protocol(policy, output_dir)
 
-    for projection_name in feat.projections:
-        write_projection(projection_name, feat, output_dir)
+    for proj in feat.projections or []:
+        write_projection(proj, output_dir)
 
-    # Step 3 — generate src/ stubs (skip if already exists)
-    for query_name in feat.queries:
-        write_src_query_stub(query_name, output_dir)
+    # Step 4 — generate src/ stubs (skip if already exists)
+    for query in feat.queries or []:
+        write_src_query_stub(query.name, output_dir)
 
-    for procedure_name in feat.procedures:
-        write_procedure_src_stub(procedure_name, feat, output_dir)
+    for proc in feat.procedures or []:
+        write_procedure_src_stub(proc, output_dir)
 
-    for policy_name in feat.policies:
-        write_policy_src_stub(policy_name, feat, output_dir)
+    for policy in feat.policies or []:
+        write_policy_src_stub(policy, output_dir)
 
-    for projection_name in feat.projections:
-        write_projection_src_stub(projection_name, feat, output_dir)
+    for proj in feat.projections or []:
+        write_projection_src_stub(proj, output_dir)
 
-    # Step 4 — write __init__.py in every generated directory
+    # Step 5 — write __init__.py in every generated directory
     write_init_files(output_dir)
 
     typer.echo("Generated interfaces and source stubs. Next steps:")
     typer.echo("  Implement the src/ files to complete your feature.")
+
+
+@app.command()
+def docs() -> None:
+    """Print Dizzy reference documentation for AI/LLM agents."""
+    from importlib.resources import files
+
+    content = files("dizzy").joinpath("docs_content.md").read_text()
+    typer.echo(content)
 
 
 def main() -> None:
