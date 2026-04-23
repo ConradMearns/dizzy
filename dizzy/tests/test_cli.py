@@ -1,11 +1,11 @@
-"""End-to-end def + gen integration tests."""
+"""End-to-end def + gen + lib integration tests."""
 
 import pytest
 from click.exceptions import Exit as ClickExit
 from pathlib import Path
 from syrupy.assertion import SnapshotAssertion
 
-from dizzy.cli import def_cmd, gen
+from dizzy.cli import def_cmd, gen, lib
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
@@ -117,3 +117,125 @@ def test_gen_does_not_overwrite_src(tmp_path: Path) -> None:
     gen(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
 
     assert src_file.read_text() == "# my implementation\n"
+
+
+def test_def_creates_libconfig_yaml(tmp_path: Path) -> None:
+    def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+
+    libconfig = tmp_path / "libconfig.yaml"
+    assert libconfig.exists()
+    content = libconfig.read_text()
+    assert "python-uv" in content
+    assert "extract_and_transform_recipe" in content
+    assert "index_recipe_on_ingest" in content
+
+
+def test_def_does_not_overwrite_libconfig(tmp_path: Path) -> None:
+    def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+
+    libconfig = tmp_path / "libconfig.yaml"
+    libconfig.write_text("# custom content\n")
+
+    def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+
+    assert libconfig.read_text() == "# custom content\n"
+
+
+def test_def_custom_default_runtime(tmp_path: Path) -> None:
+    def_cmd(
+        feat_file=FIXTURES_DIR / "recipe.feat.yaml",
+        output_dir=tmp_path,
+        default_runtime="rust-cargo",
+    )
+
+    content = (tmp_path / "libconfig.yaml").read_text()
+    assert "runtimes: [rust-cargo]" in content
+    assert "runtimes: [python-uv]" not in content
+
+
+def test_lib_error_missing_libconfig(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+    (tmp_path / "libconfig.yaml").unlink()
+
+    with pytest.raises(ClickExit) as exc_info:
+        lib(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+    assert exc_info.value.exit_code == 1
+    captured = capsys.readouterr()
+    assert "libconfig.yaml" in captured.out
+
+
+def test_lib_python_uv_structure(tmp_path: Path) -> None:
+    def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+    (tmp_path / "libconfig.yaml").write_text(
+        (FIXTURES_DIR / "multiruntime.libconfig.yaml").read_text()
+    )
+    gen(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+    lib(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+
+    base = tmp_path / "lib" / "python-uv"
+    assert (base / "pyproject.toml").exists()
+    proc_base = base / "procedure" / "extract_and_transform_recipe"
+    assert (proc_base / "pyproject.toml").exists()
+    assert (proc_base / "src" / "extract_and_transform_recipe.py").exists()
+
+
+def test_lib_rust_cargo_structure(tmp_path: Path) -> None:
+    def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+    (tmp_path / "libconfig.yaml").write_text(
+        (FIXTURES_DIR / "multiruntime.libconfig.yaml").read_text()
+    )
+    gen(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+    lib(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+
+    base = tmp_path / "lib" / "rust-cargo"
+    assert (base / "Cargo.toml").exists()
+    proc_base = base / "procedure" / "extract_and_transform_recipe"
+    assert (proc_base / "Cargo.toml").exists()
+    assert (proc_base / "src" / "lib.rs").exists()
+    assert (base / "gen_def" / "commands.rs").exists()
+    assert (base / "gen_def" / "events.rs").exists()
+
+
+def test_lib_typescript_npm_structure(tmp_path: Path) -> None:
+    def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+    (tmp_path / "libconfig.yaml").write_text(
+        (FIXTURES_DIR / "multiruntime.libconfig.yaml").read_text()
+    )
+    gen(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+    lib(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+
+    base = tmp_path / "lib" / "typescript-npm"
+    assert (base / "package.json").exists()
+    assert (base / "tsconfig.json").exists()
+    policy_base = base / "policy" / "index_recipe_on_ingest"
+    assert (policy_base / "package.json").exists()
+    assert (policy_base / "tsconfig.json").exists()
+    assert (policy_base / "src" / "index.ts").exists()
+    assert (base / "gen_def" / "commands.ts").exists()
+    assert (base / "gen_def" / "events.ts").exists()
+
+
+def test_lib_does_not_overwrite_stubs(tmp_path: Path) -> None:
+    def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+    (tmp_path / "libconfig.yaml").write_text(
+        (FIXTURES_DIR / "multiruntime.libconfig.yaml").read_text()
+    )
+    gen(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+    lib(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+
+    stub = (
+        tmp_path
+        / "lib"
+        / "python-uv"
+        / "procedure"
+        / "extract_and_transform_recipe"
+        / "src"
+        / "extract_and_transform_recipe.py"
+    )
+    stub.write_text("# my implementation\n")
+
+    lib(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+
+    assert stub.read_text() == "# my implementation\n"
