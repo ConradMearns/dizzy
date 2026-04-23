@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from dizzy.feat_schema import PolicyDef
+from dizzy.logger import logger
 
 
 def render_policy_context(policy: PolicyDef) -> str:
@@ -47,6 +48,7 @@ def write_policy_context(policy: PolicyDef, output_dir: Path) -> None:
     )
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_policy_context(policy))
+    logger.debug("wrote file", extra={"path": str(dest)})
 
 
 def render_policy_protocol(policy: PolicyDef) -> str:
@@ -86,6 +88,7 @@ def write_policy_protocol(policy: PolicyDef, output_dir: Path) -> None:
     )
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_policy_protocol(policy))
+    logger.debug("wrote file", extra={"path": str(dest)})
 
 
 def render_src_policy_stub(policy: PolicyDef) -> str:
@@ -113,6 +116,8 @@ def write_policy_src_stub(policy: PolicyDef, output_dir: Path) -> None:
     """Write src/policy/<policy.name>.py; skip if file already exists."""
     dest = output_dir / "src" / "policy" / f"{policy.name}.py"
     if dest.exists():
+        logger.debug("skipped existing file", extra={"path": str(dest)})
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_src_policy_stub(policy))
+    logger.debug("wrote file", extra={"path": str(dest)})

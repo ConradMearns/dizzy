@@ -1,7 +1,11 @@
 """Dizzy — feature file generator CLI."""
 
 from pathlib import Path
+from typing import Annotated, Any, Callable
 import typer
+
+from dizzy.config import CONFIG_TEMPLATE, load_config
+from dizzy.logger import logger, setup_logging
 
 from dizzy.feat_loader import load_feat, validate_feat
 from dizzy.generators.commands import write_scaffold_commands
@@ -24,16 +28,48 @@ from dizzy.generators.policies import (
 )
 from dizzy.generators.projections import write_projection, write_projection_src_stub
 from dizzy.generators.adapters import write_adapter
-from dizzy.generators.linkml_runner import run_linkml_pydantic, run_linkml_sqla
+from dizzy.generators.linkml_runner import (
+    run_linkml_pydantic,
+    run_linkml_rust,
+    run_linkml_sqla,
+    run_linkml_typescript,
+)
 from dizzy.generators.init_emitter import write_init_files
+from dizzy.generators.libconfig import write_libconfig_stub
+from dizzy.generators.lib_python_uv import (
+    write_policy_python_uv,
+    write_procedure_python_uv,
+    write_projection_python_uv,
+    write_query_python_uv,
+    write_workspace_python_uv,
+)
+from dizzy.generators.lib_rust_cargo import (
+    write_policy_rust_cargo,
+    write_procedure_rust_cargo,
+    write_projection_rust_cargo,
+    write_query_rust_cargo,
+    write_workspace_rust_cargo,
+)
+from dizzy.generators.lib_typescript_npm import (
+    write_policy_typescript_npm,
+    write_procedure_typescript_npm,
+    write_projection_typescript_npm,
+    write_query_typescript_npm,
+    write_workspace_typescript_npm,
+)
+from dizzy.libconfig_loader import load_libconfig, validate_libconfig
 
 app = typer.Typer()
 
 
 @app.command("def")
 def def_cmd(
-    feat_file: Path = typer.Argument(..., help="Path to the .feat.yaml file"),
-    output_dir: Path = typer.Argument(..., help="Output directory for generated files"),
+    feat_file: Annotated[Path, typer.Argument(help="Path to the .feat.yaml file")],
+    output_dir: Annotated[Path, typer.Argument(help="Output directory for generated files")],
+    default_runtime: Annotated[
+        str,
+        typer.Option(help="Default runtime assigned to all elements in libconfig.yaml"),
+    ] = "python-uv",
 ) -> None:
     """Generate def/ stub files from a .feat.yaml feature definition."""
     feat = load_feat(feat_file)
@@ -41,7 +77,7 @@ def def_cmd(
     errors = validate_feat(feat)
     if errors:
         for err in errors:
-            typer.echo(f"Error: {err}")
+            logger.error("%s", err)
         raise typer.Exit(code=1)
 
     if feat.commands:
@@ -56,11 +92,15 @@ def def_cmd(
     for model in feat.models or []:
         write_scaffold_model(model, output_dir)
 
-    typer.echo("Generated def/ stubs. Next steps:")
-    typer.echo("  1. Fill in class definitions in def/models/*.yaml")
-    typer.echo("  2. Add input/output shapes in def/queries/*.yaml")
-    typer.echo("  3. Add attributes to def/commands.yaml and def/events.yaml")
-    typer.echo("  4. Run: dizzy gen <feat_file> <output_dir>")
+    write_libconfig_stub(feat, output_dir, default_runtime=default_runtime)
+
+    logger.info("Generated def/ stubs and libconfig.yaml. Next steps:")
+    logger.info("  1. Fill in class definitions in def/models/*.yaml")
+    logger.info("  2. Add input/output shapes in def/queries/*.yaml")
+    logger.info("  3. Add attributes to def/commands.yaml and def/events.yaml")
+    logger.info("  4. Review runtimes in libconfig.yaml")
+    logger.info("  5. Run: dizzy gen <feat_file> <output_dir>")
+    logger.info("  6. Run: dizzy lib <feat_file> <output_dir>")
 
 
 @app.command()
@@ -74,7 +114,7 @@ def gen(
     errors = validate_feat(feat)
     if errors:
         for err in errors:
-            typer.echo(f"Error: {err}")
+            logger.error("%s", err)
         raise typer.Exit(code=1)
 
     # Guard: check that all required def/ stubs exist before proceeding
@@ -93,12 +133,9 @@ def gen(
             missing.append(f"def/models/{model.name}.yaml")
 
     if missing:
-        typer.echo(
-            "Error: def/ stubs not found. Run `dizzy def <feat_file> <output_dir>` first."
-        )
-        typer.echo("Missing:")
+        logger.error("def/ stubs not found. Run `dizzy def <feat_file> <output_dir>` first.")
         for path in missing:
-            typer.echo(f"  {path}")
+            logger.error("  missing: %s", path)
         raise typer.Exit(code=1)
 
     # Step 1 — run LinkML toolchain on def/ stubs → gen_def/
@@ -169,8 +206,134 @@ def gen(
     # Step 5 — write __init__.py in every generated directory
     write_init_files(output_dir)
 
-    typer.echo("Generated interfaces and source stubs. Next steps:")
-    typer.echo("  Implement the src/ files to complete your feature.")
+    logger.info("Generated interfaces and source stubs. Next steps:")
+    logger.info("  Implement the src/ files to complete your feature.")
+
+
+@app.command()
+def lib(
+    feat_file: Path = typer.Argument(..., help="Path to the .feat.yaml file"),
+    output_dir: Path = typer.Argument(..., help="Output directory (must contain libconfig.yaml)"),
+) -> None:
+    """Generate lib/ runtime packages from libconfig.yaml."""
+    feat = load_feat(feat_file)
+
+    errors = validate_feat(feat)
+    if errors:
+        for err in errors:
+            logger.error("%s", err)
+        raise typer.Exit(code=1)
+
+    libconfig_path = output_dir / "libconfig.yaml"
+    if not libconfig_path.exists():
+        logger.error("libconfig.yaml not found. Run `dizzy def` first.")
+        raise typer.Exit(code=1)
+
+    config = load_libconfig(libconfig_path)
+    config_errors = validate_libconfig(config, feat)
+    if config_errors:
+        for err in config_errors:
+            logger.error("%s", err)
+        raise typer.Exit(code=1)
+
+    # Determine which runtimes have at least one element assigned
+    active_runtimes: set[str] = set()
+    for section in [config.procedures, config.policies, config.queries, config.projections]:
+        for binding in section or []:
+            for rt in binding.runtimes or []:
+                active_runtimes.add(str(rt))
+
+    # Run LinkML type generation for each active non-Python runtime
+    def_dir = output_dir / "def"
+
+    def _run_rust_gen(schema: Path, category: str, name: str) -> None:
+        if schema.exists():
+            run_linkml_rust(
+                schema,
+                output_dir / "lib" / "rust-cargo" / "gen_def" / category / f"{name}.rs",
+            )
+
+    def _run_ts_gen(schema: Path, category: str, name: str) -> None:
+        if schema.exists():
+            run_linkml_typescript(
+                schema,
+                output_dir / "lib" / "typescript-npm" / "gen_def" / category / f"{name}.ts",
+            )
+
+    if "rust-cargo" in active_runtimes:
+        _run_rust_gen(def_dir / "commands.yaml", ".", "commands")
+        _run_rust_gen(def_dir / "events.yaml", ".", "events")
+        for model in feat.models or []:
+            _run_rust_gen(def_dir / "models" / f"{model.name}.yaml", "models", model.name)
+        for query in feat.queries or []:
+            _run_rust_gen(def_dir / "queries" / f"{query.name}.yaml", "queries", query.name)
+
+    if "typescript-npm" in active_runtimes:
+        _run_ts_gen(def_dir / "commands.yaml", ".", "commands")
+        _run_ts_gen(def_dir / "events.yaml", ".", "events")
+        for model in feat.models or []:
+            _run_ts_gen(def_dir / "models" / f"{model.name}.yaml", "models", model.name)
+        for query in feat.queries or []:
+            _run_ts_gen(def_dir / "queries" / f"{query.name}.yaml", "queries", query.name)
+
+    # Build element dispatch tables per runtime
+    runtime_members: dict[str, list[tuple[str, str]]] = {
+        "python-uv": [], "rust-cargo": [], "typescript-npm": []
+    }
+
+    _writers: dict[str, dict[str, Callable[..., Any]]] = {
+        "python-uv": {
+            "procedure": write_procedure_python_uv,
+            "policy": write_policy_python_uv,
+            "query": write_query_python_uv,
+            "projection": write_projection_python_uv,
+        },
+        "rust-cargo": {
+            "procedure": write_procedure_rust_cargo,
+            "policy": write_policy_rust_cargo,
+            "query": write_query_rust_cargo,
+            "projection": write_projection_rust_cargo,
+        },
+        "typescript-npm": {
+            "procedure": write_procedure_typescript_npm,
+            "policy": write_policy_typescript_npm,
+            "query": write_query_typescript_npm,
+            "projection": write_projection_typescript_npm,
+        },
+    }
+
+    for kind, bindings, feat_items in [
+        ("procedure", config.procedures or [], feat.procedures or []),
+        ("policy", config.policies or [], feat.policies or []),
+        ("query", config.queries or [], feat.queries or []),
+        ("projection", config.projections or [], feat.projections or []),
+    ]:
+        feat_by_name = {item.name: item for item in feat_items}
+        for binding in bindings:
+            element_def = feat_by_name[binding.name]
+            for rt in binding.runtimes or []:
+                runtime = str(rt)
+                runtime_members[runtime].append((kind, binding.name))
+                _writers[runtime][kind](element_def, output_dir)
+
+    # Write workspace manifests for each active runtime
+    for runtime, members in runtime_members.items():
+        if not members:
+            continue
+        if runtime == "python-uv":
+            write_workspace_python_uv(members, output_dir)
+        elif runtime == "rust-cargo":
+            write_workspace_rust_cargo(members, output_dir)
+        elif runtime == "typescript-npm":
+            write_workspace_typescript_npm(members, output_dir)
+
+    logger.info("Generated lib/ packages. Implement the stubs in lib/<runtime>/<kind>/<name>/src/")
+
+
+@app.command()
+def config() -> None:
+    """Print a template dizzy configuration file."""
+    typer.echo(CONFIG_TEMPLATE, nl=False)
 
 
 @app.command()
@@ -183,6 +346,8 @@ def docs() -> None:
 
 
 def main() -> None:
+    config = load_config()
+    setup_logging(log_dir=config.logging.log_dir, show_level=config.logging.show_level, gitignore=config.logging.gitignore)
     app()
 
 

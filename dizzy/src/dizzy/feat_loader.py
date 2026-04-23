@@ -4,6 +4,7 @@ from pathlib import Path
 
 import yaml
 
+from dizzy.logger import logger
 from dizzy.feat_schema import (
     CommandDef,
     EventDef,
@@ -44,6 +45,7 @@ def _normalize(raw: dict) -> dict:
 def load_feat(path: str | Path) -> FeatureDefinition:
     """Load a ``.feat.yaml`` file, validate it, and return a FeatureDefinition."""
     raw = yaml.safe_load(Path(path).read_text())
+    logger.debug("loaded feat", extra={"path": str(path)})
     normalised = _normalize(raw)
     return FeatureDefinition.model_validate(normalised)
 
@@ -132,4 +134,5 @@ def validate_feat(feat: FeatureDefinition) -> list[str]:
                 f"projection '{proj.name}': adapter '{proj.adapter}' not declared on model '{proj.model}'"
             )
 
+    logger.debug("validated feat", extra={"errors": len(errors)})
     return errors

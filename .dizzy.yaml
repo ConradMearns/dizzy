@@ -1,0 +1,16 @@
+# Dizzy configuration
+# Place this file at one of:
+#   .dizzy.yaml                      — project-level (current directory)
+#   ~/.config/dizzy/config.yaml      — user-level
+#   /etc/dizzy/config.yaml           — system-level
+#
+# Higher-precedence files override lower ones.
+# Environment variables override everything.
+
+logging:
+  # Directory where debug JSON log files are written.
+  # Default: ~/.local/share/dizzy/logs
+  # Override with env var: DIZZY_LOG_DIR
+  log_dir: ./.logs
+  show_level: false
+  gitignore: true

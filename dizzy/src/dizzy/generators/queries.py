@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from dizzy.feat_schema import QueryDef
+from dizzy.logger import logger
 
 
 def _to_camel(snake: str) -> str:
@@ -38,9 +39,11 @@ def write_scaffold_query(query: QueryDef, output_dir: Path) -> None:
     """Write def/queries/<query.name>.yaml; skip if file already exists."""
     dest = output_dir / "def" / "queries" / f"{query.name}.yaml"
     if dest.exists():
+        logger.debug("skipped existing file", extra={"path": str(dest)})
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_scaffold_query(query))
+    logger.debug("wrote file", extra={"path": str(dest)})
 
 
 def _adapter_class_name(adapter_name: str) -> str:
@@ -101,6 +104,7 @@ def write_gen_query_protocol(query: QueryDef, output_dir: Path) -> None:
     dest = output_dir / "gen_int" / "python" / "query" / f"{query.name}.py"
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_gen_query_protocol(query))
+    logger.debug("wrote file", extra={"path": str(dest)})
 
 
 def render_src_query_stub(query_name: str) -> str:
@@ -127,6 +131,8 @@ def write_src_query_stub(query_name: str, output_dir: Path) -> None:
     """Write src/query/<query_name>.py; skip if file already exists."""
     dest = output_dir / "src" / "query" / f"{query_name}.py"
     if dest.exists():
+        logger.debug("skipped existing file", extra={"path": str(dest)})
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_src_query_stub(query_name))
+    logger.debug("wrote file", extra={"path": str(dest)})

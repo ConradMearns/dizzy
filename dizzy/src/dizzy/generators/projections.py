@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from dizzy.feat_schema import ProjectionDef
+from dizzy.logger import logger
 
 
 def _adapter_class_name(adapter_name: str) -> str:
@@ -69,6 +70,7 @@ def write_projection(proj: ProjectionDef, output_dir: Path) -> None:
     )
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_projection(proj))
+    logger.debug("wrote file", extra={"path": str(dest)})
 
 
 def render_src_projection_stub(proj: ProjectionDef) -> str:
@@ -96,6 +98,8 @@ def write_projection_src_stub(proj: ProjectionDef, output_dir: Path) -> None:
     """Write src/projection/<proj.name>.py; skip if file already exists."""
     dest = output_dir / "src" / "projection" / f"{proj.name}.py"
     if dest.exists():
+        logger.debug("skipped existing file", extra={"path": str(dest)})
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_src_projection_stub(proj))
+    logger.debug("wrote file", extra={"path": str(dest)})
