@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from dizzy.feat_schema import PolicyDef, ProcedureDef, ProjectionDef, QueryDef
+from dizzy.logger import logger
 
 
 def render_element_cargo_toml(kind: str, name: str) -> str:
@@ -41,9 +42,11 @@ def render_lib_rs_stub(name: str) -> str:
 
 def _write_if_absent(path: Path, content: str) -> None:
     if path.exists():
+        logger.debug("skipped existing file", extra={"path": str(path)})
         return
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content)
+    logger.debug("wrote file", extra={"path": str(path)})
 
 
 def write_procedure_rust_cargo(proc: ProcedureDef, output_dir: Path) -> None:
@@ -74,3 +77,4 @@ def write_workspace_rust_cargo(members: list[tuple[str, str]], output_dir: Path)
     dest = output_dir / "lib" / "rust-cargo" / "Cargo.toml"
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_workspace_cargo_toml(members))
+    logger.debug("wrote file", extra={"path": str(dest)})

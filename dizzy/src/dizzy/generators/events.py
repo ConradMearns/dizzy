@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from dizzy.feat_schema import EventDef
+from dizzy.logger import logger
 
 
 def render_scaffold_events(events: list[EventDef]) -> str:
@@ -29,6 +30,8 @@ def write_scaffold_events(events: list[EventDef], output_dir: Path) -> None:
     """Write def/events.yaml; skip if file already exists."""
     dest = output_dir / "def" / "events.yaml"
     if dest.exists():
+        logger.debug("skipped existing file", extra={"path": str(dest)})
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_scaffold_events(events))
+    logger.debug("wrote file", extra={"path": str(dest)})

@@ -4,6 +4,7 @@ from pathlib import Path
 
 import yaml
 
+from dizzy.logger import logger
 from dizzy.feat_schema import FeatureDefinition
 from dizzy.libconfig_schema import LibConfig
 
@@ -38,6 +39,7 @@ def _normalize(raw: dict) -> dict:
 def load_libconfig(path: str | Path) -> LibConfig:
     """Load a ``libconfig.yaml`` file, validate it, and return a LibConfig."""
     raw = yaml.safe_load(Path(path).read_text())
+    logger.debug("loaded libconfig", extra={"path": str(path)})
     if raw is None:
         raw = {}
     normalised = _normalize(raw)
@@ -69,4 +71,5 @@ def validate_libconfig(config: LibConfig, feat: FeatureDefinition) -> list[str]:
         if binding.name not in proj_names:
             errors.append(f"libconfig projection '{binding.name}' not declared in feat")
 
+    logger.debug("validated libconfig", extra={"errors": len(errors)})
     return errors

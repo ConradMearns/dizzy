@@ -4,6 +4,9 @@ from pathlib import Path
 from typing import Annotated, Any, Callable
 import typer
 
+from dizzy.config import CONFIG_TEMPLATE, load_config
+from dizzy.logger import logger, setup_logging
+
 from dizzy.feat_loader import load_feat, validate_feat
 from dizzy.generators.commands import write_scaffold_commands
 from dizzy.generators.events import write_scaffold_events
@@ -74,7 +77,7 @@ def def_cmd(
     errors = validate_feat(feat)
     if errors:
         for err in errors:
-            typer.echo(f"Error: {err}")
+            logger.error("%s", err)
         raise typer.Exit(code=1)
 
     if feat.commands:
@@ -91,13 +94,13 @@ def def_cmd(
 
     write_libconfig_stub(feat, output_dir, default_runtime=default_runtime)
 
-    typer.echo("Generated def/ stubs and libconfig.yaml. Next steps:")
-    typer.echo("  1. Fill in class definitions in def/models/*.yaml")
-    typer.echo("  2. Add input/output shapes in def/queries/*.yaml")
-    typer.echo("  3. Add attributes to def/commands.yaml and def/events.yaml")
-    typer.echo("  4. Review runtimes in libconfig.yaml")
-    typer.echo("  5. Run: dizzy gen <feat_file> <output_dir>")
-    typer.echo("  6. Run: dizzy lib <feat_file> <output_dir>")
+    logger.info("Generated def/ stubs and libconfig.yaml. Next steps:")
+    logger.info("  1. Fill in class definitions in def/models/*.yaml")
+    logger.info("  2. Add input/output shapes in def/queries/*.yaml")
+    logger.info("  3. Add attributes to def/commands.yaml and def/events.yaml")
+    logger.info("  4. Review runtimes in libconfig.yaml")
+    logger.info("  5. Run: dizzy gen <feat_file> <output_dir>")
+    logger.info("  6. Run: dizzy lib <feat_file> <output_dir>")
 
 
 @app.command()
@@ -111,7 +114,7 @@ def gen(
     errors = validate_feat(feat)
     if errors:
         for err in errors:
-            typer.echo(f"Error: {err}")
+            logger.error("%s", err)
         raise typer.Exit(code=1)
 
     # Guard: check that all required def/ stubs exist before proceeding
@@ -130,12 +133,9 @@ def gen(
             missing.append(f"def/models/{model.name}.yaml")
 
     if missing:
-        typer.echo(
-            "Error: def/ stubs not found. Run `dizzy def <feat_file> <output_dir>` first."
-        )
-        typer.echo("Missing:")
+        logger.error("def/ stubs not found. Run `dizzy def <feat_file> <output_dir>` first.")
         for path in missing:
-            typer.echo(f"  {path}")
+            logger.error("  missing: %s", path)
         raise typer.Exit(code=1)
 
     # Step 1 — run LinkML toolchain on def/ stubs → gen_def/
@@ -206,8 +206,8 @@ def gen(
     # Step 5 — write __init__.py in every generated directory
     write_init_files(output_dir)
 
-    typer.echo("Generated interfaces and source stubs. Next steps:")
-    typer.echo("  Implement the src/ files to complete your feature.")
+    logger.info("Generated interfaces and source stubs. Next steps:")
+    logger.info("  Implement the src/ files to complete your feature.")
 
 
 @app.command()
@@ -221,19 +221,19 @@ def lib(
     errors = validate_feat(feat)
     if errors:
         for err in errors:
-            typer.echo(f"Error: {err}")
+            logger.error("%s", err)
         raise typer.Exit(code=1)
 
     libconfig_path = output_dir / "libconfig.yaml"
     if not libconfig_path.exists():
-        typer.echo("Error: libconfig.yaml not found. Run `dizzy def` first.")
+        logger.error("libconfig.yaml not found. Run `dizzy def` first.")
         raise typer.Exit(code=1)
 
     config = load_libconfig(libconfig_path)
     config_errors = validate_libconfig(config, feat)
     if config_errors:
         for err in config_errors:
-            typer.echo(f"Error: {err}")
+            logger.error("%s", err)
         raise typer.Exit(code=1)
 
     # Determine which runtimes have at least one element assigned
@@ -327,7 +327,13 @@ def lib(
         elif runtime == "typescript-npm":
             write_workspace_typescript_npm(members, output_dir)
 
-    typer.echo("Generated lib/ packages. Implement the stubs in lib/<runtime>/<kind>/<name>/src/")
+    logger.info("Generated lib/ packages. Implement the stubs in lib/<runtime>/<kind>/<name>/src/")
+
+
+@app.command()
+def config() -> None:
+    """Print a template dizzy configuration file."""
+    typer.echo(CONFIG_TEMPLATE, nl=False)
 
 
 @app.command()
@@ -340,6 +346,8 @@ def docs() -> None:
 
 
 def main() -> None:
+    config = load_config()
+    setup_logging(log_dir=config.logging.log_dir)
     app()
 
 

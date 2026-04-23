@@ -6,6 +6,7 @@ from dizzy.feat_schema import PolicyDef, ProcedureDef, ProjectionDef, QueryDef
 from dizzy.generators.policies import render_src_policy_stub
 from dizzy.generators.procedures import render_src_procedure_stub
 from dizzy.generators.projections import render_src_projection_stub
+from dizzy.logger import logger
 
 
 def render_element_pyproject_toml(kind: str, name: str) -> str:
@@ -35,9 +36,11 @@ def render_workspace_pyproject_toml(members: list[tuple[str, str]]) -> str:
 
 def _write_if_absent(path: Path, content: str) -> None:
     if path.exists():
+        logger.debug("skipped existing file", extra={"path": str(path)})
         return
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content)
+    logger.debug("wrote file", extra={"path": str(path)})
 
 
 def write_procedure_python_uv(proc: ProcedureDef, output_dir: Path) -> None:
@@ -77,3 +80,4 @@ def write_workspace_python_uv(members: list[tuple[str, str]], output_dir: Path) 
     dest = output_dir / "lib" / "python-uv" / "pyproject.toml"
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_workspace_pyproject_toml(members))
+    logger.debug("wrote file", extra={"path": str(dest)})

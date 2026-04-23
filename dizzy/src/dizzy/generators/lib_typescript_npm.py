@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from dizzy.feat_schema import PolicyDef, ProcedureDef, ProjectionDef, QueryDef
+from dizzy.logger import logger
 
 
 def render_element_package_json(kind: str, name: str) -> str:
@@ -63,9 +64,11 @@ def render_index_ts_stub(name: str) -> str:
 
 def _write_if_absent(path: Path, content: str) -> None:
     if path.exists():
+        logger.debug("skipped existing file", extra={"path": str(path)})
         return
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content)
+    logger.debug("wrote file", extra={"path": str(path)})
 
 
 def write_procedure_typescript_npm(proc: ProcedureDef, output_dir: Path) -> None:
@@ -100,6 +103,10 @@ def write_workspace_typescript_npm(members: list[tuple[str, str]], output_dir: P
     base = output_dir / "lib" / "typescript-npm"
     base.mkdir(parents=True, exist_ok=True)
     (base / "package.json").write_text(render_workspace_package_json(members))
+    logger.debug("wrote file", extra={"path": str(base / "package.json")})
     tsconfig = base / "tsconfig.json"
     if not tsconfig.exists():
         tsconfig.write_text(render_workspace_tsconfig_json())
+        logger.debug("wrote file", extra={"path": str(tsconfig)})
+    else:
+        logger.debug("skipped existing file", extra={"path": str(tsconfig)})

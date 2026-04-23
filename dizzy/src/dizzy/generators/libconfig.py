@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from dizzy.feat_schema import FeatureDefinition
+from dizzy.logger import logger
 
 
 def render_libconfig_stub(feat: FeatureDefinition, default_runtime: str = "python-uv") -> str:
@@ -35,6 +36,8 @@ def write_libconfig_stub(
     """Write libconfig.yaml to output_dir; skip if file already exists."""
     dest = output_dir / "libconfig.yaml"
     if dest.exists():
+        logger.debug("skipping %s — already exists", dest)
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_libconfig_stub(feat, default_runtime=default_runtime))
+    logger.debug("wrote %s", dest)

@@ -1,5 +1,6 @@
 """End-to-end def + gen + lib integration tests."""
 
+import logging
 import pytest
 from click.exceptions import Exit as ClickExit
 from pathlib import Path
@@ -76,13 +77,13 @@ def test_gen_creates_all_outputs(tmp_path: Path) -> None:
     assert (tmp_path / "gen_int" / "python" / "projection" / "__init__.py").exists()
 
 
-def test_gen_error_when_def_missing(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    with pytest.raises(ClickExit) as exc_info:
-        gen(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+def test_gen_error_when_def_missing(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+    with caplog.at_level(logging.ERROR, logger="dizzy"):
+        with pytest.raises(ClickExit) as exc_info:
+            gen(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
     assert exc_info.value.exit_code == 1
-    captured = capsys.readouterr()
-    assert "dizzy def" in captured.out
-    assert "def/commands.yaml" in captured.out
+    assert "dizzy def" in caplog.text
+    assert "def/commands.yaml" in caplog.text
 
 
 def test_def_partial_feat(tmp_path: Path) -> None:
@@ -154,16 +155,16 @@ def test_def_custom_default_runtime(tmp_path: Path) -> None:
 
 
 def test_lib_error_missing_libconfig(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
     def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
     (tmp_path / "libconfig.yaml").unlink()
 
-    with pytest.raises(ClickExit) as exc_info:
-        lib(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+    with caplog.at_level(logging.ERROR, logger="dizzy"):
+        with pytest.raises(ClickExit) as exc_info:
+            lib(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
     assert exc_info.value.exit_code == 1
-    captured = capsys.readouterr()
-    assert "libconfig.yaml" in captured.out
+    assert "libconfig.yaml" in caplog.text
 
 
 def test_lib_python_uv_structure(tmp_path: Path) -> None:

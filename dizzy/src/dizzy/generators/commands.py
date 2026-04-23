@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from dizzy.feat_schema import CommandDef
+from dizzy.logger import logger
 
 
 def render_scaffold_commands(commands: list[CommandDef]) -> str:
@@ -29,6 +30,8 @@ def write_scaffold_commands(commands: list[CommandDef], output_dir: Path) -> Non
     """Write def/commands.yaml; skip if file already exists."""
     dest = output_dir / "def" / "commands.yaml"
     if dest.exists():
+        logger.debug("skipped existing file", extra={"path": str(dest)})
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_scaffold_commands(commands))
+    logger.debug("wrote file", extra={"path": str(dest)})

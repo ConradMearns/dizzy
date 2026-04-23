@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from dizzy.feat_schema import ProcedureDef
+from dizzy.logger import logger
 
 
 def render_procedure_context(proc: ProcedureDef) -> str:
@@ -69,6 +70,7 @@ def write_procedure_context(proc: ProcedureDef, output_dir: Path) -> None:
     )
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_procedure_context(proc))
+    logger.debug("wrote file", extra={"path": str(dest)})
 
 
 def render_procedure_protocol(proc: ProcedureDef) -> str:
@@ -112,6 +114,7 @@ def write_procedure_protocol(proc: ProcedureDef, output_dir: Path) -> None:
     )
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_procedure_protocol(proc))
+    logger.debug("wrote file", extra={"path": str(dest)})
 
 
 def render_src_procedure_stub(proc: ProcedureDef) -> str:
@@ -139,6 +142,8 @@ def write_procedure_src_stub(proc: ProcedureDef, output_dir: Path) -> None:
     """Write src/procedure/<proc.name>.py; skip if file already exists."""
     dest = output_dir / "src" / "procedure" / f"{proc.name}.py"
     if dest.exists():
+        logger.debug("skipped existing file", extra={"path": str(dest)})
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_src_procedure_stub(proc))
+    logger.debug("wrote file", extra={"path": str(dest)})
