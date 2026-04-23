@@ -347,7 +347,7 @@ def docs() -> None:
 
 def main() -> None:
     config = load_config()
-    setup_logging(log_dir=config.logging.log_dir)
+    setup_logging(log_dir=config.logging.log_dir, show_level=config.logging.show_level, gitignore=config.logging.gitignore)
     app()
 
 

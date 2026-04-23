@@ -10,6 +10,8 @@ from pydantic import BaseModel
 
 class LoggingConfig(BaseModel):
     log_dir: Path | None = None
+    show_level: bool = False
+    gitignore: bool = True
 
 
 class DizzyConfig(BaseModel):
@@ -37,6 +39,14 @@ logging:
   # Default: ~/.local/share/dizzy/logs
   # Override with env var: DIZZY_LOG_DIR
   # log_dir: ~/.local/share/dizzy/logs
+
+  # Show the log level prefix (INFO/WARNING/ERROR) in terminal output.
+  # Default: false
+  # show_level: false
+
+  # Write a .gitignore containing "*" in the log directory on each invocation.
+  # Default: true
+  # gitignore: true
 """
 
 

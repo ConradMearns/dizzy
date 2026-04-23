@@ -11,7 +11,25 @@ from dizzy.logger import logger, setup_logging
 
 def test_setup_logging_creates_log_file(tmp_path: Path) -> None:
     setup_logging(log_dir=tmp_path)
-    assert (tmp_path / "dizzy.log").exists()
+    logs = list(tmp_path.glob("dizzy_*.log"))
+    assert len(logs) == 1
+    assert logs[0].name.startswith("dizzy_")
+
+
+def test_gitignore_written_by_default(tmp_path: Path) -> None:
+    setup_logging(log_dir=tmp_path)
+    assert (tmp_path / ".gitignore").read_text() == "*\n"
+
+
+def test_gitignore_not_written_when_disabled(tmp_path: Path) -> None:
+    setup_logging(log_dir=tmp_path, gitignore=False)
+    assert not (tmp_path / ".gitignore").exists()
+
+
+def test_gitignore_not_overwritten_if_exists(tmp_path: Path) -> None:
+    (tmp_path / ".gitignore").write_text("custom\n")
+    setup_logging(log_dir=tmp_path)
+    assert (tmp_path / ".gitignore").read_text() == "custom\n"
 
 
 def test_info_captured_by_caplog(caplog: pytest.LogCaptureFixture) -> None:
@@ -26,7 +44,7 @@ def test_debug_writes_json_to_file(tmp_path: Path) -> None:
     test_logger.setLevel(logging.DEBUG)
     test_logger.propagate = False
 
-    log_file = tmp_path / "dizzy.log"
+    log_file = tmp_path / "dizzy_test.log"
     from dizzy.logger import _JsonFormatter
     handler = logging.FileHandler(log_file)
     handler.setLevel(logging.DEBUG)
