@@ -220,9 +220,15 @@ As software begins, it's design only must necessitate the communication structur
 
 As software scales to serve more, and it's features become uncountable, and the ability for developers, stakeholders, and leadership cannot retain the necessary mental models to make accurate predictions of change.
 
-DIZZY's intent on enforcing rigid constraints is a philosophical and practical choice to shape and guide the communication flow of users, developers, stakeholders, data and logical flow.
 
 = Software Architectures Should... 
+
+...deliberately shape the communication structures of the organizations that build them.
+
+The Inverse Conway Maneuver says: if your system is going to mirror your organization anyway, design it to mirror the organization you _want_. 
+DIZZY applies this as an architecture constraint. 
+Its rigid component boundaries are deliberate seams that define where teams own work independently and where they must coordinate.
+
 
 // (Guiding Principles)
 
@@ -657,8 +663,8 @@ Events
 // not just the CLI command that executes it.
 
 === Building Data Contracts
-TODO: Describe the step philosophically — what decisions get made here,
-who makes them, and why this comes before any code is written.
+// TODO: Describe the step philosophically — what decisions get made here,
+// who makes them, and why this comes before any code is written.
 
 === Building Program Processes
 // TODO: Describe what it means to implement against a generated library contract —
