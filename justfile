@@ -17,10 +17,10 @@ check:
     uv run ty check dizzy/src/dizzy dizzy/tests
 
 whitepaper:
-    typst compile whitepaper.typ
+    typst compile docs/whitepaper.typ
 
 whitepaper-watch:
-    typst watch whitepaper.typ
+    typst watch docs/whitepaper.typ
 
 
 install-completions:
