@@ -34,7 +34,8 @@ heard of DIZZY. They should finish the paper with:
 **Category:** Structure  
 **Statement:** Every heading must be a complete phrase or sentence.  
 **Pass:** No heading is a sentence fragment or ends mid-thought.  
-**Fail:** Any heading reads as incomplete (e.g. "The Burden of Software Architecture is").
+**Fail:** Any heading reads as incomplete (e.g. "The Burden of Software Architecture is").  
+**Exception:** A top-level heading may intentionally end with an ellipsis ("...") to signal that its subsections complete the thought — provided (a) the ellipsis is present in the source, (b) the ToC entry reads as a meaningful open prompt, and (c) each subsection heading reads as a grammatical completion of the parent sentence.
 
 ---
 
