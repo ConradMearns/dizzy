@@ -1,6 +1,6 @@
 #import "@preview/fletcher:0.5.8" as fletcher: diagram, node, edge
 
-#let flow = diagram(
+#let flow_noq = diagram(
   spacing: (1em, 1em),
 
   node((0,1), $c$),
@@ -28,8 +28,86 @@
 
 #box[
   #set text(size: 2em)
+  #flow_noq
+]
+
+
+#let flow0 = diagram(
+  spacing: (1em, 1em),
+
+  node((0,1), $c$),
+  node((1,0), $d$),
+  node((2,1), $e$),
+  node((1,2), $y$),
+
+  edge((0,1), (1,0), "->", $$),
+  edge((1,0), (2,1), "->", $$),
+  edge((2,1), (1,2), "->", $$),
+  edge((1,2), (0,1), "->", $$),
+
+  node((3,1), $j$),
+  node((4,1), $m$),
+  node((5,1), $Q$),
+
+  node((3,0), $q$),
+  node((3,2), $q$),
+
+  edge((2,1), (3,1), "->", $$),
+  edge((3,1), (4,1), "->", $$),
+  edge((4,1), (5,1), "->", $$),
+
+  edge((1,2), (3,2), "<-->", $$, bend: -10deg),
+  edge((1,0), (3,0), "<-->", $$, bend: 10deg),
+  
+  edge((5,1), (3,0), "<-->", $$, bend: -20deg),
+  edge((5,1), (3,2), "<-->", $$, bend: 20deg),
+)
+
+
+#box[
+  #set text(size: 2em)
+  #flow0
+]
+
+
+
+#let flow = diagram(
+  spacing: (1.5em, 1.5em),
+
+  node((0,0), $c$, name: <c>),
+  node((0,-1), $y$, name: <y>),
+  node((0,1), $d$, name: <d>),
+  node((-1,0), $e$, name: <e>),
+  node((1,0), $q$, name: <q>),
+  node((0,-2), $m$, name: <m>),
+  node((-1.3,-1.3), $j$, name: <j>),
+  node(( 1.3,-1.3), $Q$, name: <Q>),
+
+  edge(<c>, <d>,  bend: 0deg, "->"),
+  edge(<d>, <e>,  bend: 0deg, "->"),
+  edge(<e>, <y>,  bend: 0deg, "->"),
+  edge(<y>, <c>,  bend: 0deg, "->"),
+  edge(<q>, <y>,  bend: 0deg, "<-->"),
+  edge(<q>, <d>,  bend: 0deg, "<-->"),
+  edge(<e>, <j>,  bend: 15deg, "->"),
+  edge(<j>, <m>,  bend: 15deg, "->"),
+  edge(<m>, <Q>,  bend: 15deg, "<-->"),
+  edge(<Q>, <q>,  bend: 15deg, "<-->"),
+
+)
+
+
+#box[
+  #set text(size: 2em)
   #flow
 ]
+
+
+
+
+
+
+
 
 
 // TODO fix cardinality
@@ -83,7 +161,7 @@ flow_full
 #let pipeline = diagram(
   spacing: (1em, 3em),
 
-  node((4,0), $"feat"$, name: <feat1> ),
+  node((2,0), $"feat"$, name: <feat1> ),
 
   {
     let tint(c) = (
@@ -92,9 +170,26 @@ flow_full
       inset: 8pt
     )
     node(
-      enclose: ((0,-0.2), (8,0.2)),
+      enclose: ((-1.5,-0.2), (4.5,0.2)),
       ..tint(green), 
       name: <feat>
+    )
+  },
+
+  // edge(<feat>, <def>,  bend: 0deg, "=>"),
+  node((7,0), $"Feature File"$,   name: <feat_file>),
+
+
+  {
+    let tint(c) = (
+      stroke: c, 
+      fill: rgb(..c.components().slice(0,3), 5%), 
+      inset: 8pt
+    )
+    node(
+      enclose: ((0,1), (4,1)),
+      ..tint(blue), 
+      name: <def>
     )
   },
 
@@ -104,8 +199,21 @@ flow_full
   node((2,1), $c_"def"$, name: <c_def>),
   node((3,1), $q_"def"$, name: <q_def>),
   node((4,1), $m_"def"$, name: <m2_def>),
-  node((7,1), $"definitions"$,   name: <gen_definitions>),
+  node((7,1), $"Data Contract Definitions"$,   name: <gen_definitions>),
 
+
+  {
+    let tint(c) = (
+      stroke: c, 
+      fill: rgb(..c.components().slice(0,3), 5%), 
+      inset: 8pt
+    )
+    node(
+      enclose: ((0,2), (4,2)),
+      ..tint(purple), 
+      name: <dc_gen>
+    )
+  },
 
   // gen models
   node((0,2), $m_"gen"$, name: <m1_gen>),
@@ -113,7 +221,22 @@ flow_full
   node((2,2), $c_"gen"$, name: <c_gen>),
   node((3,2), $q_"gen"$, name: <q_gen>),
   node((4,2), $m_"gen"$, name: <m2_gen>),
-  node((7,2), $"classes"$,   name: <gen_classes>),
+  node((7,2), $"Data Contract Implementations"$,   name: <gen_classes>),
+
+  edge(<def>, <dc_gen>,  bend: 0deg, "=>"),
+
+  {
+    let tint(c) = (
+      stroke: c, 
+      fill: rgb(..c.components().slice(0,3), 5%), 
+      inset: 8pt
+    )
+    node(
+      enclose: ((0.5,3), (3.5,3)),
+      ..tint(purple), 
+      name: <pp_gen>
+    )
+  },
 
 
   // gen protocols
@@ -121,7 +244,7 @@ flow_full
   node((1.5,3), $y_"gen"$,   name: <y_gen>),
   node((2.5,3), $d_"gen"$,   name: <d_gen>),
   node((3.5,3), $Q_"gen"$,   name: <Q_gen>),
-  node((7,3), $"interfaces"$,   name: <gen_interfaces>),
+  node((7,3), $"Process Interfaces"$,   name: <gen_interfaces>),
   
   edge(<m1_gen>, <j_gen>,  bend: 0deg, "->"),
   edge(<e_gen>, <j_gen>,   bend: 0deg, "->"),
@@ -134,56 +257,27 @@ flow_full
   edge(<q_gen>, <Q_gen>,   bend: 0deg, "->"),
   edge(<m2_gen>, <Q_gen>,  bend: 0deg, "->"),
 
-  node((0.5,4), $j_"src"$,   name: <j_src>),
-  node((1.5,4), $y_"src"$,   name: <y_src>),
-  node((2.5,4), $d_"src"$,   name: <d_src>),
-  node((3.5,4), $Q_"src"$,   name: <Q_src>),
-  node((7,4), $"source"$,   name: <src_source>),
+    {
+    let tint(c) = (
+      stroke: c, 
+      fill: rgb(..c.components().slice(0,3), 5%), 
+      inset: 8pt
+    )
+    node(
+      enclose: ((0.5,4), (3.5,4)),
+      ..tint(blue), 
+      name: <lib>
+    )
+  },
 
 
+  node((0.5,4), $j_"lib"$,   name: <j_src>),
+  node((1.5,4), $y_"lib"$,   name: <y_src>),
+  node((2.5,4), $d_"lib"$,   name: <d_src>),
+  node((3.5,4), $Q_"lib"$,   name: <Q_src>),
+  node((7,4), $"Source Code Stubs"$,   name: <src_source>),
 
-  // src
-  // node((5,3), $Q_"src"$,   name: <Q_src>),
-  // node((6,3), $d_"src"$,   name: <d_src>),
-  // node((7,3), $y_"src"$,   name: <y_src>),
-  // node((8,3), $j_"src"$,   name: <j_src>),
-
-  // edge(<feat>, <e_def>,   bend: 0deg, "->"),
-  // edge(<feat>, <c_def>,   bend: 0deg, "->"),
-  // edge(<feat>, <m_def>,   bend: 0deg, "->"),
-  // edge(<feat>, <q_i_def>, bend: 0deg, "->"),
-  // edge(<feat>, <q_o_def>, bend: 0deg, "->"),
-
-  // edge(<feat>, <Q_gen>, bend: 0deg, "->"),
-  // edge(<feat>, <d_gen>, bend: 0deg, "->"),
-  // edge(<feat>, <y_gen>, bend: 0deg, "->"),
-  // edge(<feat>, <j_gen>, bend: 0deg, "->"),
-
-  // edge(<e_def>,   <e_gen>,   bend: 0deg, "->"),
-  // edge(<c_def>,   <c_gen>,   bend: 0deg, "->"),
-  // edge(<m_def>,   <m_gen>,   bend: 0deg, "->"),
-  // edge(<q_i_def>, <q_i_gen>, bend: 0deg, "->"),
-  // edge(<q_o_def>, <q_o_gen>, bend: 0deg, "->"),
-  
-
-  // 1 1! 1? n n! n?
-  // edge(<e>, <j>, bend: 20deg, "1-n"),
-  // edge(<j>, <m>, bend: 0deg, "1-n"),
-  // edge(<m>, <Q>, bend: 20deg, "1-n"),
-  
-  // edge(<Q>, <q_i>, bend: 20deg, "1-n"),
-  // edge(<Q>, <q_o>, bend: 20deg, "1-n"),
-
-  // edge(<q_i>, <y>, bend: 20deg, "1-n"),
-  // edge(<q_i>, <d>, bend: 20deg, "1-n"),
-  // edge(<q_o>, <d>, bend: 20deg, "1-n"),
-  // edge(<q_o>, <y>, bend: 20deg, "1-n"),
-
-  // edge(<c>, <d>, bend: 0deg, "1-n"),
-  // edge(<c>, <y>, bend: 0deg, "1-n"),
-
-  // edge(<e>, <d>, bend:  20deg, "1-n"),
-  // edge(<e>, <y>, bend: -20deg, "1-n"),
+  edge(<pp_gen>, <lib>,  bend: 0deg, "=>"),
 
 )
 
@@ -194,7 +288,120 @@ flow_full
 
 pipeline
 
+
+#let Q_map = diagram(
+  spacing: (1em, 4em),
+
+  node((1,0), $m$, name: <m>),
+  node((1,1), $Q$, name: <Q>),
+  node((1,2), $q$, name: <q>),
+  node((0,3), $d$, name: <d>),
+  node((2,3), $y$, name: <y>),
+  
+  edge(<m>, <Q>, label: "serves call \n/ response",  bend: 0deg, "<-->"),
+  edge(<Q>, <q>, label: "call response",  bend: 0deg, "<-->"),
+  edge(<q>, <y>, label: "uses",  bend: 0deg, "<-->"),
+  edge(<q>, <d>, label: "uses",  bend: 0deg, "<-->"),
+  // edge(<j>, <m>, label: "maps to",  bend: 0deg, "->"),
+  // edge(<j>, <m>, label: "maps to",  bend: 0deg, "->"),
+  // edge(<m>, <Q>, label: "serves call \n/ response",   bend: 0deg, "<-->"),
+)
+
+#let m_map = diagram(
+  spacing: (1em, 5em),
+
+  node((1,0), $j$, name: <j>),
+  node((1,1), $m$, name: <m>),
+  node((1,2), $Q$, name: <Q>),
+  
+  edge(<j>, <m>, label: "maps to",  bend: 0deg, "->"),
+  edge(<m>, <Q>, label: "serves call \n/ response",   bend: 0deg, "<-->"),
+)
+
        
+#let j_map = diagram(
+  spacing: (1em, 5em),
+
+  node((1,0), $e$, name: <e>),
+  node((1,1), $j$, name: <j>),
+  node((1,2), $m$, name: <m>),
+  
+  edge(<e>, <j>, label: "triggers",  bend: 0deg, "->"),
+  edge(<j>, <m>, label: "maps to",   bend: 0deg, "->"),
+)
+
+
+#let c_map = diagram(
+  spacing: (1em, 5em),
+
+  node((1,0), $y$, name: <y>),
+  node((1,1), $c$, name: <c>),
+  node((1,2), $d$, name: <d>),
+  
+  edge(<y>, <c>, label: "emits",     bend: 0deg, "->"),
+  edge(<c>, <d>, label: "triggers",  bend: 0deg, "->"),
+)
+
+
+#let e_map = diagram(
+  spacing: (1em, 5em),
+
+  node((1,0), $d$, name: <d>),
+  node((1,1), $e$, name: <e>),
+  node((0,2), $y$, name: <y>),
+  node((2,2), $j$, name: <j>),
+  
+  edge(<e>, <j>, label: "triggers",  bend: 0deg, "->"),
+  edge(<e>, <y>, label: "triggers",  bend: 0deg, "->"),
+  edge(<d>, <e>, label: "emits",  bend: 0deg, "->"),
+)
+
+#box[
+  #set text(size: 1em)
+  #e_map
+]
+
+event labelled diagram
+
+
+
+#let y_map = diagram(
+  spacing: (1em, 5em),
+
+  node((0,0),   $e$, name: <e>),
+  node((2,0),   $q$, name: <q>),
+  node((1,1),   $y$, name: <y>),
+  node((1,2),   $c$, name: <c>),
+  
+  edge(<e>, <y>, label: "triggers", label-side: right,  bend: 0deg, "->"),
+  edge(<q>, <y>, label: "uses",     label-side: left, bend: 0deg, "<-->"),
+  edge(<y>, <c>, label: "emits",   label-side: left,  bend: 0deg, "->"),
+)
+
+
+#let d_map = diagram(
+  spacing: (1em, 5em),
+
+  node((0,0),   $c$, name: <c>),
+  node((2,0),   $q$, name: <q>),
+  node((1,1),   $d$, name: <d>),
+  node((1,2),   $e$, name: <e>),
+  
+  edge(<c>, <d>, label: "triggers", label-side: right,  bend: 0deg, "->"),
+  edge(<q>, <d>, label: "uses",     label-side: left, bend: 0deg, "<-->"),
+  edge(<d>, <e>, label: "emits",   label-side: left,  bend: 0deg, "->"),
+)
+
+#box[
+  #set text(size: 1em)
+  #d_map
+]
+
+procedure labelled diagram
+
+
+
+
 
 
 
