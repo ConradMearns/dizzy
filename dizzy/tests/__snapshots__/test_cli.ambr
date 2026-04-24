@@ -26,13 +26,7 @@
       classes:
         recipe_ingested:
           description: A recipe was successfully extracted and validated
-          attributes:
-            recipe_id:
-              range: string
-              required: true
-            source_ref:
-              range: string
-              required: true
+          attributes: {}
   
     ''',
     'def/models/recipes.yaml': '''
@@ -287,8 +281,7 @@
           """
           linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/events'})
       
-          recipe_id: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['recipe_ingested']} })
-          source_ref: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['recipe_ingested']} })
+          pass
       
       
       # Model rebuild
@@ -823,6 +816,29 @@
               self, input: GetRecipeTextInput, context: get_recipe_text_context
           ) -> GetRecipeTextOutput:
               ...
+  
+    ''',
+    'libconfig.yaml': '''
+      # Dizzy library configuration — assign runtimes to each element
+      # Supported runtimes: python-uv | rust-cargo | typescript-npm
+      
+      procedures:
+        extract_and_transform_recipe:
+          runtimes: [python-uv]
+      
+      policies:
+        index_recipe_on_ingest:
+          runtimes: [python-uv]
+      
+      queries:
+        get_recipe_text:
+          runtimes: [python-uv]
+        get_recipe:
+          runtimes: [python-uv]
+      
+      projections:
+        recipe_library:
+          runtimes: [python-uv]
   
     ''',
     'src/policy/index_recipe_on_ingest.py': '''

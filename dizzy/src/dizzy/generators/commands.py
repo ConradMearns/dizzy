@@ -2,17 +2,11 @@
 
 from pathlib import Path
 
-from dizzy.feat import FeatureDefinition
-
-_LINKML_TYPE_MAP = {
-    "string": "string",
-    "integer": "integer",
-    "boolean": "boolean",
-    "float": "float",
-}
+from dizzy.feat_schema import CommandDef
+from dizzy.logger import logger
 
 
-def render_scaffold_commands(feat: FeatureDefinition) -> str:
+def render_scaffold_commands(commands: list[CommandDef]) -> str:
     """Render a LinkML stub for def/commands.yaml from the feat definition."""
     lines = [
         "id: https://example.org/commands",
@@ -24,29 +18,20 @@ def render_scaffold_commands(feat: FeatureDefinition) -> str:
         "  - linkml:types",
         "classes:",
     ]
-    for name, cmd in feat.commands.items():
-        lines.append(f"  {name}:")
+    for cmd in commands:
+        lines.append(f"  {cmd.name}:")
         lines.append(f"    description: {cmd.description}")
-        if cmd.attributes:
-            lines.append("    attributes:")
-            for attr_name, attr in cmd.attributes.items():
-                lines.append(f"      {attr_name}:")
-                linkml_type = _LINKML_TYPE_MAP.get(attr.type, attr.type)
-                lines.append(f"        range: {linkml_type}")
-                if attr.required:
-                    lines.append("        required: true")
-        else:
-            lines.append("    attributes: {}")
+        lines.append("    attributes: {}")
     lines.append("")
     return "\n".join(lines)
 
 
-def write_scaffold_commands(feat: FeatureDefinition, output_dir: Path) -> None:
+def write_scaffold_commands(commands: list[CommandDef], output_dir: Path) -> None:
     """Write def/commands.yaml; skip if file already exists."""
     dest = output_dir / "def" / "commands.yaml"
     if dest.exists():
+        logger.debug("skipped existing file", extra={"path": str(dest)})
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(render_scaffold_commands(feat))
-
-
+    dest.write_text(render_scaffold_commands(commands))
+    logger.debug("wrote file", extra={"path": str(dest)})

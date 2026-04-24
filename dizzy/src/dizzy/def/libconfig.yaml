@@ -1,0 +1,66 @@
+id: https://example.org/dizzy/libconfig
+name: dizzy-libconfig-schema
+title: Dizzy Library Configuration Schema
+description: >-
+  LinkML meta-schema defining the structure of libconfig.yaml files used to
+  configure which dizzy elements are implemented in which language runtimes.
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dizzy: https://example.org/dizzy/
+
+default_prefix: dizzy
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  LibConfig:
+    description: >-
+      Top-level container for a Dizzy library configuration file.
+    attributes:
+      procedures:
+        description: Procedure bindings to language runtimes
+        range: ElementBinding
+        multivalued: true
+        inlined: true
+      policies:
+        description: Policy bindings to language runtimes
+        range: ElementBinding
+        multivalued: true
+        inlined: true
+      queries:
+        description: Query bindings to language runtimes
+        range: ElementBinding
+        multivalued: true
+        inlined: true
+      projections:
+        description: Projection bindings to language runtimes
+        range: ElementBinding
+        multivalued: true
+        inlined: true
+
+  ElementBinding:
+    description: >-
+      Binds a named element to one or more language runtimes.
+    attributes:
+      name:
+        description: Element name matching a name in the corresponding feat section
+        range: string
+        required: true
+      runtimes:
+        description: Language runtimes that implement this element
+        range: LanguageRuntime
+        multivalued: true
+
+enums:
+  LanguageRuntime:
+    description: Supported language runtime patterns
+    permissible_values:
+      python-uv:
+        description: Python with uv and pyproject.toml
+      rust-cargo:
+        description: Rust with Cargo.toml
+      typescript-npm:
+        description: TypeScript with package.json and tsconfig.json

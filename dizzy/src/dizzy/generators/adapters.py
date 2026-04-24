@@ -3,6 +3,8 @@
 import warnings
 from pathlib import Path
 
+from dizzy.logger import logger
+
 _ADAPTER_REGISTRY: dict[str, dict[str, str]] = {
     "sqla": {
         "class_name": "SqlaAdapter",
@@ -52,3 +54,4 @@ def write_adapter(adapter_name: str, output_dir: Path) -> None:
     dest = output_dir / "gen_int" / "python" / "adapters" / f"{adapter_name}.py"
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(source)
+    logger.debug("wrote file", extra={"path": str(dest)})

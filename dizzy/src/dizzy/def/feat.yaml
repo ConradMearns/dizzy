@@ -24,122 +24,99 @@ classes:
         description: Human-readable description of the feature
         range: string
       models:
-        description: Named database schemas (name -> description or ModelDef)
+        description: Named database schemas
         range: ModelDef
         multivalued: true
         inlined: true
       queries:
-        description: Named read operations (name -> description or QueryDef)
+        description: Named read operations
         range: QueryDef
         multivalued: true
         inlined: true
       commands:
-        description: Named write intents (name -> description or CommandDef)
+        description: Named write intents
         range: CommandDef
         multivalued: true
         inlined: true
       events:
-        description: Immutable domain facts (name -> description or EventDef)
+        description: Immutable domain facts
         range: EventDef
         multivalued: true
         inlined: true
       procedures:
-        description: Command handlers (name -> ProcedureDef)
+        description: Command handlers
         range: ProcedureDef
         multivalued: true
         inlined: true
       policies:
-        description: Event-driven reaction handlers (name -> PolicyDef)
+        description: Event-driven reaction handlers
         range: PolicyDef
         multivalued: true
         inlined: true
       projections:
-        description: Read-model builders (name -> ProjectionDef)
+        description: Read-model builders
         range: ProjectionDef
         multivalued: true
         inlined: true
 
   ModelDef:
     description: >-
-      A named database schema declaration. The actual class definitions live in
-      def/models/<name>.yaml and are authored separately. The generator creates a stub
-      if that file does not already exist.
+      A named database schema declaration.
     attributes:
       name:
         description: Schema name (plural, lowercase, snake_case)
         range: string
-        identifier: true
+        required: true
       description:
         description: Human-readable description of the schema
         range: string
+      adapters:
+        description: Named adapter bindings for this model
+        range: string
+        multivalued: true
 
   QueryDef:
     description: >-
-      A named read operation. IO types are not specified here — they live in authored LinkML
-      stubs. Each query reads from exactly one model schema.
+      A named read operation.
     attributes:
       name:
         description: Query name (snake_case)
         range: string
-        identifier: true
+        required: true
       description:
         description: Human-readable description of the query
         range: string
         required: true
       model:
-        description: The schema name from models that this query reads from (required)
+        description: The schema name from models that this query reads from
         range: string
-        required: true
-
-  AttributeDef:
-    description: >-
-      A typed attribute declared on a command or event.
-    attributes:
-      name:
-        description: Attribute name (snake_case)
+      adapter:
+        description: The adapter name on the model that this query uses
         range: string
-        identifier: true
-      type:
-        description: Primitive type of the attribute (e.g. string, integer, boolean)
-        range: string
-        required: true
-      required:
-        description: Whether this attribute must be provided
-        range: boolean
 
   CommandDef:
     description: >-
-      A named write intent with an optional set of typed input attributes.
+      A named write intent.
     attributes:
       name:
         description: Command name (snake_case)
         range: string
-        identifier: true
+        required: true
       description:
         description: Human-readable description of the command
         range: string
-      attributes:
-        description: Typed input attributes for the command payload
-        range: AttributeDef
-        multivalued: true
-        inlined: true
 
   EventDef:
     description: >-
-      An immutable domain fact with an optional set of typed payload attributes.
+      An immutable domain fact.
     attributes:
       name:
         description: Event name (snake_case, past-tense)
         range: string
-        identifier: true
+        required: true
       description:
         description: Human-readable description of the event
         range: string
-      attributes:
-        description: Typed payload attributes carried by the event
-        range: AttributeDef
-        multivalued: true
-        inlined: true
 
   ProcedureDef:
     description: >-
@@ -148,12 +125,12 @@ classes:
       name:
         description: Procedure name (snake_case)
         range: string
-        identifier: true
+        required: true
       description:
         description: Human-readable description of the procedure logic
         range: string
       command:
-        description: The command name this procedure handles (required)
+        description: The command name this procedure handles
         range: string
         required: true
       queries:
@@ -173,12 +150,12 @@ classes:
       name:
         description: Policy name (snake_case)
         range: string
-        identifier: true
+        required: true
       description:
         description: Human-readable description of the policy logic
         range: string
       event:
-        description: The event name that triggers this policy (required)
+        description: The event name that triggers this policy
         range: string
         required: true
       emits:
@@ -188,22 +165,24 @@ classes:
 
   ProjectionDef:
     description: >-
-      A read-model builder that responds to a single event and updates one or more model schemas.
+      A read-model builder that responds to a single event and writes into one model schema
+      via a named adapter.
     attributes:
       name:
         description: Projection name (snake_case)
         range: string
-        identifier: true
+        required: true
       description:
         description: Human-readable description of what this projection does
         range: string
         required: true
       event:
-        description: The single event that triggers this projection (required)
+        description: The single event that triggers this projection
         range: string
         required: true
-      models:
-        description: Schema names from the models section that this projection writes into (required)
+      model:
+        description: The schema name from models that this projection writes into
         range: string
-        multivalued: true
-        required: true
+      adapter:
+        description: The adapter name on the model that this projection uses
+        range: string

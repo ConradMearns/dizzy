@@ -1,3 +1,12 @@
+install:
+    uv tool install --editable .
+
+gen-feat-pydantic:
+    uv run gen-pydantic dizzy/src/dizzy/def/feat.yaml > dizzy/src/dizzy/feat_schema.py
+
+gen-libconfig-pydantic:
+    uv run gen-pydantic dizzy/src/dizzy/def/libconfig.yaml > dizzy/src/dizzy/libconfig_schema.py
+
 test:
     uv run pytest
 

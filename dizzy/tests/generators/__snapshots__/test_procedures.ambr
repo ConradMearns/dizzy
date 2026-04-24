@@ -49,3 +49,19 @@
   
   '''
 # ---
+# name: test_render_src_procedure_stub_snapshot
+  '''
+  # Implementation stub — fill in your logic here
+  from gen_int.python.procedure.extract_and_transform_recipe_protocol import extract_and_transform_recipe_protocol
+  from gen_int.python.procedure.extract_and_transform_recipe_context import extract_and_transform_recipe_context
+  from gen_def.pydantic.commands import ingest_recipe_text
+  
+  
+  def extract_and_transform_recipe(
+      context: extract_and_transform_recipe_context,
+      command: ingest_recipe_text,
+  ) -> None:
+      raise NotImplementedError
+  
+  '''
+# ---
