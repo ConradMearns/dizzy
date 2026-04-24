@@ -21,7 +21,7 @@
   #text(24pt, weight: "bold")[D I Z Z Y]
 
   #text(12pt, weight: "bold")[
-    A Software Philosophy for Event Driven Architectures with Decoupled Infrastructure
+    A Software Philosophy and Schema System for Event Driven Architectures with Decoupled Infrastructure
   ]
 
   #v(0.5em)
@@ -37,11 +37,44 @@
   // https://www.cs.utexas.edu/~EWD/transcriptions/EWD13xx/EWD1305.html
 ]
 
+// The abstract is entirely a TODO. For a presentable paper this is the first thing a reader sees. It needs to exist — and it should answer: what problem does DIZZY solve, why now, what will you take away? No implementation details.
+
+// I also notice the abstract is missing key elements for a good whitepaper abstract. It should have a clear problem statement, the gap in current solutions, how this solution 
+// addresses it, and a compelling value proposition. The current version doesn't end with a strong conclusion about the impact of DIZZY. It just describes what it does without 
+// saying why it matters.
+
+
 = Abstract
 
-// TODO: Write a whitepaper abstract that focuses on the philosophy and motivation,
-// not the technical specification. What problem does DIZZY solve for the reader?
-// Why should they care? What will they take away?
+Software projects fail in predictable ways.
+Incomplete requirements, misaligned expectations, and insufficient involvement with users and stakeholders, 
+are often regarded as the primary means by which such projects fail.
+
+// Communication failures like these are not resolved via better tooling, faster development, or Generative Predictive Programming.
+
+DIZZY aims to address the issues of expectation alignment and stakeholder involvement through a prescriptive philosophy of development systematization.
+
+// What
+DIZZY introduces a schema ecosystem for Functional, Event Driven, Domain Driven Design that defers implementation and infrastructure decisions.
+This enables high-level planning exercises akin to Event Storming to derive data contracts and shape core business or scientific processes first.
+Then, it enables engineers to scaffold of interfaces and processes based those contracts for development and scalability as a distinctly separate process..
+// and supports organized workflows for the software production lifecycle.
+
+// By separating the concerns of the Application Domain and the Application Deployment, DIZZY 
+
+// Defer architecture decisions, enable mixing of program languages, separate and organize work, reversability
+
+// The goal of DIZZY is to formalize a pattern for software development,
+// build and write the guidelines for learning and evaluating the art,
+// and to provide the tools for implementing an architecture as a separate concern to the application domain itself.
+
+// DIZZY addresses this by introducing a lightweight schema and pragmatic development philosophy for Functional, Event-Driven, and Domain-Driven Design that defers infrastructure decisions until necessary.
+// This enables high-level planning to directly derive precise data contracts, which then drive automated scaffolding of interfaces and processes.
+// Crucially, DIZZY *separates Application Domain logic from Application Deployment concerns*, eliminating entanglement.
+
+// The result: **faster, sustainable development with reduced technical debt**—proven to accelerate delivery while maintaining system integrity.
+// TODO collect results
+
 
 #set heading(numbering: "1a1a1a1a")
 
@@ -171,11 +204,9 @@ There will always be a natural limit to the number of experienced software devel
 
 The Standish CHAOS study finds that only 31% of software projects are successful,
 52% are over budget or miss missed deadlines,
-and that 19% of projects fail completely.
+and that 19% of projects fail completely. @standish2015
 
-https://www.standishgroup.com/sample_research_files/CHAOSReport2015-Final.pdf
-
-Melvin Conway, states that systems designed by organizations are constrained to mirror the communication structures of those organizations.
+Melvin Conway states that systems designed by organizations are constrained to mirror the communication structures of those organizations. @conway1968 The Inverse Conway Maneuver turns this into a design tool: deliberately shape team boundaries and system architecture together, so that communication structures produce the architecture you want rather than constrain it. @skelton2019
 
 As software begins, it's design only must necessitate the communication structure of the individual. As software grows, and it's design becomes becomes an argument of the individuals and the many. Boundaries are built around convince and practicality, rather than sustainability, maintainability.
 
@@ -560,17 +591,4 @@ For the formal specification of DIZZY components, schemas, and code generation p
 
 
 
-// = References
-// Normative
-// [RFC2119] Bradner, S., "Key words for use in RFCs to Indicate Requirement Levels", BCP 14, RFC 2119, March 1997.
-// [LinkML] "Linked Data Modeling Language", https://linkml.io/
-// [CQRS] Fowler, M., "CQRS", https://martinfowler.com/bliki/CQRS.html
-// [EventSourcing] Fowler, M., "Event Sourcing", https://martinfowler.com/eaaDev/EventSourcing.html
-
-// Informative
-// [DDD] Evans, E., "Domain-Driven Design", Addison-Wesley, 2003.
-// [CosmicPython] Percival, H. and Gregory, B., "Architecture Patterns with Python", O'Reilly, 2020. https://www.cosmicpython.com/
-// [Conway] Conway, M., "How Do Committees Invent?", 1968.
-// [Dijkstra] Dijkstra, E., "The Humble Programmer", ACM Turing Lecture, 1972.
-// [Feathers] Feathers, M., "Working Effectively with Legacy Code", Prentice Hall, 2004.
-// [Kleppmann] Kleppmann, "Designing Data-Intensive Applications", O'Reilly, 2017.
+#bibliography("refs.bib")
