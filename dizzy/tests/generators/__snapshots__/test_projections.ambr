@@ -1,5 +1,5 @@
 # serializer version: 1
-# name: test_render_projection_snapshot
+# name: test_render_projection_with_adapter
   '''
   # AUTO-GENERATED — do not edit
   from dataclasses import dataclass
@@ -20,6 +20,22 @@
       def __call__(self, event: recipe_ingested, context: recipe_library_context) -> None:
           """Apply the projection — mutate model state in response to the event."""
           ...
+  
+  '''
+# ---
+# name: test_render_src_projection_stub_snapshot
+  '''
+  # Implementation stub — fill in your logic here
+  from gen_int.python.projection.recipe_library_projection import recipe_library_projection
+  from gen_int.python.projection.recipe_library_projection import recipe_library_context
+  from gen_def.pydantic.events import recipe_ingested
+  
+  
+  def recipe_library(
+      event: recipe_ingested,
+      context: recipe_library_context,
+  ) -> None:
+      raise NotImplementedError
   
   '''
 # ---

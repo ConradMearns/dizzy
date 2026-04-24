@@ -1,4 +1,20 @@
 # serializer version: 1
+# name: test_render_scaffold_commands_partial
+  '''
+  id: https://example.org/commands
+  name: commands
+  prefixes:
+    linkml: https://w3id.org/linkml/
+  default_range: string
+  imports:
+    - linkml:types
+  classes:
+    do_thing:
+      description: Does a thing
+      attributes: {}
+  
+  '''
+# ---
 # name: test_render_scaffold_commands_snapshot
   '''
   id: https://example.org/commands

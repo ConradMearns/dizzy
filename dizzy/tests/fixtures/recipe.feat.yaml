@@ -21,15 +21,7 @@ commands:
   ingest_recipe_text: Initiates ingestion of a recipe from a raw text source
 
 events:
-  recipe_ingested:
-    description: A recipe was successfully extracted and validated
-    attributes:
-      recipe_id:
-        type: string
-        required: true
-      source_ref:
-        type: string
-        required: true
+  recipe_ingested: A recipe was successfully extracted and validated
 
 procedures:
   extract_and_transform_recipe:

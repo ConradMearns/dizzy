@@ -1,0 +1,7 @@
+procedures:
+  extract_and_transform_recipe:
+    runtimes: [python-uv, rust-cargo]
+
+policies:
+  index_recipe_on_ingest:
+    runtimes: [typescript-npm]

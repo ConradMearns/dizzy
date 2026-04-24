@@ -2,16 +2,16 @@
 
 from pathlib import Path
 
-from dizzy.feat import FeatureDefinition
+from dizzy.feat_schema import ModelDef
+from dizzy.logger import logger
 
 
-def render_scaffold_model(schema_name: str, feat: FeatureDefinition) -> str:
-    """Render a minimal LinkML stub for def/models/<schema_name>.yaml."""
-    description = feat.models[schema_name].description
+def render_scaffold_model(model: ModelDef) -> str:
+    """Render a minimal LinkML stub for def/models/<model.name>.yaml."""
     lines = [
-        f"id: https://example.org/models/{schema_name}",
-        f"name: {schema_name}",
-        f"description: {description}",
+        f"id: https://example.org/models/{model.name}",
+        f"name: {model.name}",
+        f"description: {model.description}",
         "prefixes:",
         "  linkml: https://w3id.org/linkml/",
         "default_range: string",
@@ -23,10 +23,12 @@ def render_scaffold_model(schema_name: str, feat: FeatureDefinition) -> str:
     return "\n".join(lines)
 
 
-def write_scaffold_model(schema_name: str, feat: FeatureDefinition, output_dir: Path) -> None:
-    """Write def/models/<schema_name>.yaml; skip if file already exists."""
-    dest = output_dir / "def" / "models" / f"{schema_name}.yaml"
+def write_scaffold_model(model: ModelDef, output_dir: Path) -> None:
+    """Write def/models/<model.name>.yaml; skip if file already exists."""
+    dest = output_dir / "def" / "models" / f"{model.name}.yaml"
     if dest.exists():
+        logger.debug("skipped existing file", extra={"path": str(dest)})
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(render_scaffold_model(schema_name, feat))
+    dest.write_text(render_scaffold_model(model))
+    logger.debug("wrote file", extra={"path": str(dest)})
