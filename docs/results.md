@@ -1,6 +1,6 @@
 # DIZZY Whitepaper — Grading Results
 
-## Score: 21 / 32 — 65.6%
+## Score: 22 / 33 — 66.7%
 
 | #      | Requirement                                       | Status  | Notes                                                                                                                                                                                        |
 | ------ | ------------------------------------------------- | :-----: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -34,8 +34,9 @@
 | WP-028 | Reader takeaway is singular and clear             | PARTIAL | Abstract lands the takeaway cleanly; conclusion does not reinforce it                                                                                                                        |
 | WP-029 | DIZZY as complete development philosophy          | PARTIAL | Phases (vibe-checking, workshopping, automation) are named and have sections; "vibe-checking" not explained as early problem-worth-solving exploration; no contrast with Agile stated        |
 | WP-030 | "Event Storming" refers only to Brandolini        |  PASS   | "Event Storming" appears only with Brandolini attribution; DIZZY process is independently named "Workshopping"                                                                               |
-| WP-031 | Glossary of DIZZY terms is present                |  FAIL   | No dedicated glossary section; component table covers the 8 components but omits Feature File, Interstitial Infrastructure, Data, Functions                                                  |
+| WP-031 | Glossary of DIZZY terms is present                |  PASS   | All 12 required terms present in `glossary.typ`, rendered in Appendix via `glossy` with `theme-twocol` grouped into DIZZY Components / Architecture / Collectives                          |
 | WP-032 | "Process" reserved; collectives are Data/Functions|  FAIL   | "program process component" on line 207 violates the reservation; the Data/Functions collective distinction is not used anywhere in the paper                                                |
+| WP-033 | All glossary terms cross-referenced in body text  |  FAIL   | `@querier`, `@data`, and `@functions` have zero `@term` references in body prose; all other 9 terms are actively cross-linked                                                               |
 
 ---
 
@@ -47,9 +48,10 @@
 | Run 2       | 2026-04-24 |    15 / 28    |   53.6%   |  +4.5  | +16.1 pp |
 | Run 3       | 2026-04-24 |    17 / 28    |   60.7%   |   +2   |  +7.1 pp |
 | Run 4       | 2026-04-26 |   19.5 / 28   |   69.6%   |  +2.5  |  +8.9 pp |
-| **Current** | 2026-04-27 | **21 / 32**   | **65.6%** |  +1.5  |  -4.0 pp |
+| Run 5       | 2026-04-27 |   21 / 32     |   65.6%   |  +1.5  |  -4.0 pp |
+| **Current** | 2026-04-27 | **22 / 33**   | **66.7%** |   +1   |  +1.1 pp |
 
-> Note: Run 5 scores against 32 requirements (WP-029–WP-032 added). On the original 28 requirements, score is unchanged at 19.5/28 (69.6%). The percentage drop reflects the new requirements scoring 1.5/4 (37.5%).
+> Note: Run 5 added WP-029–WP-032 (denominator 28→32). Run 6 adds WP-033 and scores WP-031 as PASS (glossary implemented via `glossy`).
 
 ---
 
@@ -58,7 +60,7 @@
 | #      | What's Needed                                                                                                        |
 | ------ | -------------------------------------------------------------------------------------------------------------------- |
 | WP-012 | Write a real conclusion — restate thesis, close the arc, point to Specification                                      |
-| WP-031 | Add a glossary section covering all 12 required terms: the 8 components + Feature File, Interstitial Infrastructure, Data, Functions |
+| WP-033 | Add `@querier`, `@data`, `@functions` references somewhere in body prose (3 terms missing)                           |
 | WP-032 | Replace "program process component" (line 207) with "Functions"; use "Data" and "Functions" as the two collective terms throughout |
 | WP-003 | Remove bare URL from "Studying Vibes" section (line 698) or convert to a proper reference                            |
 | WP-016 | Uncomment and expand the LinkML advocacy — explain *why* language-agnostic schemas are the right choice              |

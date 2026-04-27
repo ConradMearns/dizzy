@@ -305,3 +305,11 @@ heard of DIZZY. They should finish the paper with:
 **Canonical collectives:** When distinguishing the two sides of DIZZY's separation, use **Data** (Commands, Events, Models, Queries) and **Functions** (Procedures, Policies, Projections, Queriers).  
 **Pass:** "Process" does not appear as a collective or alias for DIZZY components. When the data/code separation is discussed, "Data" and "Functions" are used.  
 **Fail:** "Process," "Processes," or "program process" appears as a shorthand for any DIZZY component or group of components.
+
+---
+
+### WP-033: All Glossary Terms are Cross-Referenced in Body Text
+**Category:** Presentation  
+**Statement:** Every term defined in the glossary must be referenced at least once in the body prose using the `@term` glossy syntax. A glossary entry that is never linked from the body is decorative — it is invisible to readers who do not read the appendix first and breaks the consistency guarantee that the glossary is meant to provide.  
+**Pass:** Each of the twelve glossary terms (Command, Event, Procedure, Policy, Projection, Model, Querier, Query, Feature File, Interstitial Infrastructure, Data, Functions) has at least one `@term` reference in the body text outside the glossary section itself.  
+**Fail:** Any glossary term appears only as plain text in the body, or has no body reference at all.
