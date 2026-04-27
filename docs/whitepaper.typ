@@ -1,5 +1,7 @@
 #import "@preview/fletcher:0.5.8" as fletcher: diagram, node, edge
+#import "@preview/glossy:0.9.1": *
 #import "figures.typ": flow, c_map, e_map, d_map, y_map, j_map, m_map, Q_map, pipeline
+#import "glossary.typ": dizzy-terms
 
 // Whitepaper Configuration
 #set page(
@@ -14,7 +16,7 @@
 
 #set par(
   justify: true,
-  leading: 0.75em,
+  // leading: 0.75em,
   spacing: 1.2em,
   // first-line-indent: (amount: 1.5em, all: true),
 )
@@ -85,6 +87,7 @@ and describes a software generation pipeline that closes the gap between domain 
 // Level 3+: lighter separation
 #show heading.where(level: 3): set block(above: 1.8em, below: 1.2em)
 
+#show: init-glossary.with(dizzy-terms)
 
 #pagebreak()
 
@@ -213,11 +216,11 @@ table(
   align: (center, left, left),
   table.header([*Symbol*], [*Component*], [*Role*]),
   $c$, [Command],    [Represent intent - what a user or policy wants to happen],
-  $d$, [Procedure],  [Handles a Command and may emit Events],
+  $d$, [Procedure],  [Handles a Command and may emit @event:pl],
   $e$, [Event],      [Immutable record of facts - the source of truth],
-  $y$, [Policy],     [Reacts to an Event and may emit Commands],
-  $j$, [Projection], [Listens for Events and updates Models],
-  $m$, [Model],      [Queryable view of state, derived from Events],
+  $y$, [Policy],     [Reacts to an Event and may emit @command:pl],
+  $j$, [Projection], [Listens for @event:pl and updates @model:pl],
+  $m$, [Model],      [Queryable view of state, derived from @event:pl],
   $Q$, [Querier],    [Executes a Query against a Model],
   $q$, [Query],      [Typed contract for a call and its response],
 ))
@@ -227,20 +230,20 @@ table(
 
 DIZZY is therefor comprised of two dataflow loops.
 
-Firstly, a reactivity loop; Where Commands trigger Procedures, which emit Events that trigger Policies, that emit Commands.
-Secondly, a data retrieval loop; Where Event are projected to Models (databases), which can be queried by Procedures and Policies.
+Firstly, a reactivity loop; Where @command:pl trigger @procedure:pl, which emit @event:pl that trigger @policy:pl, that emit @command:pl.
+Secondly, a data retrieval loop; Where Event are projected to @model:pl (databases), which can be queried by @procedure:pl and @policy:pl.
 The reactivity loop enables processing, algorithms, and business logic to react and change to new information. The retrieval loop enables database decoupling while providing efficient value lookups.
 
 As an example, suppose we processing financial transactions. 
-Each Events record debits and credits as the source of truth.
+Each @event:pl record debits and credits as the source of truth.
 Transactions are initiated by users and the data is represented by a Command.
 The Transaction Command triggers a procedure, 
 which may need to Query for the normalized account balance to know whether to succeed or fail.
 Thus, each debit and credit Event must also trigger a projection to keep this normalized account balance up-to-date in a Model.
 
-// The data loop enables change information (Events) to be recorded in highly specialized formats specifically for the purposes of efficient retrieval by Procedures and Policies.
+// The data loop enables change information (@event:pl) to be recorded in highly specialized formats specifically for the purposes of efficient retrieval by @procedure:pl and @policy:pl.
 
-== Commands ( $c$ ) that Represent Intent <commands>
+== @command:pl ( $c$ ) that Represent Intent <commands>
 
 #grid(
 columns: (auto, 1fr),
@@ -250,30 +253,30 @@ figure(c_map),
 [
 #v(1em)
 
-Commands represent expressions of intent, what users _want_ to happen.
+@command:pl represent expressions of intent, what users _want_ to happen.
 They are ephemeral - not records of fact, and thus may be fire-and-forget and discarded.
 This distinction matters: intent can be rejected, retried, or rerouted. 
 
 Facts cannot.
 
-Because Commands are ephemeral and may be discarded without consequence, 
+Because @command:pl are ephemeral and may be discarded without consequence, 
 the are useful for isolating the transmission of data must abide to different legal and business policies -
 such as personally identifiable information.
 
-Whether this information is recorded as an immutable fact is up to the design of Procedures and Events.
+Whether this information is recorded as an immutable fact is up to the design of @procedure:pl and @event:pl.
 
-A policy may emit any number of commands, of any command sub-types.
-Therefore policies and commands are one-to-many; several policies may emit the same command types.
+A policy may emit any number of @command:pl, of any @command sub-types.
+Therefore policies and @command:pl are one-to-many; several policies may emit the same @command types.
 
 // TODO: Can a Command be handled by more than one Procedure, or is it always 1:1?
-A Command may trigger many Procedures. This relation is typically best assigned at the Procedure definition.
+A @command may trigger many @procedure:pl. This relation is typically best assigned at the Procedure definition.
 
 // TODO: Is a rejected Command recorded anywhere — does rejection itself become an Event?
 ])
 
-Commands express intent, and can be carefully designed to handle cases where lossy systems where retries are standard practice. See Durable Execution // TODO make a link!
+@command:pl express intent, and can be carefully designed to handle cases where lossy systems where retries are standard practice. See Durable Execution // TODO make a link!
 
-== Procedures ( $d$ ) that Perform the Critical Work <procedures>
+== @procedure:pl ( $d$ ) that Perform the Critical Work <procedures>
 
 #grid(
 columns: (auto, 1fr),
@@ -283,26 +286,26 @@ figure(d_map),
 [
 #v(1em)
 
-Procedures handle #link(<commands>)[Commands] and may emit #link(<events>)[Events].
+@procedure:pl handle #link(<commands>)[@command:pl] and may emit #link(<events>)[@event:pl].
 They are the site of critical work in a DIZZY system — the place where intent meets consequence.
 
-Procedures are not required to be pure functions. They may query #link(<models>)[Models] to inform their decisions.
+@procedure:pl are not required to be pure functions. They may query #link(<models>)[@model:pl] to inform their decisions.
 But any external system a Procedure touches must either be modelled as another DIZZY component,
-or its effects must be recorded in Events.
-This constraint is what makes Procedures portable across languages and deployable in any topology:
+or its effects must be recorded in @event:pl.
+This constraint is what makes @procedure:pl portable across languages and deployable in any topology:
 their behavior is fully described by what they receive, what they query, and what they emit.
 
-When a Procedure performs IO or causes effects in the world, it should emit Events
+When a Procedure performs IO or causes effects in the world, it should emit @event:pl
 to record the attempt, progress, and result.
 An effect that is not recorded in an Event is invisible to the rest of the system —
-and invisible effects undermine the audit guarantee that Events provide.
+and invisible effects undermine the audit guarantee that @event:pl provide.
 
-// TODO: Can a single Command trigger multiple Procedures, or is the relationship always 1:1?
-// TODO: Are Procedures allowed to call each other directly, or must all coordination
-// flow through Commands and Events?
+// TODO: Can a single Command trigger multiple @procedure:pl, or is the relationship always 1:1?
+// TODO: Are @procedure:pl allowed to call each other directly, or must all coordination
+// flow through @command:pl and @event:pl?
 ])
 
-== Events ( $e$ ) that are the Source of Truth <events>
+== @event:pl ( $e$ ) that are the Source of Truth <events>
 
 #grid(
 columns: (auto, 1fr),
@@ -311,9 +314,9 @@ align: horizon,
 figure(e_map),
 [
 #v(1em)
-Events are the single source of truth.
+@event:pl are the single source of truth.
 Everything else — every model, every view, every report — must be derived from events.
-Events are immutable records of what _happened_: once written, they cannot be altered or deleted.
+@event:pl are immutable records of what _happened_: once written, they cannot be altered or deleted.
 
 Because events capture what happened independently of any particular database schema,
 the same event stream can power multiple databases with completely different schemas —
@@ -334,7 +337,7 @@ Every database is just a cached, queryable projection of that truth — disposab
 
 
 
-== Policies ( $y$ ) that React and Initiate <policies>
+== @policy:pl ( $y$ ) that React and Initiate <policies>
 
 #grid(
 columns: (auto, 1fr),
@@ -343,10 +346,10 @@ align: horizon,
 figure(y_map),
 [
 #v(1em)
-Policies are the reactive logic of a DIZZY system.
-Where Procedures respond to intent, Policies respond to fact:
-they are triggered by #link(<events>)[Events] that have already occurred,
-and they may emit #link(<commands>)[Commands] in response.
+@policy:pl are the reactive logic of a DIZZY system.
+Where @procedure:pl respond to intent, @policy:pl respond to fact:
+they are triggered by #link(<events>)[@event:pl] that have already occurred,
+and they may emit #link(<commands>)[@command:pl] in response.
 A Policy asks: _given that this happened, what should happen next?_
 
 This distinction is not incidental.
@@ -355,20 +358,20 @@ it is inherently decoupled from the Procedure that produced it.
 The Policy does not know or care how the Event came to exist.
 It knows only what happened, and responds accordingly.
 
-Policies may also query #link(<models>)[Models] to inform their decisions,
+@policy:pl may also query #link(<models>)[@model:pl] to inform their decisions,
 allowing the system to react differently depending on current state.
 A Policy that always emits the same Command is a simple rule.
 A Policy that queries a Model first is a conditional one — but the conditionality
 lives in the Policy, not scattered through unrelated code.
 
 // TODO: Can a single Policy react to multiple Event types, or is it always bound to one?
-// TODO: Can a Policy emit multiple Commands, or at most one per triggering Event?
-// TODO: What is the relationship between Policies and long-running processes / sagas?
-// A saga that spans multiple Events over time seems like it would require Policy state —
+// TODO: Can a Policy emit multiple @command:pl, or at most one per triggering Event?
+// TODO: What is the relationship between @policy:pl and long-running processes / sagas?
+// A saga that spans multiple @event:pl over time seems like it would require Policy state —
 // how does DIZZY handle that without violating the stateless reactive model?
 ])
 
-== Projections ( $j$ ) that Map Events to Models <projections>
+== @projection:pl ( $j$ ) that Map @event:pl to @model:pl <projections>
 
 #grid(
 columns: (auto, 1fr),
@@ -378,27 +381,27 @@ figure(j_map),
 [
 #v(1em)
 
-#link(<events>)[Events] are the authoritative record of everything that has happened,
+#link(<events>)[@event:pl] are the authoritative record of everything that has happened,
 but they are not optimized for retrieval.
-A Projection solves this: it listens for specific Events and updates one or more
-#link(<models>)[Models] in response,
+A Projection solves this: it listens for specific @event:pl and updates one or more
+#link(<models>)[@model:pl] in response,
 translating the language of facts into the language of efficient queries.
 
 This approach eliminates the need for Aggregates — the construct traditional Domain-Driven Design
 uses to bridge event-driven architecture to object-oriented state.
-Because Models in DIZZY are treated as ephemeral and rebuildable from Events,
+Because @model:pl in DIZZY are treated as ephemeral and rebuildable from @event:pl,
 there is no need for an object that holds and manages state on behalf of a set of related entities.
 
 The practical consequence is significant: if a Model turns out to be wrong for its purpose,
 it can be replaced without touching the event history.
-Write a new Projection, replay the Events, and a new Model emerges from the same source of truth.
+Write a new Projection, replay the @event:pl, and a new Model emerges from the same source of truth.
 
 // TODO: Is a Projection always bound to a specific set of Event types, or can it subscribe broadly?
 // TODO: What is the failure model — if a Projection crashes mid-replay, how does it recover?
-// TODO: Can multiple Projections write to the same Model, or is it always 1:1?
+// TODO: Can multiple @projection:pl write to the same Model, or is it always 1:1?
 ])
 
-== Models ( $m$ ) that Serve Data for Queries <models>
+== @model:pl ( $m$ ) that Serve Data for @query:pl <models>
 
 #grid(
 columns: (auto, 1fr),
@@ -410,21 +413,21 @@ figure(m_map),
 
 A Model is a schema for queryable state, backed by a database chosen for the specific access
 patterns that Model must serve.
-Models are derived from #link(<events>)[Events] via #link(<projections>)[Projections],
+@model:pl are derived from #link(<events>)[@event:pl] via #link(<projections>)[@projection:pl],
 and are rebuildable on demand.
 
-Models exist to make queries fast, not to be the source of truth.
-You can have as many Models as you have distinct questions to answer —
+@model:pl exist to make queries fast, not to be the source of truth.
+You can have as many @model:pl as you have distinct questions to answer —
 each backed by whatever database technology best suits those questions.
 A time-series store for metrics, a graph database for relationships, a search index for full-text:
 all derived from the same Event stream.
 
-// TODO: Should a Model ever be written to by anything other than Projections?
-// TODO: Is there a constraint on how many Projections can write to a single Model?
+// TODO: Should a Model ever be written to by anything other than @projection:pl?
+// TODO: Is there a constraint on how many @projection:pl can write to a single Model?
 ])
 
 
-== Queries ( $q$ ) and Queriers ( $Q$ ) for efficient computation <queries> //<queriers>
+== @query:pl ( $q$ ) and @querier:pl ( $Q$ ) for efficient computation <queries> //<queriers>
 
 #grid(
 columns: (auto, 1fr),
@@ -438,7 +441,7 @@ Querying can often be the most confused aspect of software engineering,
 because the retrieval of information tends to occur at the confluence of database requirements, data shape requirements, and downstream alignment.
 
 DIZZY systems demand the distinction between database drivers, data contracts, and the program that 'executes' the query.
-We call the data contracts Queries, which are typically represented as a tuple of Input and Output, or Call and Response.
+We call the data contracts @query:pl, which are typically represented as a tuple of Input and Output, or Call and Response.
 The process that uses program code to execute the query is what we call the Querier.
 ])
 
@@ -500,15 +503,15 @@ Note colors are semantic symbols.
 Notes convey and narrate a system in the language of facts and intentions.
 Unlike Event Storming, DIZZY notes represent _real_ system components.
 
-Events ( #box(es("e", "", size: 9pt, text_size: 10pt)) ) pin the most important facets of the process, and are recorded in past tense: "order placed," "payment declined," "shipment dispatched." These records are facts by which we represent all state changes.
+@event:pl ( #box(es("e", "", size: 9pt, text_size: 10pt)) ) pin the most important facets of the process, and are recorded in past tense: "order placed," "payment declined," "shipment dispatched." These records are facts by which we represent all state changes.
 
-Commands ( #box(es("c", "", size: 9pt, text_size: 10pt)) ) hook process automation and users into the ecosystem by capturing an intent. They are written imperatively: "place order", "submit payment." These commands may represent a button, API call, a form, or any other method of supplying new instruction to a software system.
+@command:pl ( #box(es("c", "", size: 9pt, text_size: 10pt)) ) hook process automation and users into the ecosystem by capturing an intent. They are written imperatively: "place order", "submit payment." These @command:pl may represent a button, API call, a form, or any other method of supplying new instruction to a software system.
 
-Procedures ( #box(es("d", "", size: 9pt, text_size: 10pt)) ),
-Policies ( #box(es("y", "", size: 9pt, text_size: 12pt)) ),
-Projections ( #box(es("j", "", size: 9pt, text_size: 12pt)) ),
+@procedure:pl ( #box(es("d", "", size: 9pt, text_size: 10pt)) ),
+@policy:pl ( #box(es("y", "", size: 9pt, text_size: 12pt)) ),
+@projection:pl ( #box(es("j", "", size: 9pt, text_size: 12pt)) ),
 and 
-Queries ( #box(es("q", "", size: 9pt, text_size: 12pt)) ),
+@query:pl ( #box(es("q", "", size: 9pt, text_size: 12pt)) ),
 replace the "Aggregate", "View", and "Process/Policy" systems of the DDD-inspired Event Storming model.
 
 
@@ -516,15 +519,15 @@ After the workshop, the DIZZY workflow guides the progressive development of eac
  
 // Event Storming is a collaborative workshop technique, originated by Alberto Brandolini @brandolini2021, where domain experts and engineers narrate a system in the language of facts and intentions.
 // Participants post events on a wall in past tense: "order placed," "payment declined," "shipment dispatched."
-// From those events, they identify the commands that initiated them, the actors who issued those commands, and the policies that react when facts are established.
+// From those events, they identify the @command:pl that initiated them, the actors who issued those @command:pl, and the policies that react when facts are established.
 
 No database is chosen.
 No framework is selected.
 The output is a shared vocabulary in regards to the domain at hand.
 
 That vocabulary maps directly onto DIZZY's component schema.
-// Past-tense stickies become Event definitions. Imperative commands become Command definitions. The reactive "when X, do Y" cards become Policies. 
-// The work that transforms a command into events identifies the Procedures.
+// Past-tense stickies become Event definitions. Imperative @command:pl become @command definitions. The reactive "when X, do Y" cards become @policy:pl. 
+// The work that transforms a command into events identifies the @procedure:pl.
 A workshop session does not merely produce a pile of forgettable photographs;
 it produces the skeleton of a _feature definition_ which the rest of DIZZY transforms into functioning, scalable software.
 
@@ -542,10 +545,10 @@ Every DIZZY component is either a data contract or a stateless process -
 another distinction that makes components independently deployable, testable, and replaceable in ways the original framing does not require.
 
 Like Event Storming though, the practice is intended to be simple and progressive.
-Start by pinning Commands and Events.
+Start by pinning @command:pl and @event:pl.
 This naturally exposes what procedures and policies may be required.
-In turn, this can expose new Commands and Events that my be required for consistency,
-which prompts more Procedures and Policies - etc.
+In turn, this can expose new @command:pl and @event:pl that my be required for consistency,
+which prompts more @procedure:pl and @policy:pl - etc.
 
 
 // The exact placement does not matter as long as the intended connections between components are clear.
@@ -594,13 +597,13 @@ grid(columns: 4, gutter: 0.2em,
 )
 
 
-When it is becomes time to define the gist of how Procedures and Policies function - 
-this is where Projections and Queries come in.
+When it is becomes time to define the gist of how @procedure:pl and @policy:pl function - 
+this is where @projection:pl and @query:pl come in.
 
 Upon these notes, write the name of Model (representative of a database schema or ontology), 
 and the name of the projection or query if it helps for disambiguation.
 
-For instance, after an "Order Placed" Event, we may need to project the result to two Models -
+For instance, after an "Order Placed" Event, we may need to project the result to two @model:pl -
 one for "Shipping", and another for "Inventory". 
 Naming these projections further is optional at this phase, 
 but is useful later when the projections require disambiguation.
@@ -642,25 +645,25 @@ grid(columns: 4, gutter: 0.2em,
 An exact semantics for organizing notes is not needed.
 If the workshop gets crowded - make copies of notes and spread things out until things make sense.
 
-// It's common to start with Command and Events, and only model the procedures in between as a second step.
+// It's common to start with Command and @event:pl, and only model the procedures in between as a second step.
 // However, I find it to be helpful to move back and forth between a Data-First and Program-First modelling approach, as we will see later.
 
 
-// === Recording the Facts - Commands and Events
+// === Recording the Facts - @command:pl and @event:pl
 
 // The first pass focuses on what happens and why. What does a user want? What are the facts the system must record? At this stage, teams are only naming things — not defining their shape. The names, and the relationships between them, are the output.
 
-// === Adding detail - Procedures and Policies
+// === Adding detail - @procedure:pl and @policy:pl
 
-// Once the events and commands are named, the question becomes: what mediates each transition? Procedures and Policies are identified here — the work of each Procedure, and the reactions encoded in each Policy.
+// Once the events and @command:pl are named, the question becomes: what mediates each transition? @procedure:pl and @policy:pl are identified here — the work of each Procedure, and the reactions encoded in each Policy.
 
-// === Identifying Queries and Marking Models
+// === Identifying @query:pl and Marking @model:pl
 
 // When a Procedure or Policy needs to consult state — "what is the current balance?" or "has this request been seen before?" — a Query is identified. The answer to that Query comes from a Model. Marking these in the discovery session surfaces the retrieval concerns that will need to be addressed in the data layer.
 
-// === Populating Models with Events and Projections
+// === Populating @model:pl with @event:pl and @projection:pl
 
-// Each Model named in the session needs a mechanism for staying current. A Projection listens to the Events that affect a Model's state and writes updates accordingly. Identifying the Projections completes the picture: for each Model, which Events change it?
+// Each Model named in the session needs a mechanism for staying current. A Projection listens to the @event:pl that affect a Model's state and writes updates accordingly. Identifying the @projection:pl completes the picture: for each Model, which @event:pl change it?
 
 == Studying Vibes and Experiments
 
@@ -691,7 +694,7 @@ If the workshop gets crowded - make copies of notes and spread things out until 
 
 DIZZY is hard to emulate with simple scripts,
 because a simple script is usually one that follows the UNIX Philosophy: file in, file out, do one job and do it well.
-We can fit the DIZZY components to fit the guise of UNIX by composing Procedures and Projections.
+We can fit the DIZZY components to fit the guise of UNIX by composing @procedure:pl and @projection:pl.
 
 $d j$ scripts sacrifice rigidity of the DIZZY core model to serve as an exercise of Intent and Event Extraction.
 
@@ -706,17 +709,17 @@ More on this: https://github.com/ConradMearns/without-objective/tree/main/Struct
     Here, $Q$ typically reflects a FileSystem. 
     $q$ represents read operations,
     while $j$ represents writes.
-    Policies ($y$) aren't explicitly required, but still encode some level of reactivity to events that have taken place.
+    @policy:pl ($y$) aren't explicitly required, but still encode some level of reactivity to events that have taken place.
   ]
 )
 
 The goal is _not_ to write software like this.
 Rather, it's to identify that the UNIX philosophy was indeed the standard pattern for writing software, an explicit Structure Log Piping system expresses better flexibility in building small scripts, which can be more easily translated into scalable architectures later.
 
-Using this abstraction, we can now peer into the black box which may be our script - and identify when and where changes to Models (file outputs, database calls) are made.
+Using this abstraction, we can now peer into the black box which may be our script - and identify when and where changes to @model:pl (file outputs, database calls) are made.
 
-We can identify IO reads and assign them names as Queries, 
-and we can begin to imagine what Events must exist in order to become DIZZY compatible.
+We can identify IO reads and assign them names as @query:pl, 
+and we can begin to imagine what @event:pl must exist in order to become DIZZY compatible.
 
 In practice, this can be fairly simple.
 Often, it is enough to transform the base logging system into one which traces Side-Effects as DEBUG logs.
@@ -730,21 +733,21 @@ This exercise allows for legacy software to be transformed to become DIZZY compa
   pipeline,
   caption: [
     The DIZZY generation pipeline.
-    A Feature File (green) is authored during domain discovery. 
+    A @feature-file (green) is authored during domain discovery. 
     Data Contract Definitions (blue) are then populated with field-level detail. 
     The generator compiles these into typed Data Contract Implementations and Process Interfaces (purple),
     which are packaged as runtime-specific library artifacts (blue) that engineers implement against.
   ]
 )
 
-The outcome of workshopping is a _Feature File_.
-The _Feature File_ is a structured declaration of every component the system requires:
-which Commands exist, which Procedures handle them, which Events are then produced, which Policies react, which Projections maintain which Models, and which Queries serve those Procedures and Policies.
+The outcome of workshopping is a @feature-file.
+The @feature-file is a structured declaration of every component the system requires:
+which @command:pl exist, which @procedure:pl handle them, which @event:pl are then produced, which @policy:pl react, which @projection:pl maintain which @model:pl, and which @query:pl serve those @procedure:pl and @policy:pl.
 
-The _Feature File_ is a map.
+The @feature-file is a map.
 It documents the high level structures which are then resolved into LinkML schemas and language-specific interfaces.
 
-A developer, a technical lead, or the DIZZY automation tool can look at a Feature File and list exactly what needs to be built.
+A developer, a technical lead, or the DIZZY automation tool can look at a @feature-file and list exactly what needs to be built.
 Each Procedure and Policy is a bounded unit of work with explicitly declared inputs, outputs, and data dependencies.
 // The flows are not an emergent property of the code - they are a finite, readable list, agreed on before a single implementation is written.
 
@@ -752,12 +755,12 @@ The generation pipeline then takes this map and produces the scaffolding that en
 
 === Building Data Definition Schemas
 
-The Feature File names components but does not describe the shape of the data they carry. 
+The @feature-file names components but does not describe the shape of the data they carry. 
 Building data definitions is the step that gives those names their structure. 
 What fields does a "receipt ingested" event carry?
 What is the schema of the "receipts" model?
 These questions are answered by authoring definitions in LinkML - a language-agnostic schema language that represents domain objects in YAML, independent of any particular programming language, framework, or runtime.
-The Feature File is used to generate LinkML stubs for every Data Definition that is required, details can be filed in after.
+The @feature-file is used to generate LinkML stubs for every Data Definition that is required, details can be filed in after.
 
 // The choice of LinkML is not incidental. 
 // Most schema systems are bound to a language or an ecosystem: a Pydantic model is Python; a TypeScript interface is TypeScript; a Protobuf definition belongs to gRPC.
@@ -767,18 +770,18 @@ The Feature File is used to generate LinkML stubs for every Data Definition that
 
 === Building Program Processes
 
-After Data Definitions are built, and the component wiring declared in the Feature File, typed interfaces are generated for every process. 
-The interface for a Procedure declares exactly which Command it receives, which Queries it is permitted to call, and which Events it may emit. 
-The interface for a Policy declares the Event that triggers it and the Commands it is allowed to dispatch.
+After Data Definitions are built, and the component wiring declared in the @feature-file, typed interfaces are generated for every process. 
+The interface for a Procedure declares exactly which Command it receives, which @query:pl it is permitted to call, and which @event:pl it may emit. 
+The interface for a Policy declares the Event that triggers it and the @command:pl it is allowed to dispatch.
 
-At this stage, the The Feature File becomes a compile-time constraints for the architecture.
+At this stage, the The @feature-file becomes a compile-time constraints for the architecture.
 An implementation that exceeds its declared scope is a type error, and can be caught before deployment rather than after.
 
 This generation step makes an explicit claim: the hard architectural decisions have already been made.
 By the time an engineer receives a generated interface, the question of what each component does -
 and what it is forbidden from doing -
 has been resolved at the domain level. 
-What remains is writing the Interstitial Infrastructure to tie the component flows together.
+What remains is writing the @interstitial-infrastructure to tie the component flows together.
 The interface enforces the boundary between domain thinking and implementation.
 
 === Packaging and Using Libraries
@@ -877,6 +880,12 @@ table(
 - Entities
 - Agents (Human and LLM)
 
+// autodocs!
+
+#glossary(
+  // theme: theme-twocol,
+  groups: ("DIZZY Components", "Architecture", "Collectives"),
+)
 
 #bibliography("refs.bib")
 
