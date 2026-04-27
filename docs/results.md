@@ -1,56 +1,58 @@
 # DIZZY Whitepaper — Grading Results
 
-## Score: 17 / 28 — 60.7%
+## Score: 19.5 / 28 — 69.6%
 
-| #      | Requirement                                       | Status  | Notes                                                                                                                                                                              |
-| ------ | ------------------------------------------------- | :-----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| WP-001 | Abstract is present and complete                  |  PASS   |                                                                                                                                                                                    |
-| WP-002 | All section headings are complete                 |  PASS   | Ellipsis headings satisfy the exception clause                                                                                                                                     |
-| WP-003 | No draft artifacts                                |  PASS   | All TODOs now have `//` prefix; no bare artifacts in visible prose                                                                                                                 |
-| WP-004 | No implementation specifics                       |  PASS   | Context Object section removed                                                                                                                                                     |
-| WP-005 | Core ontology introduced                          | PARTIAL | Queriers and Query I/O described in three thin sentences — not enough for a reader to explain them back                                                                            |
-| WP-006 | Infrastructure choices framed as deferred         |  PASS   |                                                                                                                                                                                    |
-| WP-007 | Problem precedes solution                         |  PASS   | DIZZY first appears at line 229, in Section 2; Section 1 diagnoses problems only                                                                                                   |
-| WP-008 | Self-contained without prior knowledge            | PARTIAL | "Durable Execution" forward-referenced before definition; "physarum" opaque; "Interstitial Infrastructure" named but its "compilation problem" framing dropped without explanation |
-| WP-009 | Relationship to existing disciplines acknowledged |  PASS   | Section 5 opening prose makes the "composes not replaces" argument; CQRS and Event Sourcing both named                                                                             |
-| WP-010 | Events described as immutable and authoritative   |  PASS   |                                                                                                                                                                                    |
-| WP-011 | Reversibility is a named principle                |  PASS   |                                                                                                                                                                                    |
-| WP-012 | Conclusion present and complete                   |  FAIL   | One sentence — no thesis restatement, no arc closure, no return to the opening problem                                                                                             |
-| WP-013 | No duplicate content                              |  PASS   | Duplicated figure and repeated paragraph resolved                                                                                                                                  |
-| WP-014 | Readable without the flow diagram                 | PARTIAL | No figures have captions; prose generally carries the argument but captions are required for PASS                                                                                  |
-| WP-015 | Generation pipeline as philosophy                 |  FAIL   | Automation section is a figure plus commented-out TODO stubs — no philosophical prose for any step                                                                                 |
-| WP-016 | LinkML first-class                                |  FAIL   | LinkML appears only inside `//` comments, never in visible prose                                                                                                                   |
-| WP-017 | Language agnosticism explicit                     | PARTIAL | Language independence mentioned; multi-language library family (Python, Rust, TypeScript, Go…) never named as an explicit goal                                                     |
-| WP-018 | Event Storming as entry point                     |  FAIL   | Heading and sub-headings exist; no prose explains what Event Storming is or connects it to DIZZY's component vocabulary                                                            |
-| WP-019 | Ontology as map for non-engineers                 | PARTIAL | Map problem diagnosed in Section 1.4; DIZZY's ontology never explicitly connected back to stakeholder legibility                                                                   |
-| WP-020 | Policies explained as reactive logic              |  PASS   | Policies section has substantive conceptual prose on reactive role and event/command decoupling                                                                                    |
-| WP-021 | Execution flows are enumerable                    |  FAIL   | Entirely inside `//` comment blocks — absent from visible prose                                                                                                                    |
-| WP-022 | Architecture shapes the organization              | PARTIAL | Conway's Law and Inverse Conway Maneuver cited with references; connection to DIZZY component boundaries as team coordination tool asserted, not argued                            |
-| WP-023 | Authoritative and persuasive tone                 | PARTIAL | Component sections (Events, Policies, Procedures) are direct and earned; problem sections and Section 5 are thinner and hedge                                                      |
-| WP-024 | Consistent terminology                            | PARTIAL | "Processes" (capital P) used as an informal group label — not a canonical term; "query IO" used instead of "Query Input / Query Output"                                            |
-| WP-025 | Argument made in prose                            | PARTIAL | Core sections now prose; Durable Execution pattern and Event Storming subsections still structured as lists                                                                        |
-| WP-026 | Clear narrative arc                               | PARTIAL | Three acts present; no explicit transition sentences between acts; conclusion does not close the arc                                                                               |
-| WP-027 | Defers to Specification cleanly                   | PARTIAL | One clean deferral in the conclusion; stub sections are neither explained nor explicitly deferred                                                                                  |
-| WP-028 | Reader takeaway is singular and clear             | PARTIAL | Abstract lands the takeaway cleanly; conclusion does not reinforce it                                                                                                              |
+| #      | Requirement                                       | Status  | Notes                                                                                                                                                                                        |
+| ------ | ------------------------------------------------- | :-----: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| WP-001 | Abstract is present and complete                  |  PASS   |                                                                                                                                                                                              |
+| WP-002 | All section headings are complete                 |  PASS   | Ellipsis headings satisfy the exception clause                                                                                                                                               |
+| WP-003 | No draft artifacts                                |  FAIL   | Bare URL in visible prose at line 867: "More on this: https://github.com/ConradMearns/without-objective/…" — will render in compiled PDF                                                    |
+| WP-004 | No implementation specifics                       |  PASS   |                                                                                                                                                                                              |
+| WP-005 | Core ontology introduced                          | PARTIAL | Queriers and Query I/O described in three thin sentences — not enough for a reader to explain them back                                                                                      |
+| WP-006 | Infrastructure choices framed as deferred         |  PASS   |                                                                                                                                                                                              |
+| WP-007 | Problem precedes solution                         |  PASS   | DIZZY first appears in Section 2; Section 1 diagnoses problems only                                                                                                                         |
+| WP-008 | Self-contained without prior knowledge            | PARTIAL | "physarum" opaque; "vibe-checking" unexplained; "Durable Execution" forward-referenced in Commands section before Appendix definition                                                        |
+| WP-009 | Relationship to existing disciplines acknowledged |  PASS   | Abstract names CQRS, Event Sourcing, and DDD with "draws on" and "composes" framing                                                                                                         |
+| WP-010 | Events described as immutable and authoritative   |  PASS   |                                                                                                                                                                                              |
+| WP-011 | Reversibility is a named principle                |  PASS   |                                                                                                                                                                                              |
+| WP-012 | Conclusion present and complete                   |  FAIL   | Still one sentence — no thesis restatement, no arc closure, no return to the opening problem                                                                                                |
+| WP-013 | No duplicate content                              |  PASS   |                                                                                                                                                                                              |
+| WP-014 | Readable without the flow diagram                 | PARTIAL | Pipeline figure now has caption; introductory flow diagram and all sticky-note figures still uncaptioned                                                                                     |
+| WP-015 | Generation pipeline as philosophy                 |  PASS   | All three Automation subsections now have philosophical prose; handoff concept ("This is the handoff between the Domain and the Deployment") is stated clearly                               |
+| WP-016 | LinkML first-class                                | PARTIAL | LinkML now named in visible prose (lines 914, 928, 959) with brief description as "language-agnostic schema language"; advocacy for *why* it's the right tool is still in `//` comments     |
+| WP-017 | Language agnosticism explicit                     |  PASS   | Python, Rust, and TypeScript explicitly named as separate library targets (lines 955–959); multi-language library family is now unambiguous                                                  |
+| WP-018 | Event Storming as entry point                     |  PASS   | Workshopping section names Event Storming, describes the sticky-note practice, states SME-vs-engineer roles, and explicitly maps vocabulary to DIZZY components                              |
+| WP-019 | Ontology as map for non-engineers                 | PARTIAL | Workshopping section connects domain-expert vocabulary to DIZZY components; loop back to Section 1.4 ("map mislabels the territory") never explicitly closed                                 |
+| WP-020 | Policies explained as reactive logic              |  PASS   |                                                                                                                                                                                              |
+| WP-021 | Execution flows are enumerable                    | PARTIAL | Feature File section implies enumerability ("list exactly what needs to be built," "bounded unit of work"); enumerability not named as a principle, contrast with conventional systems absent |
+| WP-022 | Architecture shapes the organization              | PARTIAL | Conway's Law and Inverse Conway Maneuver cited; DIZZY component boundaries described as "deliberate seams" but the team-coordination argument is asserted, not developed                     |
+| WP-023 | Authoritative and persuasive tone                 | PARTIAL | Automation and component sections are direct and earned; problem sections hedge; conclusion is still a stub                                                                                  |
+| WP-024 | Consistent terminology                            | PARTIAL | "query IO" (line 285) used instead of "Query Input / Query Output"; "processes" (lowercase) as informal group label                                                                          |
+| WP-025 | Argument made in prose                            | PARTIAL | Main sections now prose; Durable Execution appendix still uses a numbered algorithmic list                                                                                                   |
+| WP-026 | Clear narrative arc                               | PARTIAL | Three acts present; no explicit transition sentences between acts; conclusion does not close the arc                                                                                         |
+| WP-027 | Defers to Specification cleanly                   | PARTIAL | One clean deferral in the conclusion; raw URL in "Studying Vibes" section is unexplained and not deferred                                                                                    |
+| WP-028 | Reader takeaway is singular and clear             | PARTIAL | Abstract lands the takeaway cleanly; conclusion does not reinforce it                                                                                                                        |
 
 ---
 
 ## History
 
-| Run         |    Date    |    Score    |     %     | Delta |    pp    |
-| ----------- | :--------: | :---------: | :-------: | :---: | :------: |
-| Run 1       | 2026-04-23 |  10.5 / 28  |   37.5%   |   -   |   - pp   |
-| Run 2       | 2026-04-24 |   15 / 28   |   53.6%   | +4.5  | +16.1 pp |
-| **Current** | 2026-04-24 | **17 / 28** | **60.7%** |  +2   | +7.1 pp  |
+| Run         |    Date    |     Score     |     %     | Delta  |    pp    |
+| ----------- | :--------: | :-----------: | :-------: | :----: | :------: |
+| Run 1       | 2026-04-23 |   10.5 / 28   |   37.5%   |   -    |   - pp   |
+| Run 2       | 2026-04-24 |    15 / 28    |   53.6%   |  +4.5  | +16.1 pp |
+| Run 3       | 2026-04-24 |    17 / 28    |   60.7%   |   +2   |  +7.1 pp |
+| **Current** | 2026-04-26 | **19.5 / 28** | **69.6%** |  +2.5  |  +8.9 pp |
 
 ---
 
 ## Highest Leverage Next Targets
 
-| #      | What's Needed                                                                       |
-| ------ | ----------------------------------------------------------------------------------- |
-| WP-012 │ Write a real conclusion — restate thesis, close the arc, point to Specification     |
-| WP-015 │ Replace Automation subsection stubs with philosophical prose for each pipeline step |
-| WP-016 │ Add visible prose advocating for LinkML (currently only in // comments)             |
-| WP-018 │ Write the Event Storming prose — what it is, how it maps to DIZZY's vocabulary      |
-| WP-021 │ Bring the "flows are enumerable" argument out of comments and into visible prose    |
+| #      | What's Needed                                                                                           |
+| ------ | ------------------------------------------------------------------------------------------------------- |
+| WP-012 | Write a real conclusion — restate thesis, close the arc, point to Specification                         |
+| WP-003 | Remove bare URL from "Studying Vibes" section (line 867) or convert to a proper link/reference          |
+| WP-016 | Uncomment and expand the LinkML advocacy — explain *why* language-agnostic schemas are the right choice |
+| WP-021 | Name enumerability as a principle; contrast with the opacity of conventional architectures              |
+| WP-022 | Develop (not just assert) how DIZZY's component boundaries enable team ownership and coordination       |
+| WP-019 | Explicitly close the loop: connect the ontology back to the "map mislabels the territory" problem       |

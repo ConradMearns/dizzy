@@ -232,6 +232,8 @@ heard of DIZZY. They should finish the paper with:
 **Category:** Writing  
 **Statement:** Every DIZZY concept must be referred to by exactly one name, used consistently from first introduction to conclusion.  
 **Canonical terms:** Command, Event, Procedure, Policy, Projection, Model, Querier, Query Input, Query Output. No synonyms, aliases, or informal variants (e.g. "message" for Command, "handler" for Procedure, "request" for Query).  
+**Additional term:** LinkML definitions of DIZZY data components are called "data definitions" — not "contracts," "schemas," or "data contracts."  
+**See also:** WP-032 for the canonical collective terms Data and Functions, and the reservation of "Process."  
 **Pass:** Each term appears under one name throughout. The first use of each term reads as a deliberate introduction.  
 **Fail:** Any DIZZY concept is referred to by more than one name, or terms are used before being introduced.
 
@@ -245,11 +247,12 @@ heard of DIZZY. They should finish the paper with:
 
 ---
 
-### WP-026: The Paper Follows a Clear Narrative Arc
+### WP-026: The Paper Follows a Clear Narrative Arc (PNF Structure)
 **Category:** Structure  
-**Statement:** The paper must follow a coherent three-act structure: (1) the problem — why software architecture so often fails; (2) the philosophy — the principles DIZZY is built on and why they address the problem; (3) the system — what DIZZY is, what its components are, and how the generation pipeline connects domain thinking to implementation.  
-**Pass:** Each act is clearly present, transitions between acts are explicit, and the conclusion closes the arc by connecting back to the opening problem.  
-**Fail:** Acts are present but bleed into each other without clear transitions, the problem and solution are interleaved, or the conclusion does not reference the opening argument.
+**Statement:** The paper must follow the PNF (Pains, Needs, Feats) narrative structure: (1) Pains — why software architecture so often fails; (2) Needs — the principles a good architecture must satisfy; (3) Feats — what DIZZY is and how it satisfies those needs.  
+**PNF content requirement:** All authored PNF mini-essay files (pains, needs, and feats) must be imported and rendered in the compiled output. An authored file is one whose `body` contains prose, not only comments.  
+**Pass:** Each act is clearly present, transitions between acts are explicit, all authored PNF files are rendered, and the conclusion closes the arc by connecting back to the opening pains.  
+**Fail:** Acts bleed into each other without clear transitions, the pains and feats are interleaved, authored PNF files are missing from the output, or the conclusion does not reference the opening argument.
 
 ---
 
@@ -264,6 +267,41 @@ heard of DIZZY. They should finish the paper with:
 ### WP-028: The Reader Takeaway is Singular and Clear
 **Category:** Writing  
 **Statement:** The paper must be written toward a single takeaway that a reader can state in one sentence after finishing. That sentence should be derivable from the conclusion.  
-**Target takeaway (suggested):** DIZZY is a philosophy for building software systems where the domain logic, the data contracts, and the infrastructure are kept permanently separate — so that any one of them can change without breaking the others.  
+**Target takeaway (suggested):** DIZZY is a philosophy for building software systems where the domain logic, the data definitions, and the infrastructure are kept permanently separate — so that any one of them can change without breaking the others.  
 **Pass:** The conclusion lands a clear, singular thesis. A reader who skims only the abstract and conclusion can state what DIZZY is and why it matters.  
 **Fail:** The conclusion lists multiple disconnected points, the thesis is buried mid-paper, or a reader finishing the paper cannot summarize what DIZZY is in a sentence.
+
+---
+
+### WP-029: DIZZY is Presented as a Complete Development Philosophy
+**Category:** Philosophy  
+**Statement:** The paper must frame DIZZY as a complete development philosophy covering the full cycle from exploration to delivery — not merely an architecture pattern or component taxonomy.  
+**The workflow to convey:** DIZZY addresses the entire development process: deliberation and vibe-checking (early exploration of whether a problem is worth solving and how), domain workshopping (collaborative discovery with subject matter experts), and disciplined delivery (code generation, typed interfaces, and infrastructure derivation). This is a replacement for ad-hoc Agile processes, not a complement to them.  
+**Pass:** The paper conveys that DIZZY governs the full arc from "do we understand the problem?" to "is the software running?" A reader understands that DIZZY is a philosophy for how teams work, not just how software is structured.  
+**Fail:** The paper presents DIZZY only as an architecture pattern, omits the deliberation and discovery phases, or treats DIZZY as a layer on top of an existing methodology rather than an alternative to one.
+
+---
+
+### WP-030: "Event Storming" Refers Only to Brandolini's Technique
+**Category:** Writing  
+**Statement:** The term "Event Storming" (capitalized) must refer exclusively to Alberto Brandolini's collaborative domain-discovery workshop technique. The DIZZY workshop process must be referred to by a name that distinguishes it from Brandolini's technique.  
+**Pass:** "Event Storming" appears only when specifically crediting or citing Brandolini's method. The DIZZY workshop is named and described independently.  
+**Fail:** "Event Storming" is used as a generic term for any domain discovery practice, or the DIZZY workshop is described as if it were the same thing as Brandolini's technique.
+
+---
+
+### WP-031: A Glossary of DIZZY Terms is Present
+**Category:** Structure  
+**Statement:** The paper must include a glossary or index of DIZZY-specific vocabulary.  
+**Required entries:** The eight component names (Command, Event, Procedure, Policy, Projection, Model, Querier, Query), Feature File, Interstitial Infrastructure, Data, Functions.  
+**Pass:** All required entries are present with a plain-language definition or a reference to where the term is defined in the paper.  
+**Fail:** Any required entry is absent, or terms are used throughout the paper without a single reference point for readers who encounter them out of order.
+
+---
+
+### WP-032: "Process" is Reserved; Collective Components are "Data" and "Functions"
+**Category:** Writing  
+**Statement:** The word "Process" must not be used as a collective noun for DIZZY components, as a synonym for any individual component, or as a catch-all for "things that run." It is reserved for potential future use with a specific meaning.  
+**Canonical collectives:** When distinguishing the two sides of DIZZY's separation, use **Data** (Commands, Events, Models, Queries) and **Functions** (Procedures, Policies, Projections, Queriers).  
+**Pass:** "Process" does not appear as a collective or alias for DIZZY components. When the data/code separation is discussed, "Data" and "Functions" are used.  
+**Fail:** "Process," "Processes," or "program process" appears as a shorthand for any DIZZY component or group of components.
