@@ -613,87 +613,378 @@ The process that uses program code to execute the query is what we call the Quer
 
 = How to Structure Software Development Workflows with DIZZY
 
-DIZZY comes with a showcase automation tool `dizzy` to illustrate what steps can be automated algorithmically, and which need intervention.
+DIZZY is a complete philosophy for software development;
+it covers the flow from ideation, vibe-checking, workshopping, integration, to production deployment. 
+This whitepaper will cover the workshopping method, and less of vibe-checking. 
+From there, it will show the tooling to illustrate what steps can be automated algorithmically and which need intervention.
 
-Most DIZZY implementations rely on Queues for scalable implementation.
+// Most DIZZY implementations rely on Queues for scalable implementation.
+
+// == Studying Vibes and Experiments
+== Workshopping
+
+
+#let es(variant, label, size: 25pt, text_size: 12pt) = {
+    let color = if variant == "c" { rgb("#4ab6d9") } 
+    else if variant == "e" { rgb("#abcc51") }
+    else if variant == "d" { rgb("#f39a4f") }
+    else if variant == "y" { rgb("#eb6092") }
+    else if variant == "j" { rgb("#f5d341") }
+    else if variant == "q" { rgb("#c2a1c7") }
+    else if variant == "W" { rgb("#00000000") } // transparent for spacing
+    else { rgb("#FFEBA1") }
+    rect(width: size, height: size, fill: color)[
+      #set text(hyphenate: false)
+      #align(center + horizon)[
+        #text(weight: "bold", size: text_size)[#label]
+    ]
+  ]
+}
+
+#figure(
+grid(columns: 4, gutter: 0.2em,
+  none,
+  es("q", $q$),
+  none,
+  es("q", $q$),
+  
+  es("c", $c$),
+  es("d", $d$),
+  es("e", $e$),
+  es("y", $y$),
+
+  none,
+  none,
+  es("j", $j$),
+))
+
+DIZZY uses a workshop to bring business stakeholders, customers, scientists, 
+and other domain experts together to find consensus around software processes.
+Computation and Systems experts should serve only to teach, ask questions, and suggest symbolic solutions to process gaps,
+NOT to define or suggest what would otherwise be the process flow.
+
+The workshop is largely based on Event Storming @brandolini2021 by Alberto Brandolini and uses many of the same techniques.
+Attendees write on sticky notes and place them on a wall next to other notes.
+Note colors are semantic symbols.
+Notes convey and narrate a system in the language of facts and intentions.
+Unlike Event Storming, DIZZY notes represent _real_ system components.
+
+Events ( #box(es("e", "", size: 9pt, text_size: 10pt)) ) pin the most important facets of the process, and are recorded in past tense: "order placed," "payment declined," "shipment dispatched." These records are facts by which we represent all state changes.
+
+Commands ( #box(es("c", "", size: 9pt, text_size: 10pt)) ) hook process automation and users into the ecosystem by capturing an intent. They are written imperatively: "place order", "submit payment." These commands may represent a button, API call, a form, or any other method of supplying new instruction to a software system.
+
+Procedures ( #box(es("d", "", size: 9pt, text_size: 10pt)) ),
+Policies ( #box(es("y", "", size: 9pt, text_size: 12pt)) ),
+Projections ( #box(es("j", "", size: 9pt, text_size: 12pt)) ),
+and 
+Queries ( #box(es("q", "", size: 9pt, text_size: 12pt)) ),
+replace the "Aggregate", "View", and "Process/Policy" systems of the DDD-inspired Event Storming model.
+
+
+After the workshop, the DIZZY workflow guides the progressive development of each component until a software artifact is produced. This allows stakeholders to build the software visually and without confounding details that aren't important to those stakeholders.
+ 
+// Event Storming is a collaborative workshop technique, originated by Alberto Brandolini @brandolini2021, where domain experts and engineers narrate a system in the language of facts and intentions.
+// Participants post events on a wall in past tense: "order placed," "payment declined," "shipment dispatched."
+// From those events, they identify the commands that initiated them, the actors who issued those commands, and the policies that react when facts are established.
+
+No database is chosen.
+No framework is selected.
+The output is a shared vocabulary in regards to the domain at hand.
+
+That vocabulary maps directly onto DIZZY's component schema.
+// Past-tense stickies become Event definitions. Imperative commands become Command definitions. The reactive "when X, do Y" cards become Policies. 
+// The work that transforms a command into events identifies the Procedures.
+A workshop session does not merely produce a pile of forgettable photographs;
+it produces the skeleton of a _feature definition_ which the rest of DIZZY transforms into functioning, scalable software.
+
+This directness is intentional.
+DIZZY's eight components exist precisely so that the output of domain discovery can be written down without loss of meaning.
+A feature defined in DIZZY's vocabulary is still readable by the domain expert who participated in the session.
+The command names, event names, and policy reactions are their words - not a translation of them.
+
+This couples the language of the Computationalists and the Domain Experts - allowing both to have a concrete and shared artifact that communicate bidirectionally between abstract graphs and charts - and deployed and running systems.
+
+DIZZY borrows the collaborative spirit of Brandolini's original technique, 
+but adapts the semantic and pragmatic functional paradigm.
+Aggregates, read models, and the object-oriented constructs of traditional Domain-Driven Design are absent.
+Every DIZZY component is either a data contract or a stateless process - 
+another distinction that makes components independently deployable, testable, and replaceable in ways the original framing does not require.
+
+Like Event Storming though, the practice is intended to be simple and progressive.
+Start by pinning Commands and Events.
+This naturally exposes what procedures and policies may be required.
+In turn, this can expose new Commands and Events that my be required for consistency,
+which prompts more Procedures and Policies - etc.
+
+
+// The exact placement does not matter as long as the intended connections between components are clear.
+// Typically, I place my sticky-notes in this configuration as I go -
+
+#figure(
+grid(columns: 3, gutter: 5em,
+// events and commands
+grid(columns: 2, gutter: 0.2em,
+  es("W", ""),
+  es("W", ""),
+
+  es("c", $c$),
+  es("e", $e$),
+),
+// procedures
+grid(columns: 4, gutter: 0.2em,
+  es("W", ""),
+  es("W", ""),
+  es("W", ""),
+  es("W", ""),
+
+  es("c", $c$),
+  es("d", $d$),
+  es("e", $e$),
+  es("y", $y$),
+),
+// queries and projections
+grid(columns: 4, gutter: 0.2em,
+  none,
+  es("q", $q$),
+  none,
+  es("q", $q$),
+  
+  es("c", $c$),
+  es("d", $d$),
+  es("e", $e$),
+  es("y", $y$),
+
+  none,
+  none,
+  none,
+  es("j", $j$),
+)
+)
+)
+
+
+When it is becomes time to define the gist of how Procedures and Policies function - 
+this is where Projections and Queries come in.
+
+Upon these notes, write the name of Model (representative of a database schema or ontology), 
+and the name of the projection or query if it helps for disambiguation.
+
+For instance, after an "Order Placed" Event, we may need to project the result to two Models -
+one for "Shipping", and another for "Inventory". 
+Naming these projections further is optional at this phase, 
+but is useful later when the projections require disambiguation.
+
+
+#figure(
+grid(columns: 1, gutter: 5em,
+// queries and projections
+grid(columns: 4, gutter: 0.2em,
+  none,
+  es("q", $q$),
+  none,
+  none,
+  // es("q", $q$),
+  
+  es("c", $c$),
+  es("d", $d$),
+  es("e", $e_1$),
+  es("y", $y$),
+
+  none,
+  none,
+  es("e", $e_2$),
+  none,
+
+  none,
+  none,
+  es("e", $e_3$),
+  es("j", $j_1$),
+
+  none,
+  none,
+  none,
+  es("j", $j_2$),
+)
+)
+)
+
+An exact semantics for organizing notes is not needed.
+If the workshop gets crowded - make copies of notes and spread things out until things make sense.
+
+// It's common to start with Command and Events, and only model the procedures in between as a second step.
+// However, I find it to be helpful to move back and forth between a Data-First and Program-First modelling approach, as we will see later.
+
+
+// === Recording the Facts - Commands and Events
+
+// The first pass focuses on what happens and why. What does a user want? What are the facts the system must record? At this stage, teams are only naming things — not defining their shape. The names, and the relationships between them, are the output.
+
+// === Adding detail - Procedures and Policies
+
+// Once the events and commands are named, the question becomes: what mediates each transition? Procedures and Policies are identified here — the work of each Procedure, and the reactions encoded in each Policy.
+
+// === Identifying Queries and Marking Models
+
+// When a Procedure or Policy needs to consult state — "what is the current balance?" or "has this request been seen before?" — a Query is identified. The answer to that Query comes from a Model. Marking these in the discovery session surfaces the retrieval concerns that will need to be addressed in the data layer.
+
+// === Populating Models with Events and Projections
+
+// Each Model named in the session needs a mechanism for staying current. A Projection listens to the Events that affect a Model's state and writes updates accordingly. Identifying the Projections completes the picture: for each Model, which Events change it?
 
 == Studying Vibes and Experiments
-== Event Storming
-=== Recording the Facts - Commands and Events
-=== Adding detail - Procedures and Policies
-=== Identifying Queries and Marking Models
-=== Populating Models with Events and Projections
-== Common Patterns
 
-=== Durable Execution
+#let flow2_dj = diagram(
+  spacing: (2em, 2em),
+  node-inset: 10pt,
 
-A procedure can _preform work_ if and only if the work has never been started, 
-or in the cases where a previous fault or outage interrupted the runtime.
 
-An explicit failure-as-ended state helps to disambiguate between runtime failures of the procedure and external failures like network interruption, power loss, etc.
+  node((-1, 0), $c$, name: <c>),
+  node(( 0, 0), $d j$, name: <dj>),
+  node((1,0), $m$, name: <m>),
+  
+  node(( 0, 1), $e$, name: <e>),
+  node((-1, 1), $y$, name: <y>),
+  node(( 1,-1), $Q$, name: <Q>),
+  node(( 0,-1), $q$, name: <q>),
 
-Commands
-- Start Activity with ID
+  edge(<dj>, <e>, bend: 0deg, "->"),
+  edge(<e>, <y>, bend: 0deg, "->"),
+  edge(<y>, <c>, bend: 0deg, "->"),
+  edge(<c>, <dj>, bend: 0deg, "->"),
+  edge(<dj>, <m>, bend: 0deg, "->"),
+  edge(<m>, <Q>, bend: 0deg, "->"),
+  edge(<Q>, <q>, bend: 0deg, "<-->"),
+  edge(<q>, <dj>, bend: 0deg, "<-->"),
+  edge(<q>, <y>, bend: -70deg, "<-->"),
+)
 
-Events
-- Activity Started
-- Activity Ended (Succeeded)
-- Activity Ended (Failed)
+DIZZY is hard to emulate with simple scripts,
+because a simple script is usually one that follows the UNIX Philosophy: file in, file out, do one job and do it well.
+We can fit the DIZZY components to fit the guise of UNIX by composing Procedures and Projections.
 
-1. *Start Activity* triggers *Durable Execution Procedure*
-2. *Durable Execution Procedure* queries for *Activity Started*
-  1. If no *Activity Started*, then emit *Activity Started*
-  2. If any *Activity Started*, then query for *Activity Ended* on ID
-    1. If no *Activity Ended* - may need to _preform work_.
-    2. If any *Activity Ended* - return
+$d j$ scripts sacrifice rigidity of the DIZZY core model to serve as an exercise of Intent and Event Extraction.
 
-=== Provenance
+More on this: https://github.com/ConradMearns/without-objective/tree/main/Structured-Log-Pipes
 
-- Activities
-- Entities
-- Agents (Human and LLM)
+#grid(
+  column-gutter: 2em,
+  // align: horizon,
+  columns: (auto, auto),
+  flow2_dj,
+  [
+    Here, $Q$ typically reflects a FileSystem. 
+    $q$ represents read operations,
+    while $j$ represents writes.
+    Policies ($y$) aren't explicitly required, but still encode some level of reactivity to events that have taken place.
+  ]
+)
+
+The goal is _not_ to write software like this.
+Rather, it's to identify that the UNIX philosophy was indeed the standard pattern for writing software, an explicit Structure Log Piping system expresses better flexibility in building small scripts, which can be more easily translated into scalable architectures later.
+
+Using this abstraction, we can now peer into the black box which may be our script - and identify when and where changes to Models (file outputs, database calls) are made.
+
+We can identify IO reads and assign them names as Queries, 
+and we can begin to imagine what Events must exist in order to become DIZZY compatible.
+
+In practice, this can be fairly simple.
+Often, it is enough to transform the base logging system into one which traces Side-Effects as DEBUG logs.
+When those logs are structured, and consistent, then we can begin to use the logs themselves as a sort of pseudo Change Data Capture / "Event Store" for projections.
+
+This exercise allows for legacy software to be transformed to become DIZZY compatible.
 
 == Automation
 
-#figure(pipeline)
+#figure(
+  pipeline,
+  caption: [
+    The DIZZY generation pipeline.
+    A Feature File (green) is authored during domain discovery. 
+    Data Contract Definitions (blue) are then populated with field-level detail. 
+    The generator compiles these into typed Data Contract Implementations and Process Interfaces (purple),
+    which are packaged as runtime-specific library artifacts (blue) that engineers implement against.
+  ]
+)
 
-// TODO: This section needs prose per WP-015.
-// The pipeline figure is good — but the argument must be readable without it (WP-014).
-// Each subsection below needs at least a paragraph describing the philosophical step,
-// not just the CLI command that executes it.
+The outcome of workshopping is a _Feature File_.
+The _Feature File_ is a structured declaration of every component the system requires:
+which Commands exist, which Procedures handle them, which Events are then produced, which Policies react, which Projections maintain which Models, and which Queries serve those Procedures and Policies.
 
-=== Building Data Contracts
-// TODO: Describe the step philosophically — what decisions get made here,
-// who makes them, and why this comes before any code is written.
+The _Feature File_ is a map.
+It documents the high level structures which are then resolved into LinkML schemas and language-specific interfaces.
+
+A developer, a technical lead, or the DIZZY automation tool can look at a Feature File and list exactly what needs to be built.
+Each Procedure and Policy is a bounded unit of work with explicitly declared inputs, outputs, and data dependencies.
+// The flows are not an emergent property of the code - they are a finite, readable list, agreed on before a single implementation is written.
+
+The generation pipeline then takes this map and produces the scaffolding that engineers implement against.
+
+=== Building Data Definition Schemas
+
+The Feature File names components but does not describe the shape of the data they carry. 
+Building data definitions is the step that gives those names their structure. 
+What fields does a "receipt ingested" event carry?
+What is the schema of the "receipts" model?
+These questions are answered by authoring definitions in LinkML - a language-agnostic schema language that represents domain objects in YAML, independent of any particular programming language, framework, or runtime.
+The Feature File is used to generate LinkML stubs for every Data Definition that is required, details can be filed in after.
+
+// The choice of LinkML is not incidental. 
+// Most schema systems are bound to a language or an ecosystem: a Pydantic model is Python; a TypeScript interface is TypeScript; a Protobuf definition belongs to gRPC.
+// LinkML occupies a different position.
+// It describes the domain in terms that belong to no runtime - the same event definition can be compiled to native types in Python, Rust, TypeScript, or any other target without modifying the source definition. Domain objects are written once. Their implementations are derived. 
+// This is the mechanism that makes the rest of the pipeline possible: a single source of truth for what each data contract means, expressed in a form that any language toolchain can consume.
 
 === Building Program Processes
-// TODO: Describe what it means to implement against a generated library contract —
-// and why the library being the handoff point matters (WP-015 key point).
+
+After Data Definitions are built, and the component wiring declared in the Feature File, typed interfaces are generated for every process. 
+The interface for a Procedure declares exactly which Command it receives, which Queries it is permitted to call, and which Events it may emit. 
+The interface for a Policy declares the Event that triggers it and the Commands it is allowed to dispatch.
+
+At this stage, the The Feature File becomes a compile-time constraints for the architecture.
+An implementation that exceeds its declared scope is a type error, and can be caught before deployment rather than after.
+
+This generation step makes an explicit claim: the hard architectural decisions have already been made.
+By the time an engineer receives a generated interface, the question of what each component does -
+and what it is forbidden from doing -
+has been resolved at the domain level. 
+What remains is writing the Interstitial Infrastructure to tie the component flows together.
+The interface enforces the boundary between domain thinking and implementation.
 
 === Packaging and Using Libraries
-// TODO: This is where LinkML's role should be named and advocated for (WP-016).
-// Also the place to name multi-language output as an explicit goal (WP-017).
+
+The final step packages the generated interfaces and their compiled data types into importable library artifacts.
+A Procedure in Python receives a Python library.
+A Policy in Rust receives a Rust library.
+A Querier in TypeScript receives a TypeScript library.
+Each library contains the same domain contracts, as generated by LinkML.
+
+This is the handoff between the Domain and the Deployment.
+
+Engineers implement against the library.
+The library does not change unless the domain definitions change.
+Infrastructure decisions, such as which database backs a Model, which message queue carries a Command - are made after the library is built, and they are made at a different layer of the architecture.
+Domain logic never knows where its inputs came from or where its outputs go.
 
 // Testing strategies at various levels?
 // L3 L2 L1 LLM involvement?
 
-= Existing Disciplines, New Composition
+// = Existing Disciplines, New Composition
 
-DIZZY is nothing new.
-Every idea in this paper has predecessors — some decades old, some still actively evolving.
-What DIZZY contributes is not invention but composition:
-a deliberate arrangement of existing disciplines into a coherent whole,
-where each one addresses a specific failure mode described in Section 1.
+// DIZZY is nothing new.
+// Every idea in this paper has predecessors — some decades old, some still actively evolving.
+// What DIZZY contributes is not invention but composition:
+// a deliberate arrangement of existing disciplines into a coherent whole,
+// where each one addresses a specific failure mode described in Section 1.
 
-The lineage includes:
+// The lineage includes:
 
-- Command Query Responsibility Separation (CQRS)
-- Command Queuing
-- Event Storming (for domain discovery)
-- Event Sourcing (for truth)
-- Functional Programming (for testable logic)
-- Dependency Injection (for decoupling)
-- Infrastructure as Code (for deployment)
+// - Command Query Responsibility Separation (CQRS)
+// - Command Queuing
+// - Event Storming (for domain discovery)
+// - Event Sourcing (for truth)
+// - Functional Programming (for testable logic)
+// - Dependency Injection (for decoupling)
+// - Infrastructure as Code (for deployment)
 
 // TODO: This section needs a paragraph per discipline (or at least the major ones)
 // explaining *why* DIZZY adopts it and what problem it solves in the DIZZY context.
@@ -879,6 +1170,65 @@ The lineage includes:
 // Close with the Specification pointer below.
 
 For the formal specification of DIZZY components, schemas, and code generation pipeline, see the companion _DIZZY Specification_.
+
+
+
+= Appendix
+
+== Common Patterns
+
+=== Durable Execution
+
+A procedure can _preform work_ if and only if the work has never been started, 
+or in the cases where a previous fault or outage interrupted the runtime.
+
+An explicit failure-as-ended state helps to disambiguate between runtime failures of the procedure and external failures like network interruption, power loss, etc.
+
+
+
+For some procedure $d_w$ a durable version $d_d$ is a procedure that wraps $d_w$ such that
+1. *Durable Execution Procedure* queries for *Activity Started*
+  1. If no *Activity Started*, then emit *Activity Started*
+  2. If any *Activity Started*, then query for *Activity Ended* on ID
+    1. If no *Activity Ended* - do $d_w$.
+    2. If any *Activity Ended* - return
+
+
+#figure(
+grid(columns: 2, gutter: 5em,
+// queries and projections
+grid(columns: 4, gutter: 0.2em,
+  es("c", $c_1$),
+  es("d", $d_w$),
+  es("e", $e_1$),
+  none,none,none,
+  es("e", $e_2$),
+  none,none,none,
+  es("e", $e_3$),
+  none,none,none,
+  es("e", $e_w$),
+),
+// definitions
+table(
+  columns: (auto, auto, auto),
+  align: (center, left, left),
+  table.header([*Symbol*], [*Component*], [*Role*]),
+  $c_1$, [Command],    [Start Activity with ID],
+  $d_d$, [Procedure],  [Durable Execution Procedure],
+  $e_1$, [Event],      [Activity Started],
+  $e_2$, [Event],      [Activity Ended (Succeeded)],
+  $e_3$, [Event],      [Activity Ended (Failed)],
+  $e_w$, [Event],      [Existing $d_w$ events],
+),
+)
+)
+
+
+=== Provenance
+
+- Activities
+- Entities
+- Agents (Human and LLM)
 
 
 
