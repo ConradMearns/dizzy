@@ -59,4 +59,20 @@
     description: [Collective term for the executable components of a DIZZY system: Procedures, Policies, Projections, and @querier:pl.],
     group: "Collectives",
   ),
+  cqrs: (
+    short: "CQRS",
+    long: "Command Query Responsibility Separation",
+    description: [],
+    group: "Architecture",
+  ),
+  event-driven: (
+    short: "Event Driven",
+    description: [],
+    group: "Architecture",
+  ),
+  event-sourcing: (
+    short: "Event Sourcing",
+    description: [],
+    group: "Architecture",
+  ),
 )

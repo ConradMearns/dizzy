@@ -313,3 +313,81 @@ heard of DIZZY. They should finish the paper with:
 **Statement:** Every term defined in the glossary must be referenced at least once in the body prose using the `@term` glossy syntax. A glossary entry that is never linked from the body is decorative — it is invisible to readers who do not read the appendix first and breaks the consistency guarantee that the glossary is meant to provide.  
 **Pass:** Each of the twelve glossary terms (Command, Event, Procedure, Policy, Projection, Model, Querier, Query, Feature File, Interstitial Infrastructure, Data, Functions) has at least one `@term` reference in the body text outside the glossary section itself.  
 **Fail:** Any glossary term appears only as plain text in the body, or has no body reference at all.
+
+---
+
+### WP-034: Categorization of Conceptual Refinement Methods
+**Category:** Structure  
+**Statement:** The paper must include a section for refinement methods that guide DIZZY practitioners to functioning deployments
+**Required entries:** The refinement methods: Workshops (Event Storming), Wireframes (User Interface development), Vibechecks ($d j$ and Change Data Capture), Query Notebooks (DuckDB UI)
+**Pass:** All required entries are present with a plain-language definition or a reference to where the term is defined in the paper.  Entry activities are described as Protocols of steps to follow.
+**Fail:** Any required entry is absent, or terms are used throughout the paper without a single reference point for readers who encounter them out of order.
+
+---
+
+### WP-035: Discusses Predictability of Impact of Changes
+**Category:** Content  
+**Statement:** The paper must discuss the impact of changes and how DIZZY aims to make refactoring more predictable.  
+**Pass:** The paper explicitly addresses how DIZZY's component boundaries and separation of concerns make the scope of a change estimable before it is made — a reader understands that modifying a procedure, policy, or projection does not silently affect unrelated parts of the system.  
+**Fail:** The topic of change impact or refactoring predictability is absent, or addressed only in passing without connecting it to DIZZY's design principles.
+
+---
+
+### WP-039: An Open Problems Section is Present
+**Category:** Structure  
+**Statement:** The paper must include an "Open Problems" section that names the hard unsolved problems DIZZY surfaces without claiming to have fully resolved them.  
+**Required subsections:** User Interfaces, Authorization and Access Control, Infrastructure Deployment Patterns, Compaction.  
+**Pass:** The section exists, its framing is honest about what is unresolved, and each subsection is present with at least a plain-language description of why the problem is hard.  
+**Fail:** The section is absent, subsections are missing, or the problems are presented as solved when they are not.
+
+---
+
+### WP-036: User Interfaces are Described as Compositions of Query and Commands
+**Category:** Content  
+**Statement:** The paper must introduce User Interface components as an abstract composition of at most one Query and a list of zero or more Commands — not as a first-class DIZZY component, but as a pattern built from DIZZY's existing vocabulary.  
+**Required configurations to convey:**  
+1. Null Query + one or more Commands — a form or button that submits without needing to read state first.  
+2. Single Query + null Commands — a read-only view that shows state but initiates nothing.  
+3. Single Query + two or more Commands — a fully interactive view where the Query result is context for the available Commands (e.g. a stock ticker with buy and sell actions).  
+**Pass:** All three configurations are described by example, the UI abstraction is named, and the paper makes clear this is a derived pattern rather than a new component type.  
+**Fail:** UI components are described as a new DIZZY primitive, only one configuration is given, or the relationship to the existing Query/Command vocabulary is not established.
+
+---
+
+### WP-037: Cache Invalidation is Named and Explained as a Consequence of the Event Chain
+**Category:** Content  
+**Statement:** The paper must identify cache invalidation — the problem of knowing when a UI's cached Query result is stale — as a first-class concern in DIZZY systems, and trace its solution back to the event chain.  
+**The chain to make explicit:** Event → Projection → Model → Querier → Query result.  
+**Key point to convey:** The invalidation relationship between an Event type and a Query is not implicit; it is derivable from the same component wiring declared in the Feature File. Because DIZZY's flows are enumerable (WP-021), the set of Queries invalidated by any given Event is a finite, readable graph — not an emergent mystery.  
+**Pass:** Cache invalidation is named as a design concern, the event-to-query invalidation chain is traced explicitly, and the paper connects the solution to the enumerability of DIZZY component wiring.  
+**Fail:** Cache invalidation is not mentioned, or is treated as an infrastructure detail without connecting it to the DIZZY component model.
+
+---
+
+### WP-038: Predicate Pushdown is Introduced as the Mechanism for Targeted Notifications
+**Category:** Content  
+**Statement:** The paper must explain predicate pushdown — the practice of filtering invalidation notifications at the subscriber rather than broadcasting to all components subscribed to a Model — as the solution to over-notification in reactive UIs.  
+**Key point to convey:** A user waiting on a specific order should not receive a refresh signal every time any order in the system changes. The Query Input already carries the predicate (the constraints that scoped the result). The invalidation signal carries enough information about what changed for each subscriber to evaluate locally whether its own cached Query result is affected. The broker's job is narrow: route to subscribers of the affected Model. The filter logic belongs at the subscriber.  
+**Pass:** Predicate pushdown is named, the subscriber-side filter model is described, and the paper connects the mechanism to the Query Input as the source of the predicate.  
+**Fail:** The notification model broadcasts to all subscribers without filtering, the predicate pushdown concept is absent, or the mechanism is described as an infrastructure configuration detail rather than a consequence of the Query contract.
+
+---
+
+### WP-040: Authorization is Named as an Open Problem
+**Category:** Content  
+**Statement:** The paper must identify authorization and access control as a first-class unsolved concern in DIZZY systems — not ignore it — and explain why DIZZY's component model makes the problem legible even if it does not yet specify the solution.  
+**Key point to convey:** Commands, Events, and Queries are each a distinct authorization surface. In conventional systems, access checks accumulate inside business logic and become invisible. DIZZY's separation makes the problem explicit: an authorization rule is a predicate on a component boundary. The open question is how those predicates are composed and how they interact with the audit trail already carried by the Event stream.  
+**Pass:** Authorization is named, the three authorization surfaces (command issuance, event visibility, query access) are identified, and the paper frames the problem as legible-but-unresolved rather than silently omitting it.  
+**Fail:** Authorization is not mentioned, or is treated as an implementation detail outside DIZZY's scope without acknowledging that DIZZY's design has direct implications for where access control belongs.
+
+---
+
+### WP-041: Compaction is Introduced as a Deployment Tension
+**Category:** Content  
+**Statement:** The paper must acknowledge that DIZZY's fine-grained logical decomposition creates operational pressure — many small components — and name Compaction as the practice of resolving that pressure without collapsing logical boundaries.  
+**Key point to convey:** The monolith problem is not about the number of deployment units — it is about logical boundaries collapsing. Compaction preserves the component map and the auditable wiring while allowing multiple components to share a process, queue, or runtime context. This is a deliberate operational choice, not a violation of the philosophy.  
+**Pass:** Compaction is named, the distinction between logical and operational boundaries is made explicit, and the paper is clear that compacted components retain their separate identities within the Feature File.  
+**Fail:** Compaction is absent, or the paper implies that one-component-per-service is required, or treats any co-location of components as a regression to the monolith.
+
+---
+

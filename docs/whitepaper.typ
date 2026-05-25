@@ -3,6 +3,8 @@
 #import "figures.typ": flow, c_map, e_map, d_map, y_map, j_map, m_map, Q_map, pipeline
 #import "glossary.typ": dizzy-terms
 
+#show: init-glossary.with(dizzy-terms)
+
 // Whitepaper Configuration
 #set page(
   paper: "us-letter",
@@ -27,23 +29,23 @@
   #text(24pt, weight: "bold")[D I Z Z Y]
 
   #text(12pt, weight: "bold")[
-    A Philosophy for the Development of Certain Event Driven Architectures with Deferred Interstitial Infrastructure
+    // A Philosophy for the Development of Certain Event Driven Architectures with Deferred 
+    Foundations for Interstitial Infrastructure
+    // A Philosophy for the Development of Certain Event Driven Architectures with Deferred Interstitial Infrastructure
   ]
 
   // #v(0.5em)
 
   #text(12pt)[Conrad Mearns]
   
-  #text(11pt)[#datetime.today().display()]
 ]
 
 
-#figure(box[
-  #set text(size: 0.9em)
-  #flow
-])
+// #figure(box[ #set text(size: 0.9em) #flow ])
+#v(3em)
 
-#quote(block: true, attribution: [Edsger W. Dijkstra, 2000])[
+
+#quote(block: true, attribution: [@dijkstra2000])[
   "The required techniques of effective reasoning are pretty formal, but as long as programming is done by people that don't master them, the software crisis will remain with us and will be considered an incurable disease."
   // https://www.cs.utexas.edu/~EWD/transcriptions/EWD13xx/EWD1305.html
 ]
@@ -60,15 +62,18 @@ Data and services become inseparable from the databases that serve.
 The vocabulary used to describe a system drifts from the code that implements with every commit, requiring continuous and careful maintenance.
 DIZZY is a philosophy for building event-driven software systems that keeps domain logic, data contracts and infrastructure permanently and deliberately separate.
 It draws on established practices -
-Command Query Responsibility Separation, Event Sourcing, and Domain-Driven Design - 
+Event Driven Architectures, Command Query Responsibility Separation, Event Sourcing, and Domain-Driven Design - 
 and composes them into a coherent discipline:
 define the domain in a language-agnostic schema, generate typed contracts for data and code, and let infrastructure decisions follow rather than lead.
+*@interstitial-infrastructure* as a practice is then defined as the technique for deriving such infrastructures.
 This paper is written for software practitioners and technical-decision-makers who have felt these problems firsthand.
 It makes the case for why the separations DIZZY enforces matter, 
 introduces a system of eight program components that illustrates the philosophy,
 and describes a software generation pipeline that closes the gap between domain discovery and working, scalable software.
 
 // For formal schemas, component specifications, and code generation details, see the companion _DIZZY Specification_ paper.
+
+Last Updated: #text(11pt)[#datetime.today().display()]
 
 
 // #set heading(numbering: "1a1a1a1a")
@@ -87,7 +92,6 @@ and describes a software generation pipeline that closes the gap between domain 
 // Level 3+: lighter separation
 #show heading.where(level: 3): set block(above: 1.8em, below: 1.2em)
 
-#show: init-glossary.with(dizzy-terms)
 
 #pagebreak()
 
@@ -96,71 +100,74 @@ and describes a software generation pipeline that closes the gap between domain 
   indent: auto,
 )
 
+// TODO
+// describing the structure of the whitepaper
+// https://www.francismiller.com/christopher-alexander/
+// The Timeless Way of Building, published by Oxford University Press in 1979
+
 #pagebreak()
 
-#import "pnf/pains/irreversibility.typ":            title as pain_01, body as pain_01_body
-#import "pnf/pains/false_dichotomies.typ":          title as pain_02, body as pain_02_body
-#import "pnf/pains/applications_as_islands.typ":    title as pain_03, body as pain_03_body
-#import "pnf/pains/mislabeled_territory.typ":       title as pain_04, body as pain_04_body
-#import "pnf/pains/inadequate_support.typ":         title as pain_05, body as pain_05_body
+#import "pnf/pains/mislabeled_territory.typ":       title as pain_01, body as pain_01_body
+#import "pnf/pains/project_failure.typ":            title as pain_02, body as pain_02_body
+#import "pnf/pains/stakeholder_disconnect.typ":     title as pain_03, body as pain_03_body
+#import "pnf/pains/irreversible_decisions.typ":     title as pain_04, body as pain_04_body
+#import "pnf/pains/building_wrong_thing.typ":       title as pain_05, body as pain_05_body
 
-#import "pnf/needs/defer_deployment.typ":           title as need_01, body as need_01_body
-#import "pnf/needs/architect_for_reversibility.typ":title as need_02, body as need_02_body
-#import "pnf/needs/any_language.typ":               title as need_03, body as need_03_body
-#import "pnf/needs/separate_data_functions.typ":    title as need_04, body as need_04_body
-#import "pnf/needs/derive_infra.typ":               title as need_05, body as need_05_body
+#import "pnf/needs/triage_scalability.typ":         title as need_01, body as need_01_body
+#import "pnf/needs/stakeholder_process.typ":        title as need_02, body as need_02_body
+#import "pnf/needs/synchronize_maps.typ":           title as need_03, body as need_03_body
+#import "pnf/needs/design_for_reversibility.typ":   title as need_04, body as need_04_body
+#import "pnf/needs/validate_before_building.typ":   title as need_05, body as need_05_body
 
-#import "pnf/feats/separating_infra_domain.typ":    title as feat_01, body as feat_01_body
+#import "pnf/feats/explicit_schemas.typ":           title as feat_01, body as feat_01_body
+#import "pnf/feats/workshops_as_code.typ":          title as feat_02, body as feat_02_body
+#import "pnf/feats/predictability_scaling.typ":     title as feat_03, body as feat_03_body
+#import "pnf/feats/vibe_to_robust.typ":             title as feat_04, body as feat_04_body
 
 // PAINS
 = The Burden of Software Architecture is...
 
-== #pain_01
-#pain_01_body
+// as software grows, coordination grows
+// it becomes unpredictable, bloated, and starts to be a cause in failures
+// this is why 'agile' seemed to be the solution over waterfall
+// but doesn't solve for waterfall's shortcoming, agile just ignores them
 
-== #pain_02
-#pain_02_body
+== Building the Wrong Things
 
-== #pain_03
-#pain_03_body
+== The Irreversibility of Structural Decisions
 
-== #pain_04
-#pain_04_body
-
-== #pain_05
-#pain_05_body
+== Scaling on Budget and on Time
 
 // NEEDS
-= Software Architectures Should... 
+= Software Architectures Should...
 
 ...deliberately shape the communication structures of the organizations that build them.
 
-The Inverse Conway Maneuver says: if your system is going to mirror your organization anyway, design it to mirror the organization you _want_. 
-DIZZY applies this as an architecture constraint. 
+#quote(block: true, attribution: [@leroy2010])[
+  [I]t is often worth investigating whether restructuring your organization or team would prevent the new application from displaying all the same structural dysfunctions as the original
+]
+
+The Inverse Conway Maneuver says: if your system is going to mirror your organization anyway, design it to mirror the organization you _want_.
+DIZZY applies this as an architecture constraint.
 Its rigid component boundaries are deliberate seams that define where teams own work independently and where they must coordinate.
 
-== #need_01
-#need_01_body
+== Define Processes for Stakeholder Engagement
 
-== #need_02
-#need_02_body
+== Facilitate an Understanding of What the Software Does
 
-== #need_03
-#need_03_body
+== Be Predictable to Build, Task, and Scale
 
-== #need_04
-#need_04_body
-
-== #need_05
-#need_05_body
 
 // FEATS
 = DIZZY Solves this by...
 
 ...through it's philosophy
 
-== #feat_01
-#feat_01_body
+== High to Low LoD w/ only Business concerns
+
+== Transforming Viable Software to Scalable Software
+
+== Predictability, Scaling, Task Partitioning
 
 
 
@@ -200,35 +207,44 @@ align: horizon,
 figure(link_flow),
 [
 DIZZY is Data Oriented and Functional.
-We explicitly outline each data contract component and each program process component separately. 
-// TODO figure captions?
-The diagram to the left shows the general data flow between each DIZZY data and process component. 
-Solid arrows show message passing,
-dashed arrows show call and response communication.
+We explicitly outline each data contract component and each function component separately. 
+
+
+The diagram to the left shows the general data flow between each DIZZY data and function component.
+Solid arrows show message passing as messages passed via queues.
+Dashed arrows show call-and-response communications, or subscription-based streams.
+
+The implementation of DIZZY is oriented around message passing. 
+While this creates many new issues like Race Conditions (discussed in @race-conditions) ---
+the primary hypothesis of DIZZY is that these problems are solvable algorithmically.
 ],
 )
 
-#v(2em)
+Each component represents a unit of computation that requires careful considerations around its intended semantic constraints. 
+DIZZY is an @event-driven paradigm, that assumes @event-sourcing is used for a source of truth.
+This means explicit @cqrs
+
+// #v(2em)
 
 #figure(
 table(
   columns: (auto, auto, auto),
   align: (center, left, left),
   table.header([*Symbol*], [*Component*], [*Role*]),
-  $c$, [Command],    [Represent intent - what a user or policy wants to happen],
-  $d$, [Procedure],  [Handles a Command and may emit @event:pl],
-  $e$, [Event],      [Immutable record of facts - the source of truth],
-  $y$, [Policy],     [Reacts to an Event and may emit @command:pl],
-  $j$, [Projection], [Listens for @event:pl and updates @model:pl],
-  $m$, [Model],      [Queryable view of state, derived from @event:pl],
-  $Q$, [Querier],    [Executes a Query against a Model],
-  $q$, [Query],      [Typed contract for a call and its response],
+  $c$, [Command],    [Represents an intent - what a user or policy wants to happen],
+  $d$, [Procedure],  [Handles a Command and may emit any @event:pl],
+  $e$, [Event],      [Immutable record of facts as the source of truth, intended to be stored with Event Sourcing],
+  $y$, [Policy],     [Reacts to an Event and may emit any @command:pl],
+  $m$, [Model],      [Typically, a database schema. Used not as a source of truth - but an engine for optimizing queries.],
+  $j$, [Projection], [Triggered for @event:pl and updates @model:pl. The mutation ORM layer.],
+  $q$, [Query],      [Typed contract for a call and its response. Represented as an Input and Output tuple],
+  $Q$, [Querier],    [Executes a Input Query against a Model],
 ))
 
 // This is intended to be a very high level description of the DIZZY architecture.
 // See the Specification for more detail.
 
-DIZZY is therefor comprised of two dataflow loops.
+DIZZY is therefore comprised of two dataflow loops.
 
 Firstly, a reactivity loop; Where @command:pl trigger @procedure:pl, which emit @event:pl that trigger @policy:pl, that emit @command:pl.
 Secondly, a data retrieval loop; Where Event are projected to @model:pl (databases), which can be queried by @procedure:pl and @policy:pl.
@@ -243,7 +259,9 @@ Thus, each debit and credit Event must also trigger a projection to keep this no
 
 // The data loop enables change information (@event:pl) to be recorded in highly specialized formats specifically for the purposes of efficient retrieval by @procedure:pl and @policy:pl.
 
-== @command:pl ( $c$ ) that Represent Intent <commands>
+== Data and Function Components
+
+=== @command:pl ( $c$ ) that Represent Intent <commands>
 
 #grid(
 columns: (auto, 1fr),
@@ -276,7 +294,7 @@ A @command may trigger many @procedure:pl. This relation is typically best assig
 
 @command:pl express intent, and can be carefully designed to handle cases where lossy systems where retries are standard practice. See Durable Execution // TODO make a link!
 
-== @procedure:pl ( $d$ ) that Perform the Critical Work <procedures>
+=== @procedure:pl ( $d$ ) that Perform the Critical Work <procedures>
 
 #grid(
 columns: (auto, 1fr),
@@ -305,7 +323,7 @@ and invisible effects undermine the audit guarantee that @event:pl provide.
 // flow through @command:pl and @event:pl?
 ])
 
-== @event:pl ( $e$ ) that are the Source of Truth <events>
+=== @event:pl ( $e$ ) that are the Source of Truth <events>
 
 #grid(
 columns: (auto, 1fr),
@@ -337,7 +355,7 @@ Every database is just a cached, queryable projection of that truth — disposab
 
 
 
-== @policy:pl ( $y$ ) that React and Initiate <policies>
+=== @policy:pl ( $y$ ) that React and Initiate <policies>
 
 #grid(
 columns: (auto, 1fr),
@@ -371,7 +389,7 @@ lives in the Policy, not scattered through unrelated code.
 // how does DIZZY handle that without violating the stateless reactive model?
 ])
 
-== @projection:pl ( $j$ ) that Map @event:pl to @model:pl <projections>
+=== @projection:pl ( $j$ ) that Map @event:pl to @model:pl <projections>
 
 #grid(
 columns: (auto, 1fr),
@@ -401,7 +419,7 @@ Write a new Projection, replay the @event:pl, and a new Model emerges from the s
 // TODO: Can multiple @projection:pl write to the same Model, or is it always 1:1?
 ])
 
-== @model:pl ( $m$ ) that Serve Data for @query:pl <models>
+=== @model:pl ( $m$ ) that Serve Data for @query:pl <models>
 
 #grid(
 columns: (auto, 1fr),
@@ -427,7 +445,7 @@ all derived from the same Event stream.
 ])
 
 
-== @query:pl ( $q$ ) and @querier:pl ( $Q$ ) for efficient computation <queries> //<queriers>
+=== @query:pl ( $q$ ) and @querier:pl ( $Q$ ) for efficient computation <queries> //<queriers>
 
 #grid(
 columns: (auto, 1fr),
@@ -444,6 +462,10 @@ DIZZY systems demand the distinction between database drivers, data contracts, a
 We call the data contracts @query:pl, which are typically represented as a tuple of Input and Output, or Call and Response.
 The process that uses program code to execute the query is what we call the Querier.
 ])
+
+== Architecting Generic @interstitial-infrastructure:pl
+
+=== 
 
 = How to Structure Software Development Workflows with DIZZY
 
@@ -665,7 +687,7 @@ If the workshop gets crowded - make copies of notes and spread things out until 
 
 // Each Model named in the session needs a mechanism for staying current. A Projection listens to the @event:pl that affect a Model's state and writes updates accordingly. Identifying the @projection:pl completes the picture: for each Model, which @event:pl change it?
 
-== Studying Vibes and Experiments
+== Vibechecks - Studying Vibes and Experiments
 
 #let flow2_dj = diagram(
   spacing: (2em, 2em),
@@ -800,6 +822,142 @@ Infrastructure decisions, such as which database backs a Model, which message qu
 Domain logic never knows where its inputs came from or where its outputs go.
 
 
+= Open Problems <open-problems>
+
+// TODO WP-036, WP-037, WP-038, WP-039, WP-040, WP-041
+
+DIZZY does not claim to have solved every hard problem in software architecture.
+It claims to have made those problems _visible_ — to surface them at the domain level where they can be reasoned about, rather than bury them in infrastructure where they are discovered only after deployment.
+
+The following are problems that DIZZY identifies clearly and for which DIZZY's vocabulary provides a precise language — but for which the solutions are not yet fully specified.
+They are named here because honest acknowledgment of what is hard is more useful than silence.
+
+== Reactive User Interfaces
+
+A User Interface component is not a first-class DIZZY component.
+It is an abstraction built on top of the @query and @command vocabulary: a pairing of at most one @query and a list of zero or more @command:pl.
+
+The @query side answers: _what does this view show?_
+The @command side answers: _what can the user do from here?_
+
+Three configurations cover most practical cases.
+A form or button that submits without first reading state carries no @query and one or more @command:pl — the view does not need to know anything about current system state to do its job.
+A read-only dashboard carries a single @query and no @command:pl — it shows state and initiates nothing.
+A fully interactive view carries a @query and two or more @command:pl — the @query result is context for the available actions (a stock ticker paired with buy and sell @command:pl, for instance).
+
+// TODO: Add sticky-note figure using the es() helper: null-q button, read-only table, stock screen
+
+=== Cache Invalidation
+
+The sharp problem for all three configurations is the same: the view eventually goes stale.
+
+In a DIZZY system, state flows in one direction: @event:pl are written, @projection:pl update @model:pl, @querier:pl answer @query:pl from those models.
+When an @event fires and a @projection writes new model state, any active @query whose result reads from that @model may no longer reflect reality.
+
+The challenge is determining _which_ @query:pl are invalidated by _which_ @event:pl, and propagating a refresh signal to the right views without broadcasting to all of them.
+
+The @feature-file already declares the edges of this graph: each @projection maps specific @event types to specific @model:pl, and each @query targets specific @model:pl.
+The invalidation relationship from @event to @query is therefore derivable from the same component wiring that defines the rest of the system.
+
+// TODO: Describe the derived invalidation graph (event → projection → model → querier → query)
+// TODO: Connect to WP-021 (flows are enumerable): cache invalidation paths are enumerable for the same reason
+
+=== Predicate Pushdown
+
+Knowing _that_ a @query might be stale is not sufficient.
+A user viewing their own order should not receive a refresh notification every time any order in the system changes.
+
+The @query Input already carries the predicate — it is the set of constraints that scoped the original result.
+A notification system that passes the relevant fields of the triggering @event alongside the invalidation signal allows each UI component to evaluate locally whether its cached result is affected.
+The broker routes to subscribers of the affected @model; each subscriber decides for itself whether its particular @query is invalidated.
+
+// TODO: Specify the predicate pushdown protocol in the Specification
+// TODO: Note the connection to the Durable Execution pattern — idempotency matters here too
+
+== Authorization and Access Control
+
+DIZZY's component boundaries create a natural surface for authorization, but do not yet specify how it is enforced.
+
+@command:pl express intent from an actor.
+@event:pl record facts that have occurred.
+@query:pl request information from a @model.
+Each is a point at which the system can ask: _is this actor permitted to do this?_
+
+The problem is that authorization logic tends to bleed.
+In conventional systems, access checks accumulate inside business logic — scattered across procedures, database queries, and API handlers — rather than being enforced at a consistent boundary.
+DIZZY's strict separation makes the problem legible: an authorization rule is a predicate on a @command, an @event, or a @query, and belongs at the component boundary rather than woven through the implementation.
+
+What DIZZY does not yet specify is where those predicates live, how they compose across nested components, and how they interact with audit requirements already carried by the @event stream.
+
+// TODO: Discuss command-level auth (can this actor issue this command?)
+// TODO: Discuss query-level auth (can this actor read from this model?)
+// TODO: Discuss event-level visibility (can this actor observe this event?)
+// TODO: Connection to Provenance (Appendix) — actors as a first-class concept
+
+== Race Conditions <race-conditions>
+
+Projections before policies?
+Policies before projections?
+
+Linked deeply with another open problem: Events, Database Normalization, Modeling and Single Source of Truth.
+
+== Modeling Source of Truth
+
+How do you know an event is modelled correctly and fully?
+
+Possibly the same way you determine if a relational database is modelled "correctly".
+
+Start with normalization. Most "best practice" relational databases consist of 3NF-5NF tables.
+
+But you can go further - 6NF also exists. An Event is likely either always 5NF or 6NF.
+
+The exact specifications of the design may therefor require 6NF as it's easier to enforce algorithmically.
+
+This can lead to an explosion of Event models though - but this too is less of a problem if they are also defined algorithmically.
+
+So then - what is the source of truth for the source of truth? Yet Another Relational Model?
+
+LinkML is not quite expressive enough yet to perfectly encapsulate the full breadth of adaptability required.
+
+TypeDB offers a better hint as to what is required...
+
+== Infrastructure Deployment Patterns
+
+DIZZY defers infrastructure decisions by design — but at some point they must be made.
+A @procedure must run somewhere.
+A @model must be backed by something.
+A @command must travel from its emitter to its handler by some mechanism.
+
+The open question is not _whether_ to deploy but _how many deployment units to create_.
+DIZZY's logical boundaries do not prescribe physical boundaries.
+A system with eight @command types and twelve @event types could be deployed as a single process, as one service per component, or as any topology in between.
+All of these are valid.
+The @feature-file makes that topology decision explicit and auditable — not implicit.
+
+// TODO: Name the canonical deployment configurations:
+// monolith (all components in one process), per-component services, hybrid groupings
+// TODO: Discuss tradeoffs: operational overhead vs. independent scalability vs. fault isolation
+
+== Compaction
+
+DIZZY's philosophy encourages fine-grained decomposition — one @procedure per @command type, one @projection per event-to-model mapping.
+Taken to its logical conclusion, a non-trivial system generates dozens of small, independently deployable components.
+This is the right _logical_ structure.
+It is not always the right _operational_ structure.
+
+Compaction is the practice of stitching multiple DIZZY components into a single deployable artifact without violating their logical separation.
+The domain contracts remain intact.
+The component boundaries remain auditable.
+What changes is only the deployment boundary — multiple components share a process, a queue, or a runtime context.
+
+This is not a regression to the monolith problem DIZZY was designed to escape.
+The monolith problem is that logical boundaries collapse: @procedure:pl call each other directly, @model:pl accumulate mixed concerns, and the component map becomes fiction.
+Compaction preserves the logical boundaries while making a pragmatic choice about where to draw the operational ones.
+
+// TODO: Define a formal compaction model in the Specification
+// TODO: Discuss compaction constraints — what must remain separate to preserve the guarantees?
+// TODO: Discuss the relationship between compaction and the Inverse Conway Maneuver (WP-022)
+
 = Conclusion
 
 // TODO: This section needs full prose to satisfy WP-012 and WP-028.
@@ -887,7 +1045,12 @@ table(
   groups: ("DIZZY Components", "Architecture", "Collectives"),
 )
 
-#bibliography("refs.bib")
+#bibliography(
+  // style: "ieee",
+  style: "iso-690-author-date",
+  full: true,
+  "refs.bib"
+)
 
 // https://maggieappleton.com/garden-history
 // https://veilid.com/Launch-Slides-Veilid.pdf
