@@ -1,0 +1,25 @@
+id: https://example.org/models/guestbook
+name: guestbook
+description: Stored guestbook signatures
+prefixes:
+  linkml: https://w3id.org/linkml/
+default_range: string
+imports:
+  - linkml:types
+classes:
+  Signature:
+    description: A single stored guestbook signature
+    attributes:
+      id:
+        range: string
+        required: true
+        identifier: true
+      visitor_name:
+        range: string
+        required: true
+      message:
+        range: string
+        required: true
+      signed_at:
+        range: datetime
+        required: true

@@ -1,0 +1,22 @@
+id: https://example.org/queries/list_signatures
+name: list_signatures
+description: List all guestbook signatures, newest first
+prefixes:
+  linkml: https://w3id.org/linkml/
+default_range: string
+imports:
+  - linkml:types
+classes:
+  ListSignaturesInput:
+    description: Input for list_signatures
+    attributes:
+      limit:
+        range: integer
+        required: false
+  ListSignaturesOutput:
+    description: Output for list_signatures
+    attributes:
+      signatures:
+        range: string
+        multivalued: true
+        description: 'Signatures rendered as "name: message", newest first'

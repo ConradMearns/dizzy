@@ -5,13 +5,13 @@
   from dataclasses import dataclass
   from typing import Callable
   
-  from gen_def.pydantic.events import recipe_ingested
+  from gen_def.pydantic.events import RecipeIngested
   from gen_int.python.query.get_recipe_text import get_recipe_text_query
   
   
   @dataclass
   class extract_and_transform_recipe_emitters:
-      recipe_ingested: Callable[[recipe_ingested], None]
+      recipe_ingested: Callable[[RecipeIngested], None]
   
   
   @dataclass
@@ -31,7 +31,7 @@
   # AUTO-GENERATED — do not edit
   from typing import Protocol
   
-  from gen_def.pydantic.commands import ingest_recipe_text
+  from gen_def.pydantic.commands import IngestRecipeText
   from gen_int.python.procedure.extract_and_transform_recipe_context import (
       extract_and_transform_recipe_context,
   )
@@ -43,7 +43,7 @@
       def __call__(
           self,
           context: extract_and_transform_recipe_context,
-          command: ingest_recipe_text,
+          command: IngestRecipeText,
       ) -> None:
           ...
   
@@ -54,12 +54,12 @@
   # Implementation stub — fill in your logic here
   from gen_int.python.procedure.extract_and_transform_recipe_protocol import extract_and_transform_recipe_protocol
   from gen_int.python.procedure.extract_and_transform_recipe_context import extract_and_transform_recipe_context
-  from gen_def.pydantic.commands import ingest_recipe_text
+  from gen_def.pydantic.commands import IngestRecipeText
   
   
   def extract_and_transform_recipe(
       context: extract_and_transform_recipe_context,
-      command: ingest_recipe_text,
+      command: IngestRecipeText,
   ) -> None:
       raise NotImplementedError
   

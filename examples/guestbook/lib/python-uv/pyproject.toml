@@ -1,0 +1,6 @@
+[tool.uv.workspace]
+members = [
+  "procedure/record_signature",
+  "query/list_signatures",
+  "projection/signature_store",
+]

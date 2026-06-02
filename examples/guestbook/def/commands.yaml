@@ -1,0 +1,17 @@
+id: https://example.org/commands
+name: commands
+prefixes:
+  linkml: https://w3id.org/linkml/
+default_range: string
+imports:
+  - linkml:types
+classes:
+  sign_guestbook:
+    description: A visitor wants to leave a signature
+    attributes:
+      visitor_name:
+        range: string
+        required: true
+      message:
+        range: string
+        required: true

@@ -1,0 +1,14 @@
+# Dizzy library configuration — assign runtimes to each element
+# Supported runtimes: python-uv | rust-cargo | typescript-npm
+
+procedures:
+  record_signature:
+    runtimes: [python-uv]
+
+queries:
+  list_signatures:
+    runtimes: [python-uv]
+
+projections:
+  signature_store:
+    runtimes: [python-uv]

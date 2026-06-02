@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+from linkml_runtime.utils.formatutils import camelcase
+
 from dizzy.feat_schema import ProcedureDef
 from dizzy.logger import logger
 
@@ -20,7 +22,7 @@ def render_procedure_context(proc: ProcedureDef) -> str:
     if proc.emits or proc.queries:
         lines.append("")
         for event_name in proc.emits:
-            lines.append(f"from gen_def.pydantic.events import {event_name}")
+            lines.append(f"from gen_def.pydantic.events import {camelcase(event_name)}")
         for query_name in proc.queries:
             lines.append(
                 f"from gen_int.python.query.{query_name} import {query_name}_query"
@@ -33,7 +35,7 @@ def render_procedure_context(proc: ProcedureDef) -> str:
     lines.append(f"class {emitters_class}:")
     if proc.emits:
         for event_name in proc.emits:
-            lines.append(f"    {event_name}: Callable[[{event_name}], None]")
+            lines.append(f"    {event_name}: Callable[[{camelcase(event_name)}], None]")
     else:
         lines.append("    pass")
 
@@ -77,13 +79,14 @@ def render_procedure_protocol(proc: ProcedureDef) -> str:
     """Render gen_int/python/procedure/<proc.name>_protocol.py."""
     context_class = f"{proc.name}_context"
     protocol_class = f"{proc.name}_protocol"
+    command_class = camelcase(proc.command)
     description = proc.description.strip()
 
     lines = [
         "# AUTO-GENERATED — do not edit",
         "from typing import Protocol",
         "",
-        f"from gen_def.pydantic.commands import {proc.command}",
+        f"from gen_def.pydantic.commands import {command_class}",
         f"from gen_int.python.procedure.{proc.name}_context import (",
         f"    {context_class},",
         ")",
@@ -95,7 +98,7 @@ def render_procedure_protocol(proc: ProcedureDef) -> str:
         "    def __call__(",
         "        self,",
         f"        context: {context_class},",
-        f"        command: {proc.command},",
+        f"        command: {command_class},",
         "    ) -> None:",
         "        ...",
         "",
@@ -121,16 +124,17 @@ def render_src_procedure_stub(proc: ProcedureDef) -> str:
     """Render a src/procedure/<proc.name>.py implementation stub."""
     context_class = f"{proc.name}_context"
     protocol_class = f"{proc.name}_protocol"
+    command_class = camelcase(proc.command)
     lines = [
         "# Implementation stub — fill in your logic here",
         f"from gen_int.python.procedure.{proc.name}_protocol import {protocol_class}",
         f"from gen_int.python.procedure.{proc.name}_context import {context_class}",
-        f"from gen_def.pydantic.commands import {proc.command}",
+        f"from gen_def.pydantic.commands import {command_class}",
         "",
         "",
         f"def {proc.name}(",
         f"    context: {context_class},",
-        f"    command: {proc.command},",
+        f"    command: {command_class},",
         ") -> None:",
         "    raise NotImplementedError",
         "",

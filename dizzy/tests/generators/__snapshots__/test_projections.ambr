@@ -5,7 +5,7 @@
   from dataclasses import dataclass
   from typing import Protocol
   
-  from gen_def.pydantic.events import recipe_ingested
+  from gen_def.pydantic.events import RecipeIngested
   from gen_int.python.adapters.sqla import SqlaAdapter
   
   
@@ -17,7 +17,7 @@
   class recipe_library_projection(Protocol):
       """Adds ingested recipe to the recipe library"""
   
-      def __call__(self, event: recipe_ingested, context: recipe_library_context) -> None:
+      def __call__(self, event: RecipeIngested, context: recipe_library_context) -> None:
           """Apply the projection — mutate model state in response to the event."""
           ...
   
@@ -28,11 +28,11 @@
   # Implementation stub — fill in your logic here
   from gen_int.python.projection.recipe_library_projection import recipe_library_projection
   from gen_int.python.projection.recipe_library_projection import recipe_library_context
-  from gen_def.pydantic.events import recipe_ingested
+  from gen_def.pydantic.events import RecipeIngested
   
   
   def recipe_library(
-      event: recipe_ingested,
+      event: RecipeIngested,
       context: recipe_library_context,
   ) -> None:
       raise NotImplementedError

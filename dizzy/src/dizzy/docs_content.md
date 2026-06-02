@@ -169,7 +169,7 @@ projections:
 
 ---
 
-## Two-Step Workflow
+## Three-Step Workflow
 
 ### Step 1: Scaffold definitions
 
@@ -177,8 +177,9 @@ projections:
 uv run dizzy def <feat_file> <output_dir>
 ```
 
-Reads the feat file and writes LinkML stub files into `def/`. These stubs are
-**never overwritten** on re-run — they are yours to edit.
+Reads the feat file and writes LinkML stub files into `def/`, plus a `libconfig.yaml`
+that assigns a runtime to each element. These are **never overwritten** on re-run —
+they are yours to edit.
 
 ### Step 2: Generate code
 
@@ -189,6 +190,19 @@ uv run dizzy gen <feat_file> <output_dir>
 Reads the feat file + your authored `def/` stubs. Runs the LinkML toolchain and
 generates `gen_def/`, `gen_int/`, and `src/`. Requires that `def/` stubs exist;
 run `def` first.
+
+### Step 3: Package per runtime
+
+```
+uv run dizzy lib <feat_file> <output_dir>
+```
+
+Reads `libconfig.yaml` and emits `lib/<runtime>/`, splitting each element into its
+own redistributable package (a uv workspace member for `python-uv`). Requires that
+`libconfig.yaml` exists; run `def` first. The Python path is the most complete;
+`rust-cargo` and `typescript-npm` are experimental.
+
+A complete, runnable example lives in `examples/guestbook/` in the repository.
 
 ---
 
@@ -283,7 +297,7 @@ emit events, and `context.query.<query_name>(input, query_context)` for reads.
 ```python
 def extract_receipt_data_from_image(
     context: extract_receipt_data_from_image_context,
-    command: ingest_receipt_image,
+    command: IngestReceiptImage,
 ) -> None:
     # Use command fields (e.g., command.image_path)
     # Emit events via context.emit.receipt_ingested(event)
@@ -296,7 +310,7 @@ dispatch new commands.
 
 ```python
 def index_recipe_on_ingest(
-    event: recipe_ingested,
+    event: RecipeIngested,
     context: index_recipe_on_ingest_context,
 ) -> None:
     # React to event, optionally dispatch commands
@@ -309,7 +323,7 @@ session or filesystem path) to persist state.
 
 ```python
 def receipt_store(
-    event: receipt_ingested,
+    event: ReceiptIngested,
     context: receipt_store_context,
 ) -> None:
     # context.adapter is a SqlaAdapter (has .session)
@@ -394,10 +408,17 @@ Their generated context receives the corresponding adapter dataclass as
 
 ## Import Conventions
 
-Generated files use root-relative imports from the output directory:
+Generated files use root-relative imports from the output directory.
 
-- Pydantic models: `from gen_def.pydantic.commands import <command_name>`
-- Events: `from gen_def.pydantic.events import <event_name>`
+**Naming rule:** you author element names in `snake_case` (in the feat file and as
+`def/` class keys), but the LinkML toolchain emits **`PascalCase`** Pydantic classes.
+So a command `ingest_receipt_image` becomes the class `IngestReceiptImage`, and an
+event `receipt_ingested` becomes `ReceiptIngested`. Generated code imports the
+PascalCase class. Runtime accessors keyed by element name stay snake_case — e.g.
+`context.emit.receipt_ingested(...)`.
+
+- Commands: `from gen_def.pydantic.commands import <CommandClass>`  (PascalCase)
+- Events: `from gen_def.pydantic.events import <EventClass>`  (PascalCase)
 - Query IO: `from gen_def.pydantic.query.<name> import <Name>Input, <Name>Output`
 - Model classes: `from gen_def.pydantic.models.<name> import <ClassName>`
 - Protocols: `from gen_int.python.procedure.<name>_protocol import <name>_protocol`

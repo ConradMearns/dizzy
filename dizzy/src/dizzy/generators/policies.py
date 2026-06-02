@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+from linkml_runtime.utils.formatutils import camelcase
+
 from dizzy.feat_schema import PolicyDef
 from dizzy.logger import logger
 
@@ -17,7 +19,7 @@ def render_policy_context(policy: PolicyDef) -> str:
         lines.append("from typing import Callable")
         lines.append("")
         for cmd_name in policy.emits:
-            lines.append(f"from gen_def.pydantic.commands import {cmd_name}")
+            lines.append(f"from gen_def.pydantic.commands import {camelcase(cmd_name)}")
 
     # emitters dataclass
     lines.append("")
@@ -26,7 +28,7 @@ def render_policy_context(policy: PolicyDef) -> str:
     lines.append(f"class {emitters_class}:")
     if policy.emits:
         for cmd_name in policy.emits:
-            lines.append(f"    {cmd_name}: Callable[[{cmd_name}], None]")
+            lines.append(f"    {cmd_name}: Callable[[{camelcase(cmd_name)}], None]")
     else:
         lines.append("    pass")
 
@@ -55,13 +57,14 @@ def render_policy_protocol(policy: PolicyDef) -> str:
     """Render gen_int/python/policy/<policy.name>_protocol.py."""
     context_class = f"{policy.name}_context"
     protocol_class = f"{policy.name}_protocol"
+    event_class = camelcase(policy.event)
     description = policy.description.strip()
 
     lines = [
         "# AUTO-GENERATED — do not edit",
         "from typing import Protocol",
         "",
-        f"from gen_def.pydantic.events import {policy.event}",
+        f"from gen_def.pydantic.events import {event_class}",
         f"from gen_int.python.policy.{policy.name}_context import (",
         f"    {context_class},",
         ")",
@@ -72,7 +75,7 @@ def render_policy_protocol(policy: PolicyDef) -> str:
         "",
         "    def __call__(",
         "        self,",
-        f"        event: {policy.event},",
+        f"        event: {event_class},",
         f"        context: {context_class},",
         "    ) -> None:",
         "        ...",
@@ -95,15 +98,16 @@ def render_src_policy_stub(policy: PolicyDef) -> str:
     """Render a src/policy/<policy.name>.py implementation stub."""
     context_class = f"{policy.name}_context"
     protocol_class = f"{policy.name}_protocol"
+    event_class = camelcase(policy.event)
     lines = [
         "# Implementation stub — fill in your logic here",
         f"from gen_int.python.policy.{policy.name}_protocol import {protocol_class}",
         f"from gen_int.python.policy.{policy.name}_context import {context_class}",
-        f"from gen_def.pydantic.events import {policy.event}",
+        f"from gen_def.pydantic.events import {event_class}",
         "",
         "",
         f"def {policy.name}(",
-        f"    event: {policy.event},",
+        f"    event: {event_class},",
         f"    context: {context_class},",
         ") -> None:",
         "    raise NotImplementedError",

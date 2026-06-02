@@ -684,7 +684,7 @@
       # AUTO-GENERATED — do not edit
       from typing import Protocol
       
-      from gen_def.pydantic.events import recipe_ingested
+      from gen_def.pydantic.events import RecipeIngested
       from gen_int.python.policy.index_recipe_on_ingest_context import (
           index_recipe_on_ingest_context,
       )
@@ -695,7 +695,7 @@
       
           def __call__(
               self,
-              event: recipe_ingested,
+              event: RecipeIngested,
               context: index_recipe_on_ingest_context,
           ) -> None:
               ...
@@ -707,13 +707,13 @@
       from dataclasses import dataclass
       from typing import Callable
       
-      from gen_def.pydantic.events import recipe_ingested
+      from gen_def.pydantic.events import RecipeIngested
       from gen_int.python.query.get_recipe_text import get_recipe_text_query
       
       
       @dataclass
       class extract_and_transform_recipe_emitters:
-          recipe_ingested: Callable[[recipe_ingested], None]
+          recipe_ingested: Callable[[RecipeIngested], None]
       
       
       @dataclass
@@ -731,7 +731,7 @@
       # AUTO-GENERATED — do not edit
       from typing import Protocol
       
-      from gen_def.pydantic.commands import ingest_recipe_text
+      from gen_def.pydantic.commands import IngestRecipeText
       from gen_int.python.procedure.extract_and_transform_recipe_context import (
           extract_and_transform_recipe_context,
       )
@@ -743,7 +743,7 @@
           def __call__(
               self,
               context: extract_and_transform_recipe_context,
-              command: ingest_recipe_text,
+              command: IngestRecipeText,
           ) -> None:
               ...
   
@@ -754,7 +754,7 @@
       from dataclasses import dataclass
       from typing import Protocol
       
-      from gen_def.pydantic.events import recipe_ingested
+      from gen_def.pydantic.events import RecipeIngested
       from gen_int.python.adapters.sqla import SqlaAdapter
       
       
@@ -766,7 +766,7 @@
       class recipe_library_projection(Protocol):
           """Adds ingested recipe to the recipe library"""
       
-          def __call__(self, event: recipe_ingested, context: recipe_library_context) -> None:
+          def __call__(self, event: RecipeIngested, context: recipe_library_context) -> None:
               """Apply the projection — mutate model state in response to the event."""
               ...
   
@@ -845,11 +845,11 @@
       # Implementation stub — fill in your logic here
       from gen_int.python.policy.index_recipe_on_ingest_protocol import index_recipe_on_ingest_protocol
       from gen_int.python.policy.index_recipe_on_ingest_context import index_recipe_on_ingest_context
-      from gen_def.pydantic.events import recipe_ingested
+      from gen_def.pydantic.events import RecipeIngested
       
       
       def index_recipe_on_ingest(
-          event: recipe_ingested,
+          event: RecipeIngested,
           context: index_recipe_on_ingest_context,
       ) -> None:
           raise NotImplementedError
@@ -859,12 +859,12 @@
       # Implementation stub — fill in your logic here
       from gen_int.python.procedure.extract_and_transform_recipe_protocol import extract_and_transform_recipe_protocol
       from gen_int.python.procedure.extract_and_transform_recipe_context import extract_and_transform_recipe_context
-      from gen_def.pydantic.commands import ingest_recipe_text
+      from gen_def.pydantic.commands import IngestRecipeText
       
       
       def extract_and_transform_recipe(
           context: extract_and_transform_recipe_context,
-          command: ingest_recipe_text,
+          command: IngestRecipeText,
       ) -> None:
           raise NotImplementedError
   
@@ -873,11 +873,11 @@
       # Implementation stub — fill in your logic here
       from gen_int.python.projection.recipe_library_projection import recipe_library_projection
       from gen_int.python.projection.recipe_library_projection import recipe_library_context
-      from gen_def.pydantic.events import recipe_ingested
+      from gen_def.pydantic.events import RecipeIngested
       
       
       def recipe_library(
-          event: recipe_ingested,
+          event: RecipeIngested,
           context: recipe_library_context,
       ) -> None:
           raise NotImplementedError
