@@ -5,6 +5,7 @@ from pathlib import Path
 from linkml_runtime.utils.formatutils import camelcase
 
 from dizzy.feat_schema import ProjectionDef
+from dizzy.generators.paths import gen_int_root
 from dizzy.logger import logger
 
 
@@ -65,8 +66,7 @@ def render_projection(proj: ProjectionDef) -> str:
 def write_projection(proj: ProjectionDef, output_dir: Path) -> None:
     """Write gen_int/python/projection/<proj.name>_projection.py (always overwritten)."""
     dest = (
-        output_dir
-        / "gen_int"
+        gen_int_root(output_dir)
         / "python"
         / "projection"
         / f"{proj.name}_projection.py"
@@ -96,14 +96,3 @@ def render_src_projection_stub(proj: ProjectionDef) -> str:
         "",
     ]
     return "\n".join(lines)
-
-
-def write_projection_src_stub(proj: ProjectionDef, output_dir: Path) -> None:
-    """Write src/projection/<proj.name>.py; skip if file already exists."""
-    dest = output_dir / "src" / "projection" / f"{proj.name}.py"
-    if dest.exists():
-        logger.debug("skipped existing file", extra={"path": str(dest)})
-        return
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(render_src_projection_stub(proj))
-    logger.debug("wrote file", extra={"path": str(dest)})

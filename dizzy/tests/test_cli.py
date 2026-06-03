@@ -38,43 +38,48 @@ def test_gen_creates_all_outputs(tmp_path: Path) -> None:
     def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
     gen(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
 
+    # gen_def / gen_int are installable packages under lib/python-uv/; their
+    # importable roots are nested one level (lib/python-uv/<pkg>/<pkg>/...).
+    gen_def = tmp_path / "lib" / "python-uv" / "gen_def" / "gen_def"
+    gen_int = tmp_path / "lib" / "python-uv" / "gen_int" / "gen_int"
+
     # gen_def/ — linkml outputs
-    assert (tmp_path / "gen_def" / "pydantic" / "commands.py").exists()
-    assert (tmp_path / "gen_def" / "pydantic" / "events.py").exists()
-    assert (tmp_path / "gen_def" / "pydantic" / "query" / "get_recipe_text.py").exists()
-    assert (tmp_path / "gen_def" / "pydantic" / "query" / "get_recipe.py").exists()
-    assert (tmp_path / "gen_def" / "pydantic" / "models" / "recipes.py").exists()
-    assert (tmp_path / "gen_def" / "sqla" / "models" / "recipes.py").exists()
+    assert (gen_def / "pydantic" / "commands.py").exists()
+    assert (gen_def / "pydantic" / "events.py").exists()
+    assert (gen_def / "pydantic" / "query" / "get_recipe_text.py").exists()
+    assert (gen_def / "pydantic" / "query" / "get_recipe.py").exists()
+    assert (gen_def / "pydantic" / "models" / "recipes.py").exists()
+    assert (gen_def / "sqla" / "models" / "recipes.py").exists()
 
     # gen_int/ — protocol outputs
-    assert (tmp_path / "gen_int" / "python" / "query" / "get_recipe_text.py").exists()
-    assert (tmp_path / "gen_int" / "python" / "query" / "get_recipe.py").exists()
-    assert (tmp_path / "gen_int" / "python" / "procedure" / "extract_and_transform_recipe_context.py").exists()
-    assert (tmp_path / "gen_int" / "python" / "procedure" / "extract_and_transform_recipe_protocol.py").exists()
-    assert (tmp_path / "gen_int" / "python" / "policy" / "index_recipe_on_ingest_context.py").exists()
-    assert (tmp_path / "gen_int" / "python" / "policy" / "index_recipe_on_ingest_protocol.py").exists()
-    assert (tmp_path / "gen_int" / "python" / "projection" / "recipe_library_projection.py").exists()
+    assert (gen_int / "python" / "query" / "get_recipe_text.py").exists()
+    assert (gen_int / "python" / "query" / "get_recipe.py").exists()
+    assert (gen_int / "python" / "procedure" / "extract_and_transform_recipe_context.py").exists()
+    assert (gen_int / "python" / "procedure" / "extract_and_transform_recipe_protocol.py").exists()
+    assert (gen_int / "python" / "policy" / "index_recipe_on_ingest_context.py").exists()
+    assert (gen_int / "python" / "policy" / "index_recipe_on_ingest_protocol.py").exists()
+    assert (gen_int / "python" / "projection" / "recipe_library_projection.py").exists()
 
-    # src/ — implementation stubs
-    assert (tmp_path / "src" / "query" / "get_recipe_text.py").exists()
-    assert (tmp_path / "src" / "query" / "get_recipe.py").exists()
-    assert (tmp_path / "src" / "procedure" / "extract_and_transform_recipe.py").exists()
-    assert (tmp_path / "src" / "policy" / "index_recipe_on_ingest.py").exists()
-    assert (tmp_path / "src" / "projection" / "recipe_library.py").exists()
+    # No flat src/ tree is generated any more.
+    assert not (tmp_path / "src").exists()
 
-    # __init__.py in every generated directory
-    assert (tmp_path / "gen_def" / "__init__.py").exists()
-    assert (tmp_path / "gen_def" / "pydantic" / "__init__.py").exists()
-    assert (tmp_path / "gen_def" / "pydantic" / "query" / "__init__.py").exists()
-    assert (tmp_path / "gen_def" / "pydantic" / "models" / "__init__.py").exists()
-    assert (tmp_path / "gen_def" / "sqla" / "__init__.py").exists()
-    assert (tmp_path / "gen_def" / "sqla" / "models" / "__init__.py").exists()
-    assert (tmp_path / "gen_int" / "__init__.py").exists()
-    assert (tmp_path / "gen_int" / "python" / "__init__.py").exists()
-    assert (tmp_path / "gen_int" / "python" / "query" / "__init__.py").exists()
-    assert (tmp_path / "gen_int" / "python" / "procedure" / "__init__.py").exists()
-    assert (tmp_path / "gen_int" / "python" / "policy" / "__init__.py").exists()
-    assert (tmp_path / "gen_int" / "python" / "projection" / "__init__.py").exists()
+    # gen_def / gen_int carry pyproject.toml so they are installable packages.
+    assert (tmp_path / "lib" / "python-uv" / "gen_def" / "pyproject.toml").exists()
+    assert (tmp_path / "lib" / "python-uv" / "gen_int" / "pyproject.toml").exists()
+
+    # __init__.py in every generated package directory
+    assert (gen_def / "__init__.py").exists()
+    assert (gen_def / "pydantic" / "__init__.py").exists()
+    assert (gen_def / "pydantic" / "query" / "__init__.py").exists()
+    assert (gen_def / "pydantic" / "models" / "__init__.py").exists()
+    assert (gen_def / "sqla" / "__init__.py").exists()
+    assert (gen_def / "sqla" / "models" / "__init__.py").exists()
+    assert (gen_int / "__init__.py").exists()
+    assert (gen_int / "python" / "__init__.py").exists()
+    assert (gen_int / "python" / "query" / "__init__.py").exists()
+    assert (gen_int / "python" / "procedure" / "__init__.py").exists()
+    assert (gen_int / "python" / "policy" / "__init__.py").exists()
+    assert (gen_int / "python" / "projection" / "__init__.py").exists()
 
 
 def test_gen_error_when_def_missing(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
@@ -108,16 +113,15 @@ def test_gen_full_example_snapshot(tmp_path: Path, snapshot: SnapshotAssertion) 
     assert generated == snapshot
 
 
-def test_gen_does_not_overwrite_src(tmp_path: Path) -> None:
+def test_gen_emits_no_top_level_src_or_gen_trees(tmp_path: Path) -> None:
     def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
     gen(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
 
-    src_file = tmp_path / "src" / "query" / "get_recipe_text.py"
-    src_file.write_text("# my implementation\n")
-
-    gen(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
-
-    assert src_file.read_text() == "# my implementation\n"
+    # Implementations live in lib/ now; no flat src/ tree, and the type packages
+    # live under lib/python-uv/ rather than at the output-dir root.
+    assert not (tmp_path / "src").exists()
+    assert not (tmp_path / "gen_def").exists()
+    assert not (tmp_path / "gen_int").exists()
 
 
 def test_def_creates_libconfig_yaml(tmp_path: Path) -> None:
@@ -176,9 +180,18 @@ def test_lib_python_uv_structure(tmp_path: Path) -> None:
     lib(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
 
     base = tmp_path / "lib" / "python-uv"
-    assert (base / "pyproject.toml").exists()
+    workspace = (base / "pyproject.toml").read_text()
+    # The workspace lists the generated type packages and the element packages.
+    assert '"gen_def",' in workspace
+    assert '"gen_int",' in workspace
+    assert '"procedure/extract_and_transform_recipe",' in workspace
+
     proc_base = base / "procedure" / "extract_and_transform_recipe"
-    assert (proc_base / "pyproject.toml").exists()
+    element = (proc_base / "pyproject.toml").read_text()
+    # Element packages declare the type packages as workspace dependencies.
+    assert '"gen_def",' in element
+    assert '"gen_int",' in element
+    assert "gen_def = { workspace = true }" in element
     assert (proc_base / "src" / "extract_and_transform_recipe.py").exists()
 
 

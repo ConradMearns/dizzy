@@ -13,20 +13,17 @@ from dizzy.generators.events import write_scaffold_events
 from dizzy.generators.queries import (
     write_scaffold_query,
     write_gen_query_protocol,
-    write_src_query_stub,
 )
 from dizzy.generators.models import write_scaffold_model
 from dizzy.generators.procedures import (
     write_procedure_context,
     write_procedure_protocol,
-    write_procedure_src_stub,
 )
 from dizzy.generators.policies import (
     write_policy_context,
     write_policy_protocol,
-    write_policy_src_stub,
 )
-from dizzy.generators.projections import write_projection, write_projection_src_stub
+from dizzy.generators.projections import write_projection
 from dizzy.generators.adapters import write_adapter
 from dizzy.generators.linkml_runner import (
     run_linkml_pydantic,
@@ -36,6 +33,8 @@ from dizzy.generators.linkml_runner import (
 )
 from dizzy.generators.init_emitter import write_init_files
 from dizzy.generators.libconfig import write_libconfig_stub
+from dizzy.generators.paths import gen_def_root
+from dizzy.generators.type_packages import write_type_packages
 from dizzy.generators.lib_python_uv import (
     write_policy_python_uv,
     write_procedure_python_uv,
@@ -108,7 +107,7 @@ def gen(
     feat_file: Path = typer.Argument(..., help="Path to the .feat.yaml file"),
     output_dir: Path = typer.Argument(..., help="Output directory for generated files"),
 ) -> None:
-    """Generate gen_def/, gen_int/, and src/ from an authored def/ directory."""
+    """Generate the gen_def/ and gen_int/ type packages under lib/python-uv/ from def/."""
     feat = load_feat(feat_file)
 
     errors = validate_feat(feat)
@@ -138,34 +137,35 @@ def gen(
             logger.error("  missing: %s", path)
         raise typer.Exit(code=1)
 
-    # Step 1 — run LinkML toolchain on def/ stubs → gen_def/
+    # Step 1 — run LinkML toolchain on def/ stubs → lib/python-uv/gen_def/
+    gen_def = gen_def_root(output_dir)
     if feat.commands:
         run_linkml_pydantic(
             output_dir / "def" / "commands.yaml",
-            output_dir / "gen_def" / "pydantic" / "commands.py",
+            gen_def / "pydantic" / "commands.py",
         )
 
     if feat.events:
         run_linkml_pydantic(
             output_dir / "def" / "events.yaml",
-            output_dir / "gen_def" / "pydantic" / "events.py",
+            gen_def / "pydantic" / "events.py",
         )
 
     for query in feat.queries or []:
         run_linkml_pydantic(
             output_dir / "def" / "queries" / f"{query.name}.yaml",
-            output_dir / "gen_def" / "pydantic" / "query" / f"{query.name}.py",
+            gen_def / "pydantic" / "query" / f"{query.name}.py",
         )
 
     for model in feat.models or []:
         run_linkml_pydantic(
             output_dir / "def" / "models" / f"{model.name}.yaml",
-            output_dir / "gen_def" / "pydantic" / "models" / f"{model.name}.py",
+            gen_def / "pydantic" / "models" / f"{model.name}.py",
         )
         if "sqla" in (model.adapters or []):
             run_linkml_sqla(
                 output_dir / "def" / "models" / f"{model.name}.yaml",
-                output_dir / "gen_def" / "sqla" / "models" / f"{model.name}.py",
+                gen_def / "sqla" / "models" / f"{model.name}.py",
             )
 
     # Step 2 — generate adapter classes
@@ -190,24 +190,14 @@ def gen(
     for proj in feat.projections or []:
         write_projection(proj, output_dir)
 
-    # Step 4 — generate src/ stubs (skip if already exists)
-    for query in feat.queries or []:
-        write_src_query_stub(query.name, output_dir)
-
-    for proc in feat.procedures or []:
-        write_procedure_src_stub(proc, output_dir)
-
-    for policy in feat.policies or []:
-        write_policy_src_stub(policy, output_dir)
-
-    for proj in feat.projections or []:
-        write_projection_src_stub(proj, output_dir)
-
-    # Step 5 — write __init__.py in every generated directory
+    # Step 4 — write __init__.py in every generated directory
     write_init_files(output_dir)
 
-    logger.info("Generated interfaces and source stubs. Next steps:")
-    logger.info("  Implement the src/ files to complete your feature.")
+    # Step 5 — write pyproject.toml for the gen_def / gen_int type packages
+    write_type_packages(output_dir)
+
+    logger.info("Generated lib/python-uv/gen_def and lib/python-uv/gen_int type packages.")
+    logger.info("  Run: dizzy lib <feat_file> <output_dir> to generate element packages.")
 
 
 @app.command()

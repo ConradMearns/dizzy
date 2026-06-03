@@ -3,6 +3,7 @@
 import warnings
 from pathlib import Path
 
+from dizzy.generators.paths import gen_int_root
 from dizzy.logger import logger
 
 _ADAPTER_REGISTRY: dict[str, dict[str, str]] = {
@@ -51,7 +52,7 @@ def write_adapter(adapter_name: str, output_dir: Path) -> None:
     source = render_adapter(adapter_name)
     if not source:
         return
-    dest = output_dir / "gen_int" / "python" / "adapters" / f"{adapter_name}.py"
+    dest = gen_int_root(output_dir) / "python" / "adapters" / f"{adapter_name}.py"
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(source)
     logger.debug("wrote file", extra={"path": str(dest)})

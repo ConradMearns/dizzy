@@ -22,10 +22,10 @@ the steps below.
 | `guestbook.feat.yaml` | **you** | The feature definition — the single source of truth. |
 | `def/` | **you** (scaffolded by `dizzy def`) | LinkML schemas. Scaffolds are generated; you fill in the `attributes`. |
 | `libconfig.yaml` | **you** (scaffolded by `dizzy def`) | Which runtime each element targets. |
-| `gen_def/` | `dizzy gen` | Pydantic + SQLAlchemy classes compiled from `def/` by LinkML. |
-| `gen_int/` | `dizzy gen` | Typed Protocols, contexts, and adapters. |
-| `src/` | **you** (scaffolded by `dizzy gen`) | Implementation stubs. The three files here are filled in. |
-| `lib/` | `dizzy lib` | Per-element redistributable packages, one workspace member each. |
+| `lib/python-uv/gen_def/` | `dizzy gen` | Pydantic + SQLAlchemy classes compiled from `def/` — an installable package. |
+| `lib/python-uv/gen_int/` | `dizzy gen` | Typed Protocols, contexts, and adapters — an installable package. |
+| `lib/python-uv/<kind>/<name>/` | `dizzy lib` | One redistributable package per element; `src/<name>.py` is the implementation stub (the three here are filled in). |
+| `lib/python-uv/pyproject.toml` | `dizzy lib` | The uv workspace tying `gen_def`, `gen_int`, and every element package together. |
 | `demo.py` | **you** | Host glue that wires the generated pieces together and runs them. |
 
 > **Naming:** you write element names in `snake_case`; LinkML compiles them to
@@ -35,10 +35,12 @@ the steps below.
 
 ## Run the finished example
 
-From the repository root:
+The generated `lib/python-uv/` is a uv workspace. Sync it once, then run `demo.py`
+inside that environment — from the repository root:
 
 ```bash
-uv run python examples/guestbook/demo.py
+uv sync --project examples/guestbook/lib/python-uv
+uv run --project examples/guestbook/lib/python-uv python examples/guestbook/demo.py
 ```
 
 Expected output:
@@ -52,29 +54,32 @@ Guestbook (newest first):
 
 `demo.py` plays the role of the host application: it owns the database (here an
 in-memory SQLite), routes each emitted event to the projections that listen for it,
-and calls the query. Dizzy generated everything it imports.
+and calls the query. Dizzy generated everything it imports, and each piece is an
+installed workspace package.
 
 ## Rebuild it from scratch
 
-Delete the generated trees and re-run the three commands. `def/` stubs and `src/`
-implementations are **never overwritten**, so to regenerate them too, remove them.
+Delete the generated tree and re-run the three commands. `def/` stubs and the
+`src/` implementations inside `lib/` are **never overwritten**, so to regenerate them
+too, remove them.
 
 ```bash
 # from the repo root
-rm -rf examples/guestbook/{gen_def,gen_int,src,lib}
+rm -rf examples/guestbook/lib
 
 # 1. scaffold def/ LinkML schemas + libconfig.yaml (idempotent; won't clobber edits)
 uv run dizzy def examples/guestbook/guestbook.feat.yaml examples/guestbook
 
 # 2. (human step) fill in attributes in def/*.yaml — see the committed files here
 
-# 3. compile LinkML + generate protocols, contexts, and src/ stubs
+# 3. compile LinkML into the gen_def/gen_int type packages under lib/python-uv/
 uv run dizzy gen examples/guestbook/guestbook.feat.yaml examples/guestbook
 
-# 4. (human step) implement the src/ stubs — see the committed files here
-
-# 5. split each element into a redistributable runtime package
+# 4. split each element into a redistributable runtime package
 uv run dizzy lib examples/guestbook/guestbook.feat.yaml examples/guestbook
+
+# 5. (human step) implement the src/ stubs in lib/python-uv/<kind>/<name>/src/
+#    — see the committed files here
 ```
 
 ## The three steps, in detail
@@ -95,17 +100,24 @@ classes:
       message:      { range: string, required: true }
 ```
 
-### `dizzy gen` — compile and generate interfaces
+### `dizzy gen` — compile the type packages
 
-Runs LinkML over `def/` to produce `gen_def/` (Pydantic + SQLAlchemy), generates the
-typed `gen_int/` Protocols/contexts/adapters from the feat structure, and writes
-`src/` implementation stubs that raise `NotImplementedError`. You implement them —
-see `src/procedure/record_signature.py`, `src/projection/signature_store.py`, and
-`src/query/list_signatures.py`.
+Runs LinkML over `def/` to produce the `gen_def` package (Pydantic + SQLAlchemy) and
+generates the typed `gen_int` package (Protocols/contexts/adapters) from the feat
+structure. Both land under `lib/python-uv/` as installable uv packages, each with its
+own `pyproject.toml`.
 
 ### `dizzy lib` — package per runtime
 
-Reads `libconfig.yaml` (every element targets `python-uv` here) and emits
-`lib/python-uv/`, a uv workspace with one package per element. This is the
-redistribution boundary: each procedure, policy, query, and projection becomes an
-independently versionable package.
+Reads `libconfig.yaml` (every element targets `python-uv` here) and emits the element
+packages under `lib/python-uv/`, plus the workspace `pyproject.toml` tying them and the
+type packages together. Each element package declares `gen_def`/`gen_int` as workspace
+dependencies and carries a real-signature implementation stub in `src/<name>.py` that
+raises `NotImplementedError`. You implement them — see
+`lib/python-uv/procedure/record_signature/src/record_signature.py`,
+`.../projection/signature_store/src/signature_store.py`, and
+`.../query/list_signatures/src/list_signatures.py`.
+
+This is the redistribution boundary: each procedure, policy, query, and projection is
+an independently versionable package, and the whole `lib/python-uv/` workspace is
+self-contained.

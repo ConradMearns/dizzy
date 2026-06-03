@@ -5,6 +5,7 @@ from pathlib import Path
 from linkml_runtime.utils.formatutils import camelcase
 
 from dizzy.feat_schema import PolicyDef
+from dizzy.generators.paths import gen_int_root
 from dizzy.logger import logger
 
 
@@ -46,7 +47,7 @@ def render_policy_context(policy: PolicyDef) -> str:
 def write_policy_context(policy: PolicyDef, output_dir: Path) -> None:
     """Write gen_int/python/policy/<policy.name>_context.py (always overwritten)."""
     dest = (
-        output_dir / "gen_int" / "python" / "policy" / f"{policy.name}_context.py"
+        gen_int_root(output_dir) / "python" / "policy" / f"{policy.name}_context.py"
     )
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_policy_context(policy))
@@ -87,7 +88,7 @@ def render_policy_protocol(policy: PolicyDef) -> str:
 def write_policy_protocol(policy: PolicyDef, output_dir: Path) -> None:
     """Write gen_int/python/policy/<policy.name>_protocol.py (always overwritten)."""
     dest = (
-        output_dir / "gen_int" / "python" / "policy" / f"{policy.name}_protocol.py"
+        gen_int_root(output_dir) / "python" / "policy" / f"{policy.name}_protocol.py"
     )
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_policy_protocol(policy))
@@ -114,14 +115,3 @@ def render_src_policy_stub(policy: PolicyDef) -> str:
         "",
     ]
     return "\n".join(lines)
-
-
-def write_policy_src_stub(policy: PolicyDef, output_dir: Path) -> None:
-    """Write src/policy/<policy.name>.py; skip if file already exists."""
-    dest = output_dir / "src" / "policy" / f"{policy.name}.py"
-    if dest.exists():
-        logger.debug("skipped existing file", extra={"path": str(dest)})
-        return
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(render_src_policy_stub(policy))
-    logger.debug("wrote file", extra={"path": str(dest)})

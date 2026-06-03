@@ -10,5 +10,6 @@ and implemented**, so you can browse the output without running Dizzy.
 New to Dizzy? Start with [`guestbook/`](guestbook/) and run:
 
 ```bash
-uv run python examples/guestbook/demo.py
+uv sync --project examples/guestbook/lib/python-uv
+uv run --project examples/guestbook/lib/python-uv python examples/guestbook/demo.py
 ```

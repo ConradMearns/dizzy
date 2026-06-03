@@ -188,8 +188,8 @@ uv run dizzy gen <feat_file> <output_dir>
 ```
 
 Reads the feat file + your authored `def/` stubs. Runs the LinkML toolchain and
-generates `gen_def/`, `gen_int/`, and `src/`. Requires that `def/` stubs exist;
-run `def` first.
+generates the `gen_def` and `gen_int` type packages under `lib/python-uv/` (each an
+installable uv package). Requires that `def/` stubs exist; run `def` first.
 
 ### Step 3: Package per runtime
 
@@ -198,9 +198,11 @@ uv run dizzy lib <feat_file> <output_dir>
 ```
 
 Reads `libconfig.yaml` and emits `lib/<runtime>/`, splitting each element into its
-own redistributable package (a uv workspace member for `python-uv`). Requires that
-`libconfig.yaml` exists; run `def` first. The Python path is the most complete;
-`rust-cargo` and `typescript-npm` are experimental.
+own redistributable package (a uv workspace member for `python-uv`), and writes the
+workspace manifest. Each `python-uv` element package depends on the `gen_def`/`gen_int`
+packages and carries a real-signature implementation stub in `src/<name>.py` for you to
+fill in. Requires that `libconfig.yaml` exists; run `def` first. The Python path is the
+most complete; `rust-cargo` and `typescript-npm` are experimental.
 
 A complete, runnable example lives in `examples/guestbook/` in the repository.
 
@@ -285,12 +287,13 @@ required fields.
 
 ---
 
-## What You Implement After `gen`
+## What You Implement After `lib`
 
-After running `dizzy gen`, implement the function bodies in `src/`. Each stub
-imports its generated protocol and raises `NotImplementedError`.
+After running `dizzy lib`, implement the function bodies in each element package at
+`lib/python-uv/<kind>/<name>/src/<name>.py`. Each stub imports its generated types and
+raises `NotImplementedError`.
 
-### src/procedure/<name>.py
+### lib/python-uv/procedure/<name>/src/<name>.py
 You receive `context` and `command`. Use `context.emit.<event_name>(event)` to
 emit events, and `context.query.<query_name>(input, query_context)` for reads.
 
@@ -304,7 +307,7 @@ def extract_receipt_data_from_image(
     raise NotImplementedError
 ```
 
-### src/policy/<name>.py
+### lib/python-uv/policy/<name>/src/<name>.py
 You receive `event` and `context`. Use `context.emit.<command_name>(cmd)` to
 dispatch new commands.
 
@@ -317,7 +320,7 @@ def index_recipe_on_ingest(
     raise NotImplementedError
 ```
 
-### src/projection/<name>.py
+### lib/python-uv/projection/<name>/src/<name>.py
 You receive `event` and `context`. Use `context.adapter` (e.g., a SQLAlchemy
 session or filesystem path) to persist state.
 
@@ -331,7 +334,7 @@ def receipt_store(
     raise NotImplementedError
 ```
 
-### src/query/<name>.py
+### lib/python-uv/query/<name>/src/<name>.py
 You receive `input` (typed Input model) and `context` (with adapter access).
 Return the typed Output model.
 
@@ -345,7 +348,7 @@ def get_receipt(
     raise NotImplementedError
 ```
 
-Source stubs are **skip-if-exists** — `dizzy gen` never overwrites them.
+Element implementation stubs are **skip-if-exists** — `dizzy lib` never overwrites them.
 
 ---
 
@@ -358,7 +361,8 @@ Models declare adapters in the feat file. Each adapter gets a generated dataclas
 | `sqla` | `SqlaAdapter` | `session` | `sqlalchemy.orm.Session` |
 | `relative_filesystem` | `RelativeFilesystemAdapter` | `root` | `pathlib.Path` |
 
-Generated at: `gen_int/python/adapters/<adapter_name>.py`
+Generated at: `lib/python-uv/gen_int/gen_int/python/adapters/<adapter_name>.py`
+(imported as `gen_int.python.adapters.<adapter_name>`)
 
 Queries and projections declare `model:` + `adapter:` to bind to a specific adapter.
 Their generated context receives the corresponding adapter dataclass as
@@ -375,34 +379,33 @@ Their generated context receives the corresponding adapter dataclass as
 │   ├── events.yaml
 │   ├── models/<name>.yaml
 │   └── queries/<name>.yaml
-├── gen_def/                          # LinkML toolchain output (auto-generated)
-│   ├── pydantic/
-│   │   ├── commands.py
-│   │   ├── events.py
-│   │   ├── models/<name>.py
-│   │   └── query/<name>.py
-│   └── sqla/
-│       └── models/<name>.py
-├── gen_int/                          # Protocols and contexts (auto-generated)
-│   └── python/
-│       ├── adapters/<name>.py
-│       ├── query/<name>.py
-│       ├── procedure/<name>_context.py
-│       ├── procedure/<name>_protocol.py
-│       ├── policy/<name>_context.py
-│       ├── policy/<name>_protocol.py
-│       └── projection/<name>_projection.py
-└── src/                              # Implementation stubs (YOUR code)
-    ├── query/<name>.py
-    ├── procedure/<name>.py
-    ├── policy/<name>.py
-    └── projection/<name>.py
+├── libconfig.yaml                    # YOUR runtime assignments (authored after `def`)
+└── lib/                              # one self-contained workspace per runtime
+    └── python-uv/
+        ├── pyproject.toml            # uv workspace (lists every member below)
+        ├── gen_def/                  # installable package (auto-generated by `gen`)
+        │   ├── pyproject.toml
+        │   └── gen_def/              # import root → `gen_def`
+        │       ├── pydantic/{commands,events}.py, models/<name>.py, query/<name>.py
+        │       └── sqla/models/<name>.py
+        ├── gen_int/                  # installable package (auto-generated by `gen`)
+        │   ├── pyproject.toml
+        │   └── gen_int/              # import root → `gen_int`
+        │       └── python/
+        │           ├── adapters/<name>.py
+        │           ├── query/<name>.py
+        │           ├── procedure/<name>_context.py, <name>_protocol.py
+        │           ├── policy/<name>_context.py, <name>_protocol.py
+        │           └── projection/<name>_projection.py
+        └── <kind>/<name>/            # one element package per procedure/policy/query/projection
+            ├── pyproject.toml        # depends on gen_def + gen_int (workspace deps)
+            └── src/<name>.py         # implementation stub (YOUR code)
 ```
 
 - `def/` — **you author these** (LinkML schemas, never overwritten)
-- `gen_def/` — auto-generated Pydantic/SQLAlchemy models from your LinkML
-- `gen_int/` — auto-generated typed protocols, contexts, and adapter classes
-- `src/` — **you implement these** (stubs, never overwritten)
+- `lib/python-uv/gen_def/` — auto-generated Pydantic/SQLAlchemy models, installable package
+- `lib/python-uv/gen_int/` — auto-generated typed protocols, contexts, adapters, installable package
+- `lib/python-uv/<kind>/<name>/src/<name>.py` — **you implement these** (stubs, never overwritten)
 
 ---
 
@@ -425,4 +428,6 @@ PascalCase class. Runtime accessors keyed by element name stay snake_case — e.
 - Contexts: `from gen_int.python.procedure.<name>_context import <name>_context`
 - Adapters: `from gen_int.python.adapters.<adapter> import <Adapter>Adapter`
 
-The output directory must be on `sys.path` for imports to resolve at runtime.
+`gen_def` and `gen_int` are installable packages and every element package depends on
+them, so imports resolve once the `lib/python-uv/` workspace is synced
+(`uv sync --project <output_dir>/lib/python-uv`) — no `sys.path` manipulation needed.

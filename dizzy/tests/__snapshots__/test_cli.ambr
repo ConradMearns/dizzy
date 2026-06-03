@@ -77,9 +77,9 @@
           attributes: {}
   
     ''',
-    'gen_def/__init__.py': '',
-    'gen_def/pydantic/__init__.py': '',
-    'gen_def/pydantic/commands.py': '''
+    'lib/python-uv/gen_def/gen_def/__init__.py': '',
+    'lib/python-uv/gen_def/gen_def/pydantic/__init__.py': '',
+    'lib/python-uv/gen_def/gen_def/pydantic/commands.py': '''
       from __future__ import annotations
       
       import re
@@ -184,7 +184,7 @@
       IngestRecipeText.model_rebuild()
   
     ''',
-    'gen_def/pydantic/events.py': '''
+    'lib/python-uv/gen_def/gen_def/pydantic/events.py': '''
       from __future__ import annotations
       
       import re
@@ -289,8 +289,8 @@
       RecipeIngested.model_rebuild()
   
     ''',
-    'gen_def/pydantic/models/__init__.py': '',
-    'gen_def/pydantic/models/recipes.py': '''
+    'lib/python-uv/gen_def/gen_def/pydantic/models/__init__.py': '',
+    'lib/python-uv/gen_def/gen_def/pydantic/models/recipes.py': '''
       from __future__ import annotations
       
       import re
@@ -386,8 +386,8 @@
       # see https://pydantic-docs.helpmanual.io/usage/models/#rebuilding-a-model
   
     ''',
-    'gen_def/pydantic/query/__init__.py': '',
-    'gen_def/pydantic/query/get_recipe.py': '''
+    'lib/python-uv/gen_def/gen_def/pydantic/query/__init__.py': '',
+    'lib/python-uv/gen_def/gen_def/pydantic/query/get_recipe.py': '''
       from __future__ import annotations
       
       import re
@@ -503,7 +503,7 @@
       GetRecipeOutput.model_rebuild()
   
     ''',
-    'gen_def/pydantic/query/get_recipe_text.py': '''
+    'lib/python-uv/gen_def/gen_def/pydantic/query/get_recipe_text.py': '''
       from __future__ import annotations
       
       import re
@@ -619,9 +619,9 @@
       GetRecipeTextOutput.model_rebuild()
   
     ''',
-    'gen_def/sqla/__init__.py': '',
-    'gen_def/sqla/models/__init__.py': '',
-    'gen_def/sqla/models/recipes.py': '''
+    'lib/python-uv/gen_def/gen_def/sqla/__init__.py': '',
+    'lib/python-uv/gen_def/gen_def/sqla/models/__init__.py': '',
+    'lib/python-uv/gen_def/gen_def/sqla/models/recipes.py': '''
       
       from sqlalchemy import Column, Index, Table, ForeignKey
       from sqlalchemy.orm import relationship
@@ -635,10 +635,25 @@
       
   
     ''',
-    'gen_int/__init__.py': '',
-    'gen_int/python/__init__.py': '',
-    'gen_int/python/adapters/__init__.py': '',
-    'gen_int/python/adapters/relative_filesystem.py': '''
+    'lib/python-uv/gen_def/pyproject.toml': '''
+      [project]
+      name = "gen_def"
+      version = "0.1.0"
+      requires-python = ">=3.11"
+      dependencies = [
+          "pydantic>=2",
+          "sqlalchemy>=2",
+      ]
+      
+      [build-system]
+      requires = ["hatchling"]
+      build-backend = "hatchling.build"
+  
+    ''',
+    'lib/python-uv/gen_int/gen_int/__init__.py': '',
+    'lib/python-uv/gen_int/gen_int/python/__init__.py': '',
+    'lib/python-uv/gen_int/gen_int/python/adapters/__init__.py': '',
+    'lib/python-uv/gen_int/gen_int/python/adapters/relative_filesystem.py': '''
       # AUTO-GENERATED — do not edit
       from dataclasses import dataclass
       from pathlib import Path
@@ -651,7 +666,7 @@
           root: Path
   
     ''',
-    'gen_int/python/adapters/sqla.py': '''
+    'lib/python-uv/gen_int/gen_int/python/adapters/sqla.py': '''
       # AUTO-GENERATED — do not edit
       from dataclasses import dataclass
       from sqlalchemy.orm import Session
@@ -664,8 +679,8 @@
           session: Session
   
     ''',
-    'gen_int/python/policy/__init__.py': '',
-    'gen_int/python/policy/index_recipe_on_ingest_context.py': '''
+    'lib/python-uv/gen_int/gen_int/python/policy/__init__.py': '',
+    'lib/python-uv/gen_int/gen_int/python/policy/index_recipe_on_ingest_context.py': '''
       # AUTO-GENERATED — do not edit
       from dataclasses import dataclass
       
@@ -680,7 +695,7 @@
           emit: index_recipe_on_ingest_emitters
   
     ''',
-    'gen_int/python/policy/index_recipe_on_ingest_protocol.py': '''
+    'lib/python-uv/gen_int/gen_int/python/policy/index_recipe_on_ingest_protocol.py': '''
       # AUTO-GENERATED — do not edit
       from typing import Protocol
       
@@ -701,8 +716,8 @@
               ...
   
     ''',
-    'gen_int/python/procedure/__init__.py': '',
-    'gen_int/python/procedure/extract_and_transform_recipe_context.py': '''
+    'lib/python-uv/gen_int/gen_int/python/procedure/__init__.py': '',
+    'lib/python-uv/gen_int/gen_int/python/procedure/extract_and_transform_recipe_context.py': '''
       # AUTO-GENERATED — do not edit
       from dataclasses import dataclass
       from typing import Callable
@@ -727,7 +742,7 @@
           query: extract_and_transform_recipe_queries
   
     ''',
-    'gen_int/python/procedure/extract_and_transform_recipe_protocol.py': '''
+    'lib/python-uv/gen_int/gen_int/python/procedure/extract_and_transform_recipe_protocol.py': '''
       # AUTO-GENERATED — do not edit
       from typing import Protocol
       
@@ -748,8 +763,8 @@
               ...
   
     ''',
-    'gen_int/python/projection/__init__.py': '',
-    'gen_int/python/projection/recipe_library_projection.py': '''
+    'lib/python-uv/gen_int/gen_int/python/projection/__init__.py': '',
+    'lib/python-uv/gen_int/gen_int/python/projection/recipe_library_projection.py': '''
       # AUTO-GENERATED — do not edit
       from dataclasses import dataclass
       from typing import Protocol
@@ -771,8 +786,8 @@
               ...
   
     ''',
-    'gen_int/python/query/__init__.py': '',
-    'gen_int/python/query/get_recipe.py': '''
+    'lib/python-uv/gen_int/gen_int/python/query/__init__.py': '',
+    'lib/python-uv/gen_int/gen_int/python/query/get_recipe.py': '''
       # AUTO-GENERATED — do not edit
       from dataclasses import dataclass
       from typing import Protocol
@@ -795,7 +810,7 @@
               ...
   
     ''',
-    'gen_int/python/query/get_recipe_text.py': '''
+    'lib/python-uv/gen_int/gen_int/python/query/get_recipe_text.py': '''
       # AUTO-GENERATED — do not edit
       from dataclasses import dataclass
       from typing import Protocol
@@ -816,6 +831,23 @@
               self, input: GetRecipeTextInput, context: get_recipe_text_context
           ) -> GetRecipeTextOutput:
               ...
+  
+    ''',
+    'lib/python-uv/gen_int/pyproject.toml': '''
+      [project]
+      name = "gen_int"
+      version = "0.1.0"
+      requires-python = ">=3.11"
+      dependencies = [
+          "gen_def",
+      ]
+      
+      [tool.uv.sources]
+      gen_def = { workspace = true }
+      
+      [build-system]
+      requires = ["hatchling"]
+      build-backend = "hatchling.build"
   
     ''',
     'libconfig.yaml': '''
@@ -839,68 +871,6 @@
       projections:
         recipe_library:
           runtimes: [python-uv]
-  
-    ''',
-    'src/policy/index_recipe_on_ingest.py': '''
-      # Implementation stub — fill in your logic here
-      from gen_int.python.policy.index_recipe_on_ingest_protocol import index_recipe_on_ingest_protocol
-      from gen_int.python.policy.index_recipe_on_ingest_context import index_recipe_on_ingest_context
-      from gen_def.pydantic.events import RecipeIngested
-      
-      
-      def index_recipe_on_ingest(
-          event: RecipeIngested,
-          context: index_recipe_on_ingest_context,
-      ) -> None:
-          raise NotImplementedError
-  
-    ''',
-    'src/procedure/extract_and_transform_recipe.py': '''
-      # Implementation stub — fill in your logic here
-      from gen_int.python.procedure.extract_and_transform_recipe_protocol import extract_and_transform_recipe_protocol
-      from gen_int.python.procedure.extract_and_transform_recipe_context import extract_and_transform_recipe_context
-      from gen_def.pydantic.commands import IngestRecipeText
-      
-      
-      def extract_and_transform_recipe(
-          context: extract_and_transform_recipe_context,
-          command: IngestRecipeText,
-      ) -> None:
-          raise NotImplementedError
-  
-    ''',
-    'src/projection/recipe_library.py': '''
-      # Implementation stub — fill in your logic here
-      from gen_int.python.projection.recipe_library_projection import recipe_library_projection
-      from gen_int.python.projection.recipe_library_projection import recipe_library_context
-      from gen_def.pydantic.events import RecipeIngested
-      
-      
-      def recipe_library(
-          event: RecipeIngested,
-          context: recipe_library_context,
-      ) -> None:
-          raise NotImplementedError
-  
-    ''',
-    'src/query/get_recipe.py': '''
-      # Implementation stub — fill in your logic here
-      from gen_int.python.query.get_recipe import get_recipe_query, get_recipe_context
-      from gen_def.pydantic.query.get_recipe import GetRecipeInput, GetRecipeOutput
-      
-      
-      def get_recipe(input: GetRecipeInput, context: get_recipe_context) -> GetRecipeOutput:
-          raise NotImplementedError
-  
-    ''',
-    'src/query/get_recipe_text.py': '''
-      # Implementation stub — fill in your logic here
-      from gen_int.python.query.get_recipe_text import get_recipe_text_query, get_recipe_text_context
-      from gen_def.pydantic.query.get_recipe_text import GetRecipeTextInput, GetRecipeTextOutput
-      
-      
-      def get_recipe_text(input: GetRecipeTextInput, context: get_recipe_text_context) -> GetRecipeTextOutput:
-          raise NotImplementedError
   
     ''',
   })

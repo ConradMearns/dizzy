@@ -1,5 +1,7 @@
 [tool.uv.workspace]
 members = [
+  "gen_def",
+  "gen_int",
   "procedure/record_signature",
   "query/list_signatures",
   "projection/signature_store",

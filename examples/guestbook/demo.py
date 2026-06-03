@@ -2,21 +2,15 @@
 
 This is the glue a host application writes by hand: it owns the database, the
 event log, and the wiring. Dizzy generates the typed pieces (commands, events,
-contexts, adapters, model tables) and your implementations in `src/`; this file
-just connects them.
+contexts, adapters, model tables) and the per-element packages under
+`lib/python-uv/`; this file just connects them.
 
-Run from the repo root:
+Everything imported here is an installed workspace package, so run demo inside
+the workspace environment (from the repo root):
 
-    uv run python examples/guestbook/demo.py
+    uv sync --project examples/guestbook/lib/python-uv
+    uv run --project examples/guestbook/lib/python-uv python examples/guestbook/demo.py
 """
-
-import sys
-from pathlib import Path
-
-# The generated tree imports from `gen_def`, `gen_int`, and `src` as top-level
-# packages, so the output directory must be on sys.path.
-EXAMPLE_DIR = Path(__file__).parent
-sys.path.insert(0, str(EXAMPLE_DIR))
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -33,9 +27,10 @@ from gen_int.python.procedure.record_signature_context import (
 from gen_int.python.projection.signature_store_projection import signature_store_context
 from gen_int.python.query.list_signatures import list_signatures_context
 
-from src.procedure.record_signature import record_signature
-from src.projection.signature_store import signature_store
-from src.query.list_signatures import list_signatures
+# Each element is its own installed package, exposing a top-level module.
+from record_signature import record_signature
+from signature_store import signature_store
+from list_signatures import list_signatures
 
 
 def main() -> None:

@@ -6,25 +6,50 @@ from dizzy.feat_schema import PolicyDef, ProcedureDef, ProjectionDef, QueryDef
 from dizzy.generators.policies import render_src_policy_stub
 from dizzy.generators.procedures import render_src_procedure_stub
 from dizzy.generators.projections import render_src_projection_stub
+from dizzy.generators.queries import render_src_query_stub
 from dizzy.logger import logger
 
 
 def render_element_pyproject_toml(kind: str, name: str) -> str:
+    """Element package manifest — depends on the gen_def/gen_int workspace packages.
+
+    The implementation module lives at ``src/<name>.py`` and is shipped as the
+    top-level module ``<name>`` (``[tool.hatch.build]`` strips the ``src`` prefix).
+    """
     return "\n".join([
         "[project]",
         f'name = "{kind}-{name}"',
         'version = "0.1.0"',
         'requires-python = ">=3.11"',
+        "dependencies = [",
+        '    "gen_def",',
+        '    "gen_int",',
+        "]",
+        "",
+        "[tool.uv.sources]",
+        "gen_def = { workspace = true }",
+        "gen_int = { workspace = true }",
         "",
         "[build-system]",
         'requires = ["hatchling"]',
         'build-backend = "hatchling.build"',
         "",
+        "[tool.hatch.build.targets.wheel]",
+        'sources = ["src"]',
+        f'include = ["src/{name}.py"]',
+        "",
     ])
 
 
+# Type packages emitted by `dizzy gen`; listed first so they resolve as workspace deps.
+_TYPE_PACKAGE_MEMBERS = ["gen_def", "gen_int"]
+
+
 def render_workspace_pyproject_toml(members: list[tuple[str, str]]) -> str:
-    member_lines = "\n".join(f'  "{kind}/{name}",' for kind, name in members)
+    member_lines = "\n".join(
+        f'  "{member}",'
+        for member in _TYPE_PACKAGE_MEMBERS + [f"{kind}/{name}" for kind, name in members]
+    )
     return "\n".join([
         "[tool.uv.workspace]",
         "members = [",
@@ -58,16 +83,7 @@ def write_policy_python_uv(policy: PolicyDef, output_dir: Path) -> None:
 def write_query_python_uv(query: QueryDef, output_dir: Path) -> None:
     base = output_dir / "lib" / "python-uv" / "query" / query.name
     _write_if_absent(base / "pyproject.toml", render_element_pyproject_toml("query", query.name))
-    stub = "\n".join([
-        "# Implementation stub — fill in your logic here",
-        f"from gen_int.python.query.{query.name} import {query.name}_query",
-        "",
-        "",
-        f"def {query.name}() -> None:",
-        "    raise NotImplementedError",
-        "",
-    ])
-    _write_if_absent(base / "src" / f"{query.name}.py", stub)
+    _write_if_absent(base / "src" / f"{query.name}.py", render_src_query_stub(query.name))
 
 
 def write_projection_python_uv(proj: ProjectionDef, output_dir: Path) -> None:

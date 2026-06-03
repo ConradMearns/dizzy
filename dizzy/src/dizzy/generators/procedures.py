@@ -5,6 +5,7 @@ from pathlib import Path
 from linkml_runtime.utils.formatutils import camelcase
 
 from dizzy.feat_schema import ProcedureDef
+from dizzy.generators.paths import gen_int_root
 from dizzy.logger import logger
 
 
@@ -64,8 +65,7 @@ def render_procedure_context(proc: ProcedureDef) -> str:
 def write_procedure_context(proc: ProcedureDef, output_dir: Path) -> None:
     """Write gen_int/python/procedure/<proc.name>_context.py (always overwritten)."""
     dest = (
-        output_dir
-        / "gen_int"
+        gen_int_root(output_dir)
         / "python"
         / "procedure"
         / f"{proc.name}_context.py"
@@ -109,8 +109,7 @@ def render_procedure_protocol(proc: ProcedureDef) -> str:
 def write_procedure_protocol(proc: ProcedureDef, output_dir: Path) -> None:
     """Write gen_int/python/procedure/<proc.name>_protocol.py (always overwritten)."""
     dest = (
-        output_dir
-        / "gen_int"
+        gen_int_root(output_dir)
         / "python"
         / "procedure"
         / f"{proc.name}_protocol.py"
@@ -140,14 +139,3 @@ def render_src_procedure_stub(proc: ProcedureDef) -> str:
         "",
     ]
     return "\n".join(lines)
-
-
-def write_procedure_src_stub(proc: ProcedureDef, output_dir: Path) -> None:
-    """Write src/procedure/<proc.name>.py; skip if file already exists."""
-    dest = output_dir / "src" / "procedure" / f"{proc.name}.py"
-    if dest.exists():
-        logger.debug("skipped existing file", extra={"path": str(dest)})
-        return
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(render_src_procedure_stub(proc))
-    logger.debug("wrote file", extra={"path": str(dest)})

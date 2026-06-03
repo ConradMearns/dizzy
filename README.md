@@ -88,7 +88,7 @@ queries:
 
 DIZZY generation is a pipeline with **human-in-the-loop** authoring at each handoff.
 Generated interfaces are always overwritten; the files you author (`def/` schemas and
-`src/` implementations) are never clobbered.
+the implementation stubs in `lib/`) are never clobbered.
 
 ```bash
 # 1. scaffold LinkML schemas + libconfig.yaml from the feat file
@@ -97,25 +97,32 @@ dizzy def  guestbook.feat.yaml ./out
 #    ✍️  fill in field-level detail in out/def/*.yaml
 #        (attributes on commands/events, model classes, query input/output)
 
-# 2. compile schemas → Pydantic/SQLAlchemy, generate typed protocols + src/ stubs
+# 2. compile schemas → the gen_def/gen_int type packages under lib/python-uv/
 dizzy gen  guestbook.feat.yaml ./out
-
-#    ✍️  implement the bodies in out/src/{procedure,policy,projection,query}/*.py
 
 # 3. package each element into a redistributable per-runtime library
 dizzy lib  guestbook.feat.yaml ./out
+
+#    ✍️  implement the bodies in
+#        out/lib/python-uv/{procedure,policy,projection,query}/<name>/src/*.py
 ```
 
 What lands in `./out`:
 
 ```
 out/
-├── def/        # YOU author — LinkML schemas (scaffolded, never overwritten)
-├── gen_def/    # generated — Pydantic + SQLAlchemy from your LinkML
-├── gen_int/    # generated — typed Protocols, contexts, adapters
-├── src/        # YOU implement — stubs (scaffolded, never overwritten)
-└── lib/        # generated — one redistributable package per element
+├── def/                 # YOU author — LinkML schemas (scaffolded, never overwritten)
+├── libconfig.yaml       # YOU author — which runtime each element targets
+└── lib/                 # generated — one self-contained workspace per runtime
+    └── python-uv/
+        ├── gen_def/      # generated — Pydantic + SQLAlchemy from your LinkML
+        ├── gen_int/      # generated — typed Protocols, contexts, adapters
+        └── <kind>/<name>/src/  # YOU implement — stubs (never overwritten)
 ```
+
+Each runtime tree is a self-contained workspace: `gen_def` and `gen_int` are
+installable packages, and every element package depends on them — so a generated
+`lib/python-uv/` can be lifted out and shipped on its own.
 
 > **Naming:** you write `snake_case` element names; LinkML compiles them to
 > `PascalCase` Pydantic classes (`sign_guestbook` → `SignGuestbook`). Generated code
@@ -125,10 +132,12 @@ out/
 ## See it run
 
 The [`examples/guestbook/`](examples/guestbook/) directory has this feature fully
-generated **and** implemented, with a `demo.py` that wires it together:
+generated **and** implemented, with a `demo.py` that wires it together. The generated
+`lib/python-uv/` is a uv workspace, so sync it once and run the demo inside it:
 
 ```bash
-uv run python examples/guestbook/demo.py
+uv sync --project examples/guestbook/lib/python-uv
+uv run --project examples/guestbook/lib/python-uv python examples/guestbook/demo.py
 # Guestbook (newest first):
 #   - Edsger: Goto considered harmful
 #   - Grace: Compiled it
