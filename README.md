@@ -1,6 +1,6 @@
-# Dizzy
+# DIZZY
 
-**Dizzy is a methodology — and a code generator — for writing event-sourced software.**
+**DIZZY is a methodology for writing event-sourced software.**
 
 You describe a *feature* in a single `.feat.yaml` file. Dizzy scaffolds typed schemas,
 generates protocols and implementation stubs, and packages each piece into
@@ -86,7 +86,7 @@ queries:
 
 ## The workflow
 
-Dizzy generation is a pipeline with **human-in-the-loop** authoring at each handoff.
+DIZZY generation is a pipeline with **human-in-the-loop** authoring at each handoff.
 Generated interfaces are always overwritten; the files you author (`def/` schemas and
 `src/` implementations) are never clobbered.
 
