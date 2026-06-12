@@ -4,9 +4,14 @@ description: >
   small enough to hold in your head, wired enough to exercise both loops.
 
 commands:
-  register_member: A person asks to join the library as a borrowing member
+  register_member: >
+    A person asks to join the library as a borrowing member. The registration
+    is taken by a minting server (Front Desk or Online) and cannot be
+    constructed without saying which one.
   add_book: A librarian adds copies of a book to the catalog
-  borrow_book: A member asks to take a specific book home
+  borrow_book: >
+    A member presents their member id and asks to take a specific book home.
+    The command cannot be constructed without a member id.
   return_book: A member brings a borrowed book back
   reserve_book: A member asks to be queued for a book that is currently out
 
@@ -21,13 +26,21 @@ events:
 procedures:
   enroll_member:
     description: |
-      Register a new member.
+      Register a new member and assign their member id.
+      (Resolution r1, session borrow_available_book__1.)
 
-      Accept the registration and record the fact. Membership has no approval
-      step in this library; the only failure worth recording would be a
-      duplicate registration, and we deliberately do not check for it here —
-      let simulation tell us whether that matters.
+      The member id is a compound number, format LLLLSSMMMMMMMM:
+      - LLLL — our independent Library Code: always 0042.
+      - SS   — the code of the Minting Server that took this registration
+               (currently Front Desk and Online; more may come).
+      - MMMMMMMM — the member code: auto-increments sequentially, member by
+               member. Obtain the latest minted number via
+               get_latest_member_number and assign the next one.
+
+      Record the member_registered fact carrying the full assigned id, the
+      member's name, and the minting server. Membership has no approval step.
     command: register_member
+    queries: [get_latest_member_number]
     emits: [member_registered]
 
   catalog_book:
@@ -44,8 +57,12 @@ procedures:
     description: |
       Decide whether a member may borrow a book, and record the outcome.
 
-      Check availability via get_book_availability. Then decide:
-      - If no copies are on the shelf, emit borrow_rejected (reason: none available).
+      Membership is always required (resolution r2, session
+      borrow_available_book__1). Decide in order:
+      - If the requester's member id has no registration fact
+        (per get_member_registration), emit borrow_rejected (reason: not a member).
+      - If no copies are on the shelf (per get_book_availability),
+        emit borrow_rejected (reason: none available).
       - If the book has a reservation queue and the requesting member is not at
         the head of it (per get_next_reservation), emit borrow_rejected
         (reason: reserved by another member).
@@ -53,7 +70,9 @@ procedures:
 
       ```mermaid
       flowchart TD
-        cmd[borrow_book] --> avail{copies on shelf?}
+        cmd[borrow_book] --> mem{registered member?}
+        mem -- no --> rej0[borrow_rejected: not a member]
+        mem -- yes --> avail{copies on shelf?}
         avail -- no --> rej1[borrow_rejected: none available]
         avail -- yes --> resq{reservation queue exists?}
         resq -- no --> ok[book_borrowed]
@@ -62,7 +81,7 @@ procedures:
         head -- no --> rej2[borrow_rejected: reserved]
       ```
     command: borrow_book
-    queries: [get_book_availability, get_next_reservation]
+    queries: [get_member_registration, get_book_availability, get_next_reservation]
     emits: [book_borrowed, borrow_rejected]
 
   process_return:
@@ -145,6 +164,16 @@ projections:
     adapter: sqla
 
 queries:
+  get_latest_member_number:
+    description: >
+      The most recently minted member code (from member_registered facts),
+      so the next sequential number can be assigned. jmQ query — answered
+      from the event stream; no model binding yet.
+  get_member_registration:
+    description: >
+      Whether a given member id corresponds to a member_registered fact,
+      and if so, whose. jmQ query — answered from the event stream; no
+      model binding yet.
   get_book_availability:
     description: How many copies of a given book are on the shelf right now
     model: catalog

@@ -42,7 +42,13 @@ Requirements being exercised: `docs/cli.md § dizzy simulate`.
 8. **A finding ends an activation, not the run.** The run continues to quiescence /
    budget collecting the full findings list (the product); fixes happen at run end,
    then a branch from the pre-fix node verifies them under the amended feature-file.
-9. **The jmQ collapse** (ruling, run 1): at this stage projections **never activate**
+9. **Record, don't suggest** (ruling, run 1 close): the engine's job is to surface
+   findings and *record* their resolutions — never to design. Every finding gets a
+   `resolution` entry carrying the Director's decision **and the argument as stated**.
+   The argument is load-bearing: it encodes assumptions the design team cannot infer
+   (and that may later prove wrong); the record preserves them verbatim for revisiting.
+   The engine does not editorialize, infer unstated motives, or fill in punchlines.
+10. **The jmQ collapse** (ruling, run 1): at this stage projections **never activate**
    and are never logged — the simplest projection is identity, so the minimal model
    *is* the event store, and we only record events. The j→m→Q chain exists to answer
    questions, so in simulation it collapses into `q`: a query is answered by a
@@ -102,6 +108,10 @@ One file per run: `sim/sessions/<scenario>__<run>.jsonl`. Every line:
 - `activation`, `tool_call`, `query_answer`, `emission`, `finding`, `halt`.
 - `activation_end` (added run 1) — closes an activation: emissions produced (possibly
   none) and outcome. Needed the moment an activation ended without emitting.
+- `resolution` (added run 1 close) — resolves a finding: `resolves: <finding-id>`,
+  the Director's decision, and the argument as stated (rule 9).
+- `branch` (added run 1b) — opens a counterfactual: `parentId` points at the fork
+  node; records why and which feature-file revision applies from here.
 
 Branching a run = new entries pointing at an earlier `parentId` in the same file.
 The format we converge on here seeds `dizzy-e2d4` (session file) — keep it honest.

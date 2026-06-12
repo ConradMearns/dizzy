@@ -4,6 +4,6 @@ description: >
   terminate quiescent with book_borrowed in the stream.
 
 commands:
-  - register_member: Ada joins the library
+  - register_member: Ada joins the library at the Front Desk
   - add_book: One copy of "Structure and Interpretation of Computer Programs" arrives
-  - borrow_book: Ada asks to borrow SICP
+  - borrow_book: Ada presents her member id and asks to borrow SICP
