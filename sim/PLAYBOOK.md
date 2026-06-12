@@ -56,6 +56,16 @@ Requirements being exercised: `docs/cli.md § dizzy simulate`.
    simulated event store (a `dj`-style regression over the stream). If the stream
    cannot answer the question → `report_finding`. Feature-files may omit j/m/Q early
    in design and declare only `q`.
+11. **First-execution review gate** (ruling, run 3): before activating a component
+   that has **never executed** — execution count 0, a simple count gathered from the
+   session logs / event store — the harness pauses and the Director reviews and
+   confirms its description. An unexecuted description may be partially or completely
+   wrong, and pre-first-execution is the one moment to fix it without accumulating
+   breaking facts in the event log. Confirmed → proceed; amended → the feat revision
+   applies from this node. (Born at t37: `fulfill_reservation_on_return` had never
+   run, and its description turned out to have no executable substance — no concrete
+   "head", no concrete action. The Director had never reviewed it; the gate makes
+   that review a forced step rather than a missing one.)
 
 ## Turn protocol (the draft `--manual` contract)
 
@@ -111,9 +121,12 @@ One file per run: `sim/sessions/<scenario>__<run>.jsonl`. Every line:
   none) and outcome. Needed the moment an activation ended without emitting.
 - `resolution` (added run 1 close) — resolves a finding: `resolves: <finding-id>`,
   the Director's decision, and the argument as stated (rule 9). Categories so far:
-  **design-change** (the feature-file was wrong → amend it, branch, verify) and
+  **design-change** (the feature-file was wrong → amend it, branch, verify),
   **insufficient-context** (the design was fine, the world was under-specified →
-  amend the scenario's `context`, close the branch, fork a fresh one).
+  amend the scenario's `context`, close the branch, fork a fresh one), and
+  **unreviewed-component** (added run 3: the component had never executed and its
+  description carried no evidence of correctness → backtrack to pre-activation,
+  Director reviews/rewrites the description, re-attempt under rule 11).
 - `branch` (added run 1b) — opens a counterfactual: `parentId` points at the fork
   node; records why and which feature-file/scenario revision applies from here.
 - `context` (added run 1c) — scenario givens materialized at branch start: the
@@ -137,7 +150,7 @@ The format we converge on here seeds `dizzy-e2d4` (session file) — keep it hon
 | 1b | branch ← s3 (feat v2) | 0 | (a) | **closed at finding b8** — resolved insufficient-context (r3) |
 | 1c | branch ← s3 (feat v2, scenario v3) | 0 | (a) | **complete, clean** — 0 findings; book_borrowed in stream; verifies r1+r2+r3 |
 | 2 | borrow_available_book | 0 | ~~(b) harness-fabricated~~ | superseded by jmQ ruling |
-| 3 | contested_reservation | 0 | (a) per rule 10 | **in progress** — t12 resolved per-server (r4); replay reached the planted policy trap; paused at finding t37 (missing-query-wiring) |
+| 3 | contested_reservation | 0 | (a) per rule 10 | **in progress** — t12 resolved per-server (r4); trap caught at t37 (missing-query-wiring), resolved unreviewed-component (r5, born rule 11); branch u ← t34 awaiting Director's reviewed description of fulfill_reservation_on_return |
 
 ## Exit criteria
 
