@@ -1,0 +1,9 @@
+description: >
+  Happy path — a member borrows a book that is on the shelf. Exercises the
+  reactivity loop once (no policy firing) and three projections. Expected to
+  terminate quiescent with book_borrowed in the stream.
+
+commands:
+  - register_member: Ada joins the library
+  - add_book: One copy of "Structure and Interpretation of Computer Programs" arrives
+  - borrow_book: Ada asks to borrow SICP

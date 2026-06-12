@@ -105,6 +105,16 @@ opinionated workflow layer over the reference pages (canonical: docs/onboard.md)
 
 # Roadmap
 
+## dizzy validate
+
+Structural validation of a feature-file (and, when present, a scenario file):
+parse, schema-check, and verify referential integrity — procedures handle declared
+commands, emit declared events, query declared queries; projections/queries target
+declared models; scenario commands exist in the feature-file. Exit nonzero with
+actionable errors. This is the cheap, always-run gate (`load_feat` + `validate_feat`
+already exist; this exposes them as a verb). `lint` layers semantic/taxonomy rules on
+top of `validate`; every other command should call `validate` implicitly on load.
+
 ## dizzy lint
 
 Deterministic checks over a feature-file. The change/event taxonomy expressed as rules:
@@ -166,7 +176,13 @@ Keep the emitter behind a small interface so other orchestrators can be added.
 ## dizzy simulate
 
 LLM-driven execution of a feature-file with **no code generation and no deployment**.
-Component descriptions (prose / pseudocode / mermaid) are the prompts.
+Component descriptions (prose / pseudocode / mermaid) are the prompts — author them as
+YAML block scalars (`|`/`>`) with enough detail to execute (see `dizzy docs authoring`,
+"Descriptions Are Design").
+
+Initial stimulus comes from lightweight **scenario files** (`*.scenario.yaml`): a
+description plus an ordered list of starting commands with prose payload sketches.
+One scenario per probe; keep a collection per feature.
 
 Scheduler: phased single-thread loop — drain the event queue, then the command queue,
 repeat. This *selects one legal interleaving* (sequentially consistent best case); it does
@@ -193,9 +209,11 @@ Fidelity levels:
   propose mutations; queriers answer only from supplied state. State in the artifact,
   judgment in the model.
 
-Session file: append-only log of commands handled / events emitted / projections applied —
-itself a DIZZY event stream. Supports **branching**: replay to step N, swap a modified
-feature-file, resume (counterfactual design probes).
+Session file: append-only JSONL log of commands handled / events emitted / projections
+applied — itself a DIZZY event stream, versioned from the first commit. Entries carry
+`id`/`parentId` so the file is a **tree** (prior art: the pi agent's session format):
+branching — continue from step N with a modified feature-file — is appending an entry
+whose parent is an earlier node, in place, full history in one file.
 
 Agent compatibility (OpenCode, Claude Code, pi — minimal by design):
 the harness never embeds a provider SDK as its only path. Three modes:

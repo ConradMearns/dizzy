@@ -117,6 +117,44 @@ Fields: `description` (required), `event` (required), `model` (optional),
 
 ---
 
+## Descriptions Are Design
+
+A component's `description` is not a comment — it is the design. Downstream tooling
+treats it as executable prose: `dizzy simulate` uses descriptions as the *prompts* for
+component activations, and `scaffold` embeds them as docstrings. A one-line description
+simulates as a one-line brain.
+
+Use YAML block scalars to give descriptions room — `|` preserves line breaks
+(pseudocode, mermaid), `>` folds prose:
+
+```yaml
+procedures:
+  lend_book:
+    description: |
+      Decide whether a member may borrow a book, and record the outcome.
+
+      Check availability via get_book_availability. If no copies are on the
+      shelf, emit borrow_rejected with the reason. If the book has a
+      reservation queue, only the member at the head of the queue may borrow.
+
+      ```mermaid
+      flowchart TD
+        cmd[borrow_book] --> avail{copies available?}
+        avail -- no --> rej[borrow_rejected]
+        avail -- yes --> head{reserved by someone else?}
+        head -- yes --> rej
+        head -- no --> ok[book_borrowed]
+      ```
+    command: borrow_book
+    queries: [get_book_availability]
+    emits: [book_borrowed, borrow_rejected]
+```
+
+Rule of thumb: write the description an LLM (or a new engineer) could execute without
+asking you anything. Missing branches and vague conditions become `simulate` findings.
+
+---
+
 ## Complete .feat.yaml Example
 
 ```yaml

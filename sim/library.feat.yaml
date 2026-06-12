@@ -1,0 +1,159 @@
+description: >
+  Library lending — members join, books are cataloged, and copies are borrowed,
+  returned, and reserved. The reference example for dizzy simulate roleplay:
+  small enough to hold in your head, wired enough to exercise both loops.
+
+commands:
+  register_member: A person asks to join the library as a borrowing member
+  add_book: A librarian adds copies of a book to the catalog
+  borrow_book: A member asks to take a specific book home
+  return_book: A member brings a borrowed book back
+  reserve_book: A member asks to be queued for a book that is currently out
+
+events:
+  member_registered: A person became a member of the library
+  book_added: Copies of a book were added to the catalog
+  book_borrowed: A copy left the shelf with a member
+  borrow_rejected: A borrow request was refused, with the reason
+  book_returned: A copy came back to the shelf
+  book_reserved: A member joined the reservation queue for a book
+
+procedures:
+  enroll_member:
+    description: |
+      Register a new member.
+
+      Accept the registration and record the fact. Membership has no approval
+      step in this library; the only failure worth recording would be a
+      duplicate registration, and we deliberately do not check for it here —
+      let simulation tell us whether that matters.
+    command: register_member
+    emits: [member_registered]
+
+  catalog_book:
+    description: |
+      Add copies of a book to the catalog.
+
+      Record the title and how many copies arrived. Adding more copies of an
+      already-known book is the same fact as adding a new one — the catalog
+      projection owns reconciling totals.
+    command: add_book
+    emits: [book_added]
+
+  lend_book:
+    description: |
+      Decide whether a member may borrow a book, and record the outcome.
+
+      Check availability via get_book_availability. Then decide:
+      - If no copies are on the shelf, emit borrow_rejected (reason: none available).
+      - If the book has a reservation queue and the requesting member is not at
+        the head of it (per get_next_reservation), emit borrow_rejected
+        (reason: reserved by another member).
+      - Otherwise emit book_borrowed.
+
+      ```mermaid
+      flowchart TD
+        cmd[borrow_book] --> avail{copies on shelf?}
+        avail -- no --> rej1[borrow_rejected: none available]
+        avail -- yes --> resq{reservation queue exists?}
+        resq -- no --> ok[book_borrowed]
+        resq -- yes --> head{requester at head of queue?}
+        head -- yes --> ok
+        head -- no --> rej2[borrow_rejected: reserved]
+      ```
+    command: borrow_book
+    queries: [get_book_availability, get_next_reservation]
+    emits: [book_borrowed, borrow_rejected]
+
+  process_return:
+    description: |
+      Record that a borrowed copy came back.
+
+      Accept the return and emit book_returned. Whether the returned copy
+      should immediately go to the next reserver is not this procedure's
+      decision — that reaction belongs to policy.
+    command: return_book
+    emits: [book_returned]
+
+  hold_book:
+    description: |
+      Put a member in the reservation queue for a book.
+
+      Record the reservation with its place implied by arrival order. We do
+      not reject reservations for books with copies on the shelf — the member
+      could just borrow it, but reserving anyway is harmless and simpler.
+    command: reserve_book
+    emits: [book_reserved]
+
+policies:
+  fulfill_reservation_on_return:
+    description: |
+      When a copy comes back, offer it to the head of the reservation queue.
+
+      On book_returned, if the returned book has a non-empty reservation
+      queue, dispatch borrow_book on behalf of the member at the head of the
+      queue. If there is no queue, do nothing.
+
+      NOTE (deliberate design tension): this policy needs to know the
+      reservation queue, but policies declare no queries in the current
+      feature-file format. We expect simulation to flag this. Do not paper
+      over it during roleplay — report the finding.
+    event: book_returned
+    emits: [borrow_book]
+
+models:
+  catalog:
+    description: Books known to the library, copy counts, and copies currently on the shelf
+    adapters: [sqla]
+  loans:
+    description: Which member has which copy out, and since when
+    adapters: [sqla]
+  reservations:
+    description: Per-book FIFO queues of members waiting for a copy
+    adapters: [sqla]
+
+projections:
+  index_book:
+    description: Add or top-up a book's copy count in the catalog when copies arrive
+    event: book_added
+    model: catalog
+    adapter: sqla
+  shelve_copy_counts_on_borrow:
+    description: Decrement on-shelf count in the catalog when a copy is borrowed
+    event: book_borrowed
+    model: catalog
+    adapter: sqla
+  shelve_copy_counts_on_return:
+    description: Increment on-shelf count in the catalog when a copy is returned
+    event: book_returned
+    model: catalog
+    adapter: sqla
+  record_loan:
+    description: Open a loan record when a copy is borrowed
+    event: book_borrowed
+    model: loans
+    adapter: sqla
+  close_loan:
+    description: Close the matching loan record when a copy is returned
+    event: book_returned
+    model: loans
+    adapter: sqla
+  queue_reservation:
+    description: Append the member to the book's reservation queue
+    event: book_reserved
+    model: reservations
+    adapter: sqla
+
+queries:
+  get_book_availability:
+    description: How many copies of a given book are on the shelf right now
+    model: catalog
+    adapter: sqla
+  get_next_reservation:
+    description: The member at the head of a given book's reservation queue, if any
+    model: reservations
+    adapter: sqla
+  list_member_loans:
+    description: All open loans for a given member
+    model: loans
+    adapter: sqla

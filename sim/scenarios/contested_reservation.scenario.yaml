@@ -1,0 +1,15 @@
+description: >
+  The interesting path — one copy, two members, a reservation, and a return.
+  Exercises the full c→d→e→y→c loop: the return should trigger
+  fulfill_reservation_on_return, which dispatches borrow_book for the head of
+  the queue. This scenario is expected to surface findings: the policy needs
+  reservation data it cannot query, and lend_book must arbitrate between a
+  walk-in and the queue head.
+
+commands:
+  - register_member: Ada joins the library
+  - register_member: Grace joins the library
+  - add_book: One copy of "A Discipline of Programming" arrives
+  - borrow_book: Ada borrows it (succeeds; shelf now empty)
+  - reserve_book: Grace reserves it (queue = [Grace])
+  - return_book: Ada returns it — the policy should now act for Grace
