@@ -137,7 +137,7 @@ The format we converge on here seeds `dizzy-e2d4` (session file) — keep it hon
 | 1b | branch ← s3 (feat v2) | 0 | (a) | **closed at finding b8** — resolved insufficient-context (r3) |
 | 1c | branch ← s3 (feat v2, scenario v3) | 0 | (a) | **complete, clean** — 0 findings; book_borrowed in stream; verifies r1+r2+r3 |
 | 2 | borrow_available_book | 0 | ~~(b) harness-fabricated~~ | superseded by jmQ ruling |
-| 3 | contested_reservation | 0 | (a) per rule 10 | **in progress** — paused at finding t12 (sequence scope) before the policy trap was even reached |
+| 3 | contested_reservation | 0 | (a) per rule 10 | **in progress** — t12 resolved per-server (r4); replay reached the planted policy trap; paused at finding t37 (missing-query-wiring) |
 
 ## Exit criteria
 
