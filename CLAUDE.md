@@ -12,7 +12,10 @@ Events   → Projections → Models → Queries  → Procedures (data loop)
 
 Core thesis: the design lives in the artifact, never in an LLM context window.
 
-## Tree of knowledge (read in this order)
+## Tree of knowledge
+
+This is a map, not a reading list — pull in only what your task needs. Ordered by
+how often a task needs them:
 
 1. **`README.md`** — what/why, install, minimal feature, the three-stage workflow.
 2. **`docs/cli.md`** — CLI manpage **and roadmap**. The canonical end-state: every
@@ -47,6 +50,8 @@ Core thesis: the design lives in the artifact, never in an LLM context window.
   lives in a **separate repo**. Don't build or seed it here.
 - Quality gates: `just test` (pytest + syrupy snapshots; `just test-update` to
   re-snapshot intentionally) and `just check` (ty).
+- Gotcha: despite the Seeds section below, `sd prime` does **not** accept
+  `--format` — run it bare. (`--format` works on `sd list`, `sd show`, etc.)
 
 <!-- seeds:start -->
 ## Issue Tracking (Seeds)
