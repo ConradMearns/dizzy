@@ -205,9 +205,15 @@ Architecture (the constraints live in the harness, not the prompt):
 Fidelity levels:
 - `--level 0` narrative: no payloads; does the story connect; finds missing layers/dead ends.
 - `--level 1` slot-conformant payloads; finds contract mismatches between components.
-- `--level 2` stateful: one JSON blob per Model kept in the session file; projections
-  propose mutations; queriers answer only from supplied state. State in the artifact,
-  judgment in the model.
+- `--level 2` stateful: models materialize as JSON blobs in the session file (caches of
+  the stream); projections propose mutations; queriers answer only from supplied state.
+
+**The jmQ collapse (levels 0–1):** projections never activate and are never logged —
+the simulated event store is the only state (the simplest projection is identity, so
+the minimal model *is* the stream). The j→m→Q chain collapses into `q`: a query is
+answered by a querier sub-activation given the query's description and full read access
+to the event store; if the stream cannot answer, that is a finding. Feature-files may
+omit projections/models early in design and declare only queries.
 
 Session file: append-only JSONL log of commands handled / events emitted / projections
 applied — itself a DIZZY event stream, versioned from the first commit. Entries carry

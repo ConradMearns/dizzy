@@ -34,6 +34,22 @@ Requirements being exercised: `docs/cli.md § dizzy simulate`.
    only after a level-0 run completes.
 5. **Termination**: step budget **30**; repetition rule — same component activated on
    the same message shape **3** times → stop, record `possible-livelock` finding.
+6. **Pause on `report_finding`** (ruling, run 1): every finding checkpoints to the
+   Director before the activation proceeds — never build on a wrong assumption.
+7. **No speculative emits** (ruling, run 1): an activation that cannot logically deduce
+   an outcome ends without emitting — the command was handled, no fact was produced.
+   Emitting alongside a finding is allowed only for branches that *are* deducible.
+8. **A finding ends an activation, not the run.** The run continues to quiescence /
+   budget collecting the full findings list (the product); fixes happen at run end,
+   then a branch from the pre-fix node verifies them under the amended feature-file.
+9. **The jmQ collapse** (ruling, run 1): at this stage projections **never activate**
+   and are never logged — the simplest projection is identity, so the minimal model
+   *is* the event store, and we only record events. The j→m→Q chain exists to answer
+   questions, so in simulation it collapses into `q`: a query is answered by a
+   **querier activation** given the query's description and full read access to the
+   simulated event store (a `dj`-style regression over the stream). If the stream
+   cannot answer the question → `report_finding`. Feature-files may omit j/m/Q early
+   in design and declare only `q`.
 
 ## Turn protocol (the draft `--manual` contract)
 
@@ -58,16 +74,13 @@ session log, and schedules consequences.
 
 ## Open questions this roleplay must answer
 
-- **Q1 — Query semantics.** A procedure needs a query answer mid-activation. Candidates:
-  - **(a) Synchronous sub-activation**: the querier is itself an activation (its own
-    description, its own prompt); answer flows back; sub-call recorded in the log.
-  - **(b) Harness-fabricated answer**: at level 0/1 the harness invents a plausible
-    answer from the query's declared shape; queriers only become real at level 2.
-  - **(c) No answer**: the procedure must branch on "unknown" or report a finding.
-  Trial plan: run `borrow_available_book` under (a), rerun under (b), compare logs and
-  findings. (c) is the fallback if both feel wrong.
-- **Q2 — Projections at level 0/1.** With no state, is a projection activation a no-op
-  log entry, a narrative mutation proposal, or skipped entirely?
+- **Q1 — Query semantics. ANSWERED by the jmQ-collapse ruling (rule 9):** synchronous
+  sub-activation (a), with the querier grounded in the full event store rather than
+  fabricating — option (b) is moot, (c) survives as the querier's failure mode
+  (stream can't answer → finding).
+- **Q2 — Projections at level 0/1. ANSWERED (rule 9):** always skipped, never logged.
+  Only events are recorded. Open follow-up: what level 2 means now — likely
+  "materialize models as caches of the stream" rather than "state appears".
 - **Q3 — Prompt sufficiency.** Are the block-scalar descriptions in `library.feat.yaml`
   enough to execute without healing? Every place the component LLM hesitates is a
   description bug — file it.
@@ -79,8 +92,17 @@ session log, and schedules consequences.
 ## Session logs
 
 One file per run: `sim/sessions/<scenario>__<run>.jsonl`. Every line:
-`{id, parentId, type, ...}`. Draft entry types: `header` (feat-file + scenario + level +
-budget), `activation`, `tool_call`, `query_answer`, `emission`, `finding`, `halt`.
+`{id, parentId, type, ...}`. Entry types (amended during run 1):
+- `header` — feat-file + scenario + level + query mode + step budget + format version.
+- `ruling` — a Director decision on a protocol ambiguity. **The harness stops and asks
+  rather than assuming; every ruling is logged.** Rulings are simulate-protocol findings
+  with their resolution attached.
+- `injection` — a scenario command entering the command queue. Injection rule
+  (ruling, run 1): one scenario command at a time; run to quiescence before the next.
+- `activation`, `tool_call`, `query_answer`, `emission`, `finding`, `halt`.
+- `activation_end` (added run 1) — closes an activation: emissions produced (possibly
+  none) and outcome. Needed the moment an activation ended without emitting.
+
 Branching a run = new entries pointing at an earlier `parentId` in the same file.
 The format we converge on here seeds `dizzy-e2d4` (session file) — keep it honest.
 
@@ -88,9 +110,9 @@ The format we converge on here seeds `dizzy-e2d4` (session file) — keep it hon
 
 | # | Scenario | Level | Query mode | Status |
 |---|---|---|---|---|
-| 1 | borrow_available_book | 0 | (a) sub-activation | pending |
-| 2 | borrow_available_book | 0 | (b) harness-fabricated | pending |
-| 3 | contested_reservation | 0 | winner of 1 vs 2 | pending |
+| 1 | borrow_available_book | 0 | (a) sub-activation over event store | **complete** — 2 findings (s7, s26), 7 rulings, halted quiescent at step 3 |
+| 2 | borrow_available_book | 0 | ~~(b) harness-fabricated~~ | superseded by jmQ ruling |
+| 3 | contested_reservation | 0 | (a) per rule 9 | pending |
 
 ## Exit criteria
 
