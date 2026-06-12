@@ -29,6 +29,23 @@ def test_docs_pages_print_content() -> None:
     assert unknown.exit_code == 1
 
 
+def test_onboard_prints_agent_overview() -> None:
+    from typer.testing import CliRunner
+
+    runner = CliRunner()
+
+    result = runner.invoke(app, ["onboard"])
+    assert result.exit_code == 0
+    assert "DIZZY Onboarding" in result.output
+    # The opinionated-workflow checklist: components, feature-file role,
+    # change taxonomy, exemplar events, command-per-lifecycle-step.
+    assert "eight components" in result.output
+    assert "Change taxonomy" in result.output
+    assert "Lossy-to-truth" in result.output
+    assert "Exemplar events" in result.output
+    assert "Command per lifecycle step" in result.output
+
+
 def test_generate_subcommands_registered() -> None:
     from typer.testing import CliRunner
 

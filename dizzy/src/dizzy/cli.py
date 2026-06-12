@@ -341,6 +341,21 @@ DOC_PAGES = {
 }
 
 
+def _print_doc(filename: str) -> None:
+    """Print a packaged markdown doc: rich-rendered on a tty, plain when piped."""
+    import sys
+    from importlib.resources import files
+
+    content = files("dizzy").joinpath("docs", filename).read_text()
+    if sys.stdout.isatty():
+        from rich.console import Console
+        from rich.markdown import Markdown
+
+        Console().print(Markdown(content))
+    else:
+        typer.echo(content)
+
+
 @app.command()
 def docs(
     page: Annotated[
@@ -349,21 +364,18 @@ def docs(
     ] = "cli",
 ) -> None:
     """Print Dizzy documentation (default: the CLI manpage & roadmap)."""
-    import sys
-    from importlib.resources import files
-
     if page not in DOC_PAGES:
         logger.error("Unknown docs page %r. Available pages: %s", page, ", ".join(DOC_PAGES))
         raise typer.Exit(code=1)
 
-    content = files("dizzy").joinpath("docs", DOC_PAGES[page]).read_text()
-    if sys.stdout.isatty():
-        from rich.console import Console
-        from rich.markdown import Markdown
+    _print_doc(DOC_PAGES[page])
 
-        Console().print(Markdown(content))
-    else:
-        typer.echo(content)
+
+@app.command()
+def onboard() -> None:
+    """Print the agent-facing DIZZY overview: components, feature-file role,
+    change taxonomy, exemplar events, and which command fits each lifecycle step."""
+    _print_doc("onboard.md")
 
 
 # Deprecated aliases, kept for compatibility with older docs and scripts.

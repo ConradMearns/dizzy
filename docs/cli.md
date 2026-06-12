@@ -22,7 +22,7 @@ replaceable components sandwiched between deterministic checks.
 
 | Phase | Commands | Status |
 |---|---|---|
-| Onboarding | `onboard` | planned |
+| Onboarding | `onboard` | **shipped** |
 | Design | `lint`, `simulate`, `diff`, `impact` | planned |
 | Build | `generate` | **shipped** (python-uv; rust/ts experimental) |
 | Build | `scaffold`, `verify` | planned (stub scaffolding ships inside `generate libraries`) |
@@ -92,10 +92,6 @@ piped — agent-friendly either way). Pages:
 
 Print a template `.dizzy.yaml` configuration file (logging options).
 
----
-
-# Roadmap
-
 ## dizzy onboard
 
 Prints a high-level overview of DIZZY and how to use this CLI, written for coding agents
@@ -103,7 +99,11 @@ Prints a high-level overview of DIZZY and how to use this CLI, written for codin
 Content includes: the eight components, the feature-file's role, the change taxonomy
 (what's recoverable from the event stream vs. not), exemplar good/bad events with reasons,
 and which command to reach for at each lifecycle step. Builds on `docs`; `onboard` is the
-opinionated workflow layer over the reference pages.
+opinionated workflow layer over the reference pages (canonical: docs/onboard.md).
+
+---
+
+# Roadmap
 
 ## dizzy lint
 
