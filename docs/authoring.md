@@ -174,7 +174,7 @@ projections:
 ### Step 1: Scaffold definitions
 
 ```
-uv run dizzy def <feat_file> <output_dir>
+uv run dizzy generate definitions <feat_file> <output_dir>
 ```
 
 Reads the feat file and writes LinkML stub files into `def/`, plus a `libconfig.yaml`
@@ -184,7 +184,7 @@ they are yours to edit.
 ### Step 2: Generate code
 
 ```
-uv run dizzy gen <feat_file> <output_dir>
+uv run dizzy generate static <feat_file> <output_dir>
 ```
 
 Reads the feat file + your authored `def/` stubs. Runs the LinkML toolchain and
@@ -194,7 +194,7 @@ installable uv package). Requires that `def/` stubs exist; run `def` first.
 ### Step 3: Package per runtime
 
 ```
-uv run dizzy lib <feat_file> <output_dir>
+uv run dizzy generate libraries <feat_file> <output_dir>
 ```
 
 Reads `libconfig.yaml` and emits `lib/<runtime>/`, splitting each element into its
@@ -210,7 +210,7 @@ A complete, runnable example lives in `examples/guestbook/` in the repository.
 
 ## What You Author After `def`
 
-After running `dizzy def`, fill in the LinkML stubs in `def/`:
+After running `dizzy generate definitions`, fill in the LinkML stubs in `def/`:
 
 ### def/commands.yaml
 Add attributes to each command class. These become typed fields on the generated
@@ -289,7 +289,7 @@ required fields.
 
 ## What You Implement After `lib`
 
-After running `dizzy lib`, implement the function bodies in each element package at
+After running `dizzy generate libraries`, implement the function bodies in each element package at
 `lib/python-uv/<kind>/<name>/src/<name>.py`. Each stub imports its generated types and
 raises `NotImplementedError`.
 
@@ -348,7 +348,7 @@ def get_receipt(
     raise NotImplementedError
 ```
 
-Element implementation stubs are **skip-if-exists** — `dizzy lib` never overwrites them.
+Element implementation stubs are **skip-if-exists** — `dizzy generate libraries` never overwrites them.
 
 ---
 

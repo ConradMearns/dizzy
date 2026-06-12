@@ -20,12 +20,12 @@ the steps below.
 | Path | Who writes it | What it is |
 |------|---------------|------------|
 | `guestbook.feat.yaml` | **you** | The feature definition — the single source of truth. |
-| `def/` | **you** (scaffolded by `dizzy def`) | LinkML schemas. Scaffolds are generated; you fill in the `attributes`. |
-| `libconfig.yaml` | **you** (scaffolded by `dizzy def`) | Which runtime each element targets. |
-| `lib/python-uv/gen_def/` | `dizzy gen` | Pydantic + SQLAlchemy classes compiled from `def/` — an installable package. |
-| `lib/python-uv/gen_int/` | `dizzy gen` | Typed Protocols, contexts, and adapters — an installable package. |
-| `lib/python-uv/<kind>/<name>/` | `dizzy lib` | One redistributable package per element; `src/<name>.py` is the implementation stub (the three here are filled in). |
-| `lib/python-uv/pyproject.toml` | `dizzy lib` | The uv workspace tying `gen_def`, `gen_int`, and every element package together. |
+| `def/` | **you** (scaffolded by `dizzy generate definitions`) | LinkML schemas. Scaffolds are generated; you fill in the `attributes`. |
+| `libconfig.yaml` | **you** (scaffolded by `dizzy generate definitions`) | Which runtime each element targets. |
+| `lib/python-uv/gen_def/` | `dizzy generate static` | Pydantic + SQLAlchemy classes compiled from `def/` — an installable package. |
+| `lib/python-uv/gen_int/` | `dizzy generate static` | Typed Protocols, contexts, and adapters — an installable package. |
+| `lib/python-uv/<kind>/<name>/` | `dizzy generate libraries` | One redistributable package per element; `src/<name>.py` is the implementation stub (the three here are filled in). |
+| `lib/python-uv/pyproject.toml` | `dizzy generate libraries` | The uv workspace tying `gen_def`, `gen_int`, and every element package together. |
 | `demo.py` | **you** | Host glue that wires the generated pieces together and runs them. |
 
 > **Naming:** you write element names in `snake_case`; LinkML compiles them to
@@ -68,15 +68,15 @@ too, remove them.
 rm -rf examples/guestbook/lib
 
 # 1. scaffold def/ LinkML schemas + libconfig.yaml (idempotent; won't clobber edits)
-uv run dizzy def examples/guestbook/guestbook.feat.yaml examples/guestbook
+uv run dizzy generate definitions examples/guestbook/guestbook.feat.yaml examples/guestbook
 
 # 2. (human step) fill in attributes in def/*.yaml — see the committed files here
 
 # 3. compile LinkML into the gen_def/gen_int type packages under lib/python-uv/
-uv run dizzy gen examples/guestbook/guestbook.feat.yaml examples/guestbook
+uv run dizzy generate static examples/guestbook/guestbook.feat.yaml examples/guestbook
 
 # 4. split each element into a redistributable runtime package
-uv run dizzy lib examples/guestbook/guestbook.feat.yaml examples/guestbook
+uv run dizzy generate libraries examples/guestbook/guestbook.feat.yaml examples/guestbook
 
 # 5. (human step) implement the src/ stubs in lib/python-uv/<kind>/<name>/src/
 #    — see the committed files here
@@ -84,7 +84,7 @@ uv run dizzy lib examples/guestbook/guestbook.feat.yaml examples/guestbook
 
 ## The three steps, in detail
 
-### `dizzy def` — scaffold the schemas
+### `dizzy generate definitions` — scaffold the schemas
 
 Reads `guestbook.feat.yaml` and writes empty LinkML stubs into `def/` plus a
 `libconfig.yaml`. You then fill in the field-level detail. For example, the
@@ -100,14 +100,14 @@ classes:
       message:      { range: string, required: true }
 ```
 
-### `dizzy gen` — compile the type packages
+### `dizzy generate static` — compile the type packages
 
 Runs LinkML over `def/` to produce the `gen_def` package (Pydantic + SQLAlchemy) and
 generates the typed `gen_int` package (Protocols/contexts/adapters) from the feat
 structure. Both land under `lib/python-uv/` as installable uv packages, each with its
 own `pyproject.toml`.
 
-### `dizzy lib` — package per runtime
+### `dizzy generate libraries` — package per runtime
 
 Reads `libconfig.yaml` (every element targets `python-uv` here) and emits the element
 packages under `lib/python-uv/`, plus the workspace `pyproject.toml` tying them and the

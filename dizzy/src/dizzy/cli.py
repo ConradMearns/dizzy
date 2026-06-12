@@ -60,8 +60,13 @@ from dizzy.libconfig_loader import load_libconfig, validate_libconfig
 
 app = typer.Typer()
 
+generate_app = typer.Typer(
+    help="Feature-file → schemas → typed contracts → per-runtime libraries."
+)
+app.add_typer(generate_app, name="generate")
 
-@app.command("def")
+
+@generate_app.command("definitions")
 def def_cmd(
     feat_file: Annotated[Path, typer.Argument(help="Path to the .feat.yaml file")],
     output_dir: Annotated[Path, typer.Argument(help="Output directory for generated files")],
@@ -98,11 +103,11 @@ def def_cmd(
     logger.info("  2. Add input/output shapes in def/queries/*.yaml")
     logger.info("  3. Add attributes to def/commands.yaml and def/events.yaml")
     logger.info("  4. Review runtimes in libconfig.yaml")
-    logger.info("  5. Run: dizzy gen <feat_file> <output_dir>")
-    logger.info("  6. Run: dizzy lib <feat_file> <output_dir>")
+    logger.info("  5. Run: dizzy generate static <feat_file> <output_dir>")
+    logger.info("  6. Run: dizzy generate libraries <feat_file> <output_dir>")
 
 
-@app.command()
+@generate_app.command("static")
 def gen(
     feat_file: Path = typer.Argument(..., help="Path to the .feat.yaml file"),
     output_dir: Path = typer.Argument(..., help="Output directory for generated files"),
@@ -132,7 +137,9 @@ def gen(
             missing.append(f"def/models/{model.name}.yaml")
 
     if missing:
-        logger.error("def/ stubs not found. Run `dizzy def <feat_file> <output_dir>` first.")
+        logger.error(
+            "def/ stubs not found. Run `dizzy generate definitions <feat_file> <output_dir>` first."
+        )
         for path in missing:
             logger.error("  missing: %s", path)
         raise typer.Exit(code=1)
@@ -197,10 +204,12 @@ def gen(
     write_type_packages(output_dir)
 
     logger.info("Generated lib/python-uv/gen_def and lib/python-uv/gen_int type packages.")
-    logger.info("  Run: dizzy lib <feat_file> <output_dir> to generate element packages.")
+    logger.info(
+        "  Run: dizzy generate libraries <feat_file> <output_dir> to generate element packages."
+    )
 
 
-@app.command()
+@generate_app.command("libraries")
 def lib(
     feat_file: Path = typer.Argument(..., help="Path to the .feat.yaml file"),
     output_dir: Path = typer.Argument(..., help="Output directory (must contain libconfig.yaml)"),
@@ -216,7 +225,7 @@ def lib(
 
     libconfig_path = output_dir / "libconfig.yaml"
     if not libconfig_path.exists():
-        logger.error("libconfig.yaml not found. Run `dizzy def` first.")
+        logger.error("libconfig.yaml not found. Run `dizzy generate definitions` first.")
         raise typer.Exit(code=1)
 
     config = load_libconfig(libconfig_path)
@@ -326,13 +335,42 @@ def config() -> None:
     typer.echo(CONFIG_TEMPLATE, nl=False)
 
 
+DOC_PAGES = {
+    "cli": "cli.md",  # manpage + roadmap (canonical: docs/cli.md)
+    "authoring": "authoring.md",  # agent guide to .feat.yaml authoring (canonical: docs/authoring.md)
+}
+
+
 @app.command()
-def docs() -> None:
-    """Print Dizzy reference documentation for AI/LLM agents."""
+def docs(
+    page: Annotated[
+        str,
+        typer.Argument(help=f"Page to print: {' | '.join(DOC_PAGES)}"),
+    ] = "cli",
+) -> None:
+    """Print Dizzy documentation (default: the CLI manpage & roadmap)."""
+    import sys
     from importlib.resources import files
 
-    content = files("dizzy").joinpath("docs_content.md").read_text()
-    typer.echo(content)
+    if page not in DOC_PAGES:
+        logger.error("Unknown docs page %r. Available pages: %s", page, ", ".join(DOC_PAGES))
+        raise typer.Exit(code=1)
+
+    content = files("dizzy").joinpath("docs", DOC_PAGES[page]).read_text()
+    if sys.stdout.isatty():
+        from rich.console import Console
+        from rich.markdown import Markdown
+
+        Console().print(Markdown(content))
+    else:
+        typer.echo(content)
+
+
+# Deprecated aliases, kept for compatibility with older docs and scripts.
+app.command("def", hidden=True, help="(deprecated) Alias of `generate definitions`.")(def_cmd)
+app.command("gen", hidden=True, help="(deprecated) Alias of `generate static`.")(gen)
+app.command("lib", hidden=True, help="(deprecated) Alias of `generate libraries`.")(lib)
+app.command("doc", hidden=True, help="Alias of `docs`.")(docs)
 
 
 def main() -> None:

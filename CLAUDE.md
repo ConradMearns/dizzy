@@ -1,3 +1,53 @@
+# DIZZY — project guide
+
+DIZZY is a methodology + code generator for event-sourced software. A feature is
+declared in a single `.feat.yaml` file (the **feature-file** — the API of the whole
+ecosystem); `dizzy generate` turns it into LinkML schemas, typed contracts, and
+per-runtime implementation-stub packages. Two loops define the model:
+
+```
+Commands → Procedures → Events → Policies  → Commands   (reactivity loop)
+Events   → Projections → Models → Queries  → Procedures (data loop)
+```
+
+Core thesis: the design lives in the artifact, never in an LLM context window.
+
+## Tree of knowledge (read in this order)
+
+1. **`README.md`** — what/why, install, minimal feature, the three-stage workflow.
+2. **`docs/cli.md`** — CLI manpage **and roadmap**. The canonical end-state: every
+   command section is the requirements doc for that command. Seeds reference these
+   sections. Printed by `dizzy docs`. *Keep this file authoritative — when scope
+   changes, change it here first, then update seeds.*
+3. **`docs/authoring.md`** — agent guide for writing features: components, `.feat.yaml`
+   shape, what you author after each stage, generated layout, import conventions.
+   Printed by `dizzy docs authoring`.
+4. **`docs/SPECIFICATION.md`** — the `.feat.yaml` format spec.
+5. **`examples/guestbook/`** — a fully generated *and implemented* feature with a
+   runnable demo.
+6. **`dizzy/src/dizzy/`** — implementation: `cli.py` (verbs), `feat_schema.py` /
+   `libconfig_schema.py` (generated — edit `dizzy/src/dizzy/def/*.yaml` and run
+   `just gen-feat-pydantic` / `just gen-libconfig-pydantic` instead), `generators/`.
+7. **`docs/whitepaper.typ`, `docs/architecture.typ`, `docs/PNF.md`** — theory and
+   rationale. Maintainer-authored: AI may review/fact-check these, never author them.
+
+## CLI at a glance
+
+- `dizzy generate definitions|static|libraries <feat> <out>` — the shipped pipeline
+  (legacy aliases: `def`/`gen`/`lib`).
+- `dizzy docs [cli|authoring]` — print documentation; `dizzy config` — config template.
+- Roadmap commands (`lint`, `diff`, `impact`, `simulate`, …) are specified in
+  `docs/cli.md` and tracked as seeds.
+
+## Conventions & boundaries
+
+- The two doc pages in `docs/` are symlinked into the package
+  (`dizzy/src/dizzy/docs/`) so they ship in the wheel — edit the `docs/` copies.
+- Visualization and runtime-observability work (`trace`, `drift`, graph rendering)
+  lives in a **separate repo**. Don't build or seed it here.
+- Quality gates: `just test` (pytest + syrupy snapshots; `just test-update` to
+  re-snapshot intentionally) and `just check` (ty).
+
 <!-- seeds:start -->
 ## Issue Tracking (Seeds)
 <!-- seeds-onboard:v0.5.3 -->

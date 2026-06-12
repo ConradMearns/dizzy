@@ -6,9 +6,37 @@ from click.exceptions import Exit as ClickExit
 from pathlib import Path
 from syrupy.assertion import SnapshotAssertion
 
-from dizzy.cli import def_cmd, gen, lib
+from dizzy.cli import DOC_PAGES, app, def_cmd, gen, lib
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
+
+
+def test_docs_pages_print_content() -> None:
+    from typer.testing import CliRunner
+
+    runner = CliRunner()
+
+    default = runner.invoke(app, ["docs"])
+    assert default.exit_code == 0
+    assert "DIZZY CLI — Manpage & Roadmap" in default.output
+
+    for page in DOC_PAGES:
+        result = runner.invoke(app, ["docs", page])
+        assert result.exit_code == 0
+        assert result.output.strip()
+
+    unknown = runner.invoke(app, ["docs", "nope"])
+    assert unknown.exit_code == 1
+
+
+def test_generate_subcommands_registered() -> None:
+    from typer.testing import CliRunner
+
+    runner = CliRunner()
+    result = runner.invoke(app, ["generate", "--help"])
+    assert result.exit_code == 0
+    for sub in ("definitions", "static", "libraries"):
+        assert sub in result.output
 
 
 def test_def_creates_def_stubs(tmp_path: Path) -> None:
@@ -87,7 +115,7 @@ def test_gen_error_when_def_missing(tmp_path: Path, caplog: pytest.LogCaptureFix
         with pytest.raises(ClickExit) as exc_info:
             gen(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
     assert exc_info.value.exit_code == 1
-    assert "dizzy def" in caplog.text
+    assert "dizzy generate definitions" in caplog.text
     assert "def/commands.yaml" in caplog.text
 
 
