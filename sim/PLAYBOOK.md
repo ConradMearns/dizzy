@@ -90,8 +90,9 @@ session log, and schedules consequences.
 - **Q3 — Prompt sufficiency.** Are the block-scalar descriptions in `library.feat.yaml`
   enough to execute without healing? Every place the component LLM hesitates is a
   description bug — file it.
-- **Q4 — Scenario format.** Is `description` + ordered `command: narrative` list enough?
-  Does anything need actor identity or timing?
+- **Q4 — Scenario format. ANSWERED in part (run 1c):** needs `context` — technician
+  givens (server codes, pre-existing test users) that the design does not model but
+  the story assumes. Actor identity rides in narratives so far; timing still open.
 - **Q5 — Session log shape.** We log JSONL with `id`/`parentId` from entry one
   (pi-style tree; see plan notes) — what entry types do we actually need?
 
@@ -109,9 +110,21 @@ One file per run: `sim/sessions/<scenario>__<run>.jsonl`. Every line:
 - `activation_end` (added run 1) — closes an activation: emissions produced (possibly
   none) and outcome. Needed the moment an activation ended without emitting.
 - `resolution` (added run 1 close) — resolves a finding: `resolves: <finding-id>`,
-  the Director's decision, and the argument as stated (rule 9).
+  the Director's decision, and the argument as stated (rule 9). Categories so far:
+  **design-change** (the feature-file was wrong → amend it, branch, verify) and
+  **insufficient-context** (the design was fine, the world was under-specified →
+  amend the scenario's `context`, close the branch, fork a fresh one).
 - `branch` (added run 1b) — opens a counterfactual: `parentId` points at the fork
-  node; records why and which feature-file revision applies from here.
+  node; records why and which feature-file/scenario revision applies from here.
+- `context` (added run 1c) — scenario givens materialized at branch start: the
+  technician-style setup the story assumes (fragile but realistic, and we accept
+  it). Givens enter the event store as pre-existing facts; queriers may cite them.
+
+## Scenario format (amended run 1c)
+
+`description` + `context` (givens — the world a technician set up before the story;
+no setup features are modeled) + `commands` (the stimulus, injected one at a time).
+The given/when split is deliberate: context is assumed, commands are earned.
 
 Branching a run = new entries pointing at an earlier `parentId` in the same file.
 The format we converge on here seeds `dizzy-e2d4` (session file) — keep it honest.
@@ -121,8 +134,10 @@ The format we converge on here seeds `dizzy-e2d4` (session file) — keep it hon
 | # | Scenario | Level | Query mode | Status |
 |---|---|---|---|---|
 | 1 | borrow_available_book | 0 | (a) sub-activation over event store | **complete** — 2 findings (s7, s26), 7 rulings, halted quiescent at step 3 |
+| 1b | branch ← s3 (feat v2) | 0 | (a) | **closed at finding b8** — resolved insufficient-context (r3) |
+| 1c | branch ← s3 (feat v2, scenario v3) | 0 | (a) | **complete, clean** — 0 findings; book_borrowed in stream; verifies r1+r2+r3 |
 | 2 | borrow_available_book | 0 | ~~(b) harness-fabricated~~ | superseded by jmQ ruling |
-| 3 | contested_reservation | 0 | (a) per rule 9 | pending |
+| 3 | contested_reservation | 0 | (a) per rule 10 | pending — the policy trap awaits |
 
 ## Exit criteria
 

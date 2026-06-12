@@ -1,7 +1,14 @@
 description: >
   Happy path — a member borrows a book that is on the shelf. Exercises the
-  reactivity loop once (no policy firing) and three projections. Expected to
-  terminate quiescent with book_borrowed in the stream.
+  reactivity loop once (no policy firing). Expected to terminate quiescent
+  with book_borrowed in the stream.
+
+context:
+  - >
+    Minting Server codes are assigned: Online = 01, Front Desk = 02.
+  - >
+    A pre-existing Test User exists with member id 0042-00-00000000,
+    set up by a technician before the story begins.
 
 commands:
   - register_member: Ada joins the library at the Front Desk
