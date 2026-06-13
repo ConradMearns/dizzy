@@ -14,6 +14,14 @@ commands:
     The command cannot be constructed without a member id.
   return_book: A member brings a borrowed book back
   reserve_book: A member asks to be queued for a book that is currently out
+  # Dispatched by fulfill_reservation_on_return, not by an end user (run 3, branch u):
+  hold_copy_for_member: >
+    Set a returned copy aside at the desk for a specific member who is next in
+    the book's reservation queue, so it is not re-shelved for general
+    borrowing. Cannot be constructed without the book and the member it is held for.
+  notify_member: >
+    Tell a specific member that a copy they reserved is being held for them and
+    is ready to collect. Cannot be constructed without the member and the book.
 
 events:
   member_registered: A person became a member of the library
@@ -22,6 +30,12 @@ events:
   borrow_rejected: A borrow request was refused, with the reason
   book_returned: A copy came back to the shelf
   book_reserved: A member joined the reservation queue for a book
+  copy_held_for_member: >
+    A returned copy was set aside for the member at the head of its reservation
+    queue. This single fact carries two consequences (owned by projections): the
+    member's reservation is removed from the book's queue (dequeue-on-hold), and
+    the copy is unavailable to other members until the holder collects it.
+  member_notified: A member was told a held copy is ready to collect
 
 procedures:
   enroll_member:
@@ -33,9 +47,12 @@ procedures:
       - LLLL — our independent Library Code: always 0042.
       - SS   — the code of the Minting Server that took this registration
                (currently Front Desk and Online; more may come).
-      - MMMMMMMM — the member code: auto-increments sequentially, member by
-               member. Obtain the latest minted number via
-               get_latest_member_number and assign the next one.
+      - MMMMMMMM — the member code: auto-increments sequentially PER MINTING
+               SERVER, not globally (resolution r4, session
+               contested_reservation__3 — surfaced when a second server minted).
+               Each server keeps its own running count, so the same MMMMMMMM may
+               recur under different SS. Obtain the latest minted number FOR THIS
+               SERVER via get_latest_member_number and assign the next one.
 
       Record the member_registered fact carrying the full assigned id, the
       member's name, and the minting server. Membership has no approval step.
@@ -61,8 +78,13 @@ procedures:
       borrow_available_book__1). Decide in order:
       - If the requester's member id has no registration fact
         (per get_member_registration), emit borrow_rejected (reason: not a member).
-      - If no copies are on the shelf (per get_book_availability),
-        emit borrow_rejected (reason: none available).
+      - If a copy of this book is being held for the requesting member
+        (per get_hold_for_member), this is their authorized pickup: emit
+        book_borrowed — the held copy becomes their loan. Only the holder may
+        collect a held copy (resolution u10, session contested_reservation__3).
+      - If no copies are available to general borrowers (per get_book_availability,
+        which does not count copies held for other members), emit borrow_rejected
+        (reason: none available).
       - If the book has a reservation queue and the requesting member is not at
         the head of it (per get_next_reservation), emit borrow_rejected
         (reason: reserved by another member).
@@ -72,16 +94,23 @@ procedures:
       flowchart TD
         cmd[borrow_book] --> mem{registered member?}
         mem -- no --> rej0[borrow_rejected: not a member]
-        mem -- yes --> avail{copies on shelf?}
+        mem -- yes --> held{copy held for requester?}
+        held -- yes --> ok[book_borrowed]
+        held -- no --> avail{copies available to general borrowers?}
         avail -- no --> rej1[borrow_rejected: none available]
         avail -- yes --> resq{reservation queue exists?}
-        resq -- no --> ok[book_borrowed]
+        resq -- no --> ok
         resq -- yes --> head{requester at head of queue?}
         head -- yes --> ok
         head -- no --> rej2[borrow_rejected: reserved]
       ```
+
+      NOTE: the held-copy pickup branch and get_hold_for_member are derived from
+      ruling u10 but were NOT exercised in run 3 (the contested_reservation
+      scenario injects no pickup and no competing walk-in). Verify under a
+      follow-up scenario before trusting this branch.
     command: borrow_book
-    queries: [get_member_registration, get_book_availability, get_next_reservation]
+    queries: [get_member_registration, get_hold_for_member, get_book_availability, get_next_reservation]
     emits: [book_borrowed, borrow_rejected]
 
   process_return:
@@ -104,21 +133,49 @@ procedures:
     command: reserve_book
     emits: [book_reserved]
 
+  place_reservation_hold:
+    description: |
+      Set a returned copy aside for the member it is being held for
+      (run 3, branch u; ruling u10).
+
+      Record copy_held_for_member for the given book and member. This single
+      fact carries two consequences, owned by projections: the member's
+      reservation is removed from the book's queue (dequeue-on-hold), and the
+      copy is marked unavailable to other members until collected.
+    command: hold_copy_for_member
+    emits: [copy_held_for_member]
+
+  send_member_notice:
+    description: |
+      Notify a member that a held copy is ready to collect
+      (run 3, branch u).
+
+      Record member_notified for the given member and book. The actual delivery
+      (email, SMS, a note at the desk) is outside the model; we record only that
+      the member was notified.
+    command: notify_member
+    emits: [member_notified]
+
 policies:
   fulfill_reservation_on_return:
     description: |
-      When a copy comes back, offer it to the head of the reservation queue.
+      When a copy comes back, set it aside for the member at the head of that
+      book's reservation queue and notify them — do not lend it automatically
+      (run 3, branch u; resolution u3).
 
-      On book_returned, if the returned book has a non-empty reservation
-      queue, dispatch borrow_book on behalf of the member at the head of the
-      queue. If there is no queue, do nothing.
+      On book_returned, query get_next_reservation for the returned book. If it
+      names a member (a non-empty queue), dispatch hold_copy_for_member and
+      notify_member for that member and book. If the queue is empty, do nothing
+      — the copy returns to general availability.
 
-      NOTE (deliberate design tension): this policy needs to know the
-      reservation queue, but policies declare no queries in the current
-      feature-file format. We expect simulation to flag this. Do not paper
-      over it during roleplay — report the finding.
+      The policy cannot borrow on the member's behalf: borrowing is a physical
+      act the member performs when they come to collect the copy. The policy's
+      job ends at placing the hold and sending the notice; the system then waits.
+      (The original emit borrow_book was non-dispatchable — finding u2: a policy
+      may only dispatch commands the system can execute itself.)
     event: book_returned
-    emits: [borrow_book]
+    queries: [get_next_reservation]
+    emits: [hold_copy_for_member, notify_member]
 
 models:
   catalog:
@@ -162,25 +219,55 @@ projections:
     event: book_reserved
     model: reservations
     adapter: sqla
+  dequeue_reservation_on_hold:
+    description: >
+      Remove the member from the book's reservation queue when a copy is held
+      for them — the hold fulfils their reservation (dequeue-on-hold, ruling u10).
+    event: copy_held_for_member
+    model: reservations
+    adapter: sqla
+  mark_copy_held_in_catalog:
+    description: >
+      Mark the held copy as unavailable to other members when a copy is held for
+      a member — it is no longer on the shelf for general borrowing, only the
+      holder may collect it (ruling u10).
+    event: copy_held_for_member
+    model: catalog
+    adapter: sqla
 
 queries:
   get_latest_member_number:
     description: >
-      The most recently minted member code (from member_registered facts),
-      so the next sequential number can be assigned. jmQ query — answered
-      from the event stream; no model binding yet.
+      The most recently minted member code FOR A GIVEN MINTING SERVER (from
+      member_registered facts with that server's SS code), so the next
+      sequential number for that server can be assigned. The sequence is
+      per-server, not global (resolution r4). jmQ query — answered from the
+      event stream; no model binding yet.
   get_member_registration:
     description: >
       Whether a given member id corresponds to a member_registered fact,
       and if so, whose. jmQ query — answered from the event stream; no
       model binding yet.
   get_book_availability:
-    description: How many copies of a given book are on the shelf right now
+    description: >
+      How many copies of a given book are available to general borrowers right
+      now — copies on the shelf, excluding any held for a specific member
+      (ruling u10).
     model: catalog
     adapter: sqla
   get_next_reservation:
-    description: The member at the head of a given book's reservation queue, if any
+    description: >
+      The member at the head of a given book's reservation queue, if any. A
+      member whose copy has been held (copy_held_for_member) is no longer in the
+      queue (dequeue-on-hold, ruling u10).
     model: reservations
+    adapter: sqla
+  get_hold_for_member:
+    description: >
+      Whether a copy of a given book is currently being held for a given member
+      — an un-collected copy_held_for_member with no subsequent book_borrowed by
+      that member — so a pickup can be authorized for that member only (ruling u10).
+    model: catalog
     adapter: sqla
   list_member_loans:
     description: All open loans for a given member

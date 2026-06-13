@@ -150,7 +150,7 @@ The format we converge on here seeds `dizzy-e2d4` (session file) — keep it hon
 | 1b | branch ← s3 (feat v2) | 0 | (a) | **closed at finding b8** — resolved insufficient-context (r3) |
 | 1c | branch ← s3 (feat v2, scenario v3) | 0 | (a) | **complete, clean** — 0 findings; book_borrowed in stream; verifies r1+r2+r3 |
 | 2 | borrow_available_book | 0 | ~~(b) harness-fabricated~~ | superseded by jmQ ruling |
-| 3 | contested_reservation | 0 | (a) per rule 10 | **in progress** — t12 resolved per-server (r4); trap caught at t37 (missing-query-wiring), resolved unreviewed-component (r5, born rule 11); branch u ← t34 awaiting Director's reviewed description of fulfill_reservation_on_return |
+| 3 | contested_reservation | 0 | (a) per rule 10 | **branch u quiescent at step 9 (u17)** — t12 per-server (r4); t37 trap (missing-query-wiring) → r5 unreviewed-component; branch u ← t34: review found `emit borrow_book` non-dispatchable (u2 — a policy can't perform a member's physical borrow), Director rewrote the policy (u3) to `queries:[get_next_reservation]`, `emits:[hold_copy_for_member, notify_member]`; policy re-ran clean (u4–u8); rule-11 gate ruling on the new procedures (u10: dequeue-on-hold, held≠available, holder-only pickup); `place_reservation_hold`→`copy_held_for_member` (u11–13) and `send_member_notice`→`member_notified` (u14–16) ran clean; return ⇒ copy held for Grace + Grace notified, t37 resolved end-to-end. Deferred to run end: hold-consuming projections, lend_book pickup-authorization path (unexercised), get_next_reservation prompt sufficiency |
 
 ## Exit criteria
 
