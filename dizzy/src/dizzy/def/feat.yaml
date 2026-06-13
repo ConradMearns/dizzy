@@ -144,8 +144,8 @@ classes:
 
   PolicyDef:
     description: >-
-      An event-driven reaction handler that listens to exactly one event and optionally
-      dispatches commands.
+      An event-driven reaction handler that listens to exactly one event, may use queries
+      and optionally dispatches commands.
     attributes:
       name:
         description: Policy name (snake_case)
@@ -158,6 +158,10 @@ classes:
         description: The event name that triggers this policy
         range: string
         required: true
+      queries:
+        description: Query names this policy needs access to
+        range: string
+        multivalued: true
       emits:
         description: Command names this policy may dispatch
         range: string
