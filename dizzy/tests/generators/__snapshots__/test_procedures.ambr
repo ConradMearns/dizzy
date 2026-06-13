@@ -6,7 +6,7 @@
   from typing import Callable
   
   from gen_def.pydantic.events import RecipeIngested
-  from gen_int.python.query.get_recipe_text import get_recipe_text_query
+  from gen_def.pydantic.query.get_recipe_text import GetRecipeTextInput, GetRecipeTextOutput
   
   
   @dataclass
@@ -16,7 +16,7 @@
   
   @dataclass
   class extract_and_transform_recipe_queries:
-      get_recipe_text: get_recipe_text_query
+      get_recipe_text: Callable[[GetRecipeTextInput], GetRecipeTextOutput]
   
   
   @dataclass

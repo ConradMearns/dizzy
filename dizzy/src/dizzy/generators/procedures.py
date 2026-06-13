@@ -17,7 +17,7 @@ def render_procedure_context(proc: ProcedureDef) -> str:
 
     lines = ["# AUTO-GENERATED — do not edit"]
     lines.append("from dataclasses import dataclass")
-    if proc.emits:
+    if proc.emits or proc.queries:
         lines.append("from typing import Callable")
 
     if proc.emits or proc.queries:
@@ -26,7 +26,8 @@ def render_procedure_context(proc: ProcedureDef) -> str:
             lines.append(f"from gen_def.pydantic.events import {camelcase(event_name)}")
         for query_name in proc.queries:
             lines.append(
-                f"from gen_int.python.query.{query_name} import {query_name}_query"
+                f"from gen_def.pydantic.query.{query_name} import "
+                f"{camelcase(query_name)}Input, {camelcase(query_name)}Output"
             )
 
     # emitters dataclass
@@ -47,7 +48,12 @@ def render_procedure_context(proc: ProcedureDef) -> str:
         lines.append("@dataclass")
         lines.append(f"class {queries_class}:")
         for query_name in proc.queries:
-            lines.append(f"    {query_name}: {query_name}_query")
+            # Host-bound query closure: the host injects the read adapter, so the
+            # handler calls it with just the query input (symmetric with emit).
+            lines.append(
+                f"    {query_name}: Callable"
+                f"[[{camelcase(query_name)}Input], {camelcase(query_name)}Output]"
+            )
 
     # context dataclass
     lines.append("")

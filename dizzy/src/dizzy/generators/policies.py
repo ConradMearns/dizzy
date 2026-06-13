@@ -12,15 +12,23 @@ from dizzy.logger import logger
 def render_policy_context(policy: PolicyDef) -> str:
     """Render gen_int/python/policy/<policy.name>_context.py."""
     emitters_class = f"{policy.name}_emitters"
+    queries_class = f"{policy.name}_queries"
     context_class = f"{policy.name}_context"
 
     lines = ["# AUTO-GENERATED — do not edit"]
     lines.append("from dataclasses import dataclass")
-    if policy.emits:
+    if policy.emits or policy.queries:
         lines.append("from typing import Callable")
+
+    if policy.emits or policy.queries:
         lines.append("")
         for cmd_name in policy.emits:
             lines.append(f"from gen_def.pydantic.commands import {camelcase(cmd_name)}")
+        for query_name in policy.queries or []:
+            lines.append(
+                f"from gen_def.pydantic.query.{query_name} import "
+                f"{camelcase(query_name)}Input, {camelcase(query_name)}Output"
+            )
 
     # emitters dataclass
     lines.append("")
@@ -33,12 +41,28 @@ def render_policy_context(policy: PolicyDef) -> str:
     else:
         lines.append("    pass")
 
+    # queries dataclass (only if there are queries)
+    if policy.queries:
+        lines.append("")
+        lines.append("")
+        lines.append("@dataclass")
+        lines.append(f"class {queries_class}:")
+        for query_name in policy.queries or []:
+            # Host-bound query closure: the host injects the read adapter, so the
+            # policy calls it with just the query input (symmetric with emit).
+            lines.append(
+                f"    {query_name}: Callable"
+                f"[[{camelcase(query_name)}Input], {camelcase(query_name)}Output]"
+            )
+
     # context dataclass
     lines.append("")
     lines.append("")
     lines.append("@dataclass")
     lines.append(f"class {context_class}:")
     lines.append(f"    emit: {emitters_class}")
+    if policy.queries:
+        lines.append(f"    query: {queries_class}")
 
     lines.append("")
     return "\n".join(lines)

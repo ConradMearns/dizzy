@@ -84,6 +84,11 @@ def validate_feat(feat: FeatureDefinition) -> list[str]:
             errors.append(
                 f"policy '{policy.name}': event '{policy.event}' not declared in events"
             )
+        for q in policy.queries or []:
+            if q not in query_names:
+                errors.append(
+                    f"policy '{policy.name}': query '{q}' not declared in queries"
+                )
         for e in policy.emits or []:
             if e not in command_names:
                 errors.append(

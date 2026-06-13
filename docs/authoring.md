@@ -87,17 +87,22 @@ procedures:
 Fields: `command` (required), `queries` (optional list), `emits` (optional list).
 
 ### Policies
-Event-driven reaction handlers. Each policy listens to one event and optionally
-dispatches commands to trigger further processing.
+Event-driven reaction handlers. Each policy listens to one event, may consult queries
+for reads, and **dispatches commands only** — never events. A query informs *which*
+command a policy dispatches (and with what arguments); to change state, the policy emits
+a command that flows through the normal command → procedure → event chain.
 
 ```yaml
 policies:
-  index_recipe_on_ingest:
-    description: Adds recipe to the library projection when ingested
-    event: recipe_ingested
+  notify_next_on_return:
+    description: When a book is returned, notify the next patron in the hold queue
+    event: book_returned
+    queries: [get_next_hold]
+    emits: [notify_next_patron]
 ```
 
-Fields: `event` (required), `emits` (optional list of command names).
+Fields: `event` (required), `queries` (optional list of query names), `emits` (optional
+list of command names). See `examples/library/` for a runnable policy-with-query feature.
 
 ### Projections
 Read-model builders. Respond to one event and write denormalized state into a model
@@ -333,7 +338,8 @@ raises `NotImplementedError`.
 
 ### lib/python-uv/procedure/<name>/src/<name>.py
 You receive `context` and `command`. Use `context.emit.<event_name>(event)` to
-emit events, and `context.query.<query_name>(input, query_context)` for reads.
+emit events, and `context.query.<query_name>(input)` for reads — each query field is a
+host-bound closure taking just the query input (the host injects the read adapter).
 
 ```python
 def extract_receipt_data_from_image(
@@ -347,15 +353,22 @@ def extract_receipt_data_from_image(
 
 ### lib/python-uv/policy/<name>/src/<name>.py
 You receive `event` and `context`. Use `context.emit.<command_name>(cmd)` to
-dispatch new commands.
+dispatch new commands, and `context.query.<query_name>(input)` to consult read state
+when deciding *which* command to dispatch. Policies dispatch commands only — never events.
 
 ```python
-def index_recipe_on_ingest(
-    event: RecipeIngested,
-    context: index_recipe_on_ingest_context,
+def notify_next_on_return(
+    event: BookReturned,
+    context: notify_next_on_return_context,
 ) -> None:
-    # React to event, optionally dispatch commands
-    raise NotImplementedError
+    # Consult read state to decide what to do...
+    result = context.query.get_next_hold(GetNextHoldInput(book_id=event.book_id))
+    if result.patron is None:
+        return  # no one waiting -> dispatch nothing
+    # ...then dispatch a command (which flows through its procedure to an event).
+    context.emit.notify_next_patron(
+        NotifyNextPatron(book_id=event.book_id, patron=result.patron)
+    )
 ```
 
 ### lib/python-uv/projection/<name>/src/<name>.py

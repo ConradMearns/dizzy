@@ -153,11 +153,13 @@ Queries declared in a procedure's `queries:` list are injected into that procedu
 ```python
 @dataclass
 class extract_and_transform_recipe_queries:
-    get_recipe_text: get_recipe_text_query
+    get_recipe_text: Callable[[GetRecipeTextInput], GetRecipeTextOutput]
 ```
 
-The implementor passes in a concrete callable (e.g. a SQLAlchemy-backed function) when
-constructing the procedure context.
+Each query field is a **host-bound callable** — the host injects the read adapter and
+supplies a closure that takes only the query input and returns its output (symmetric
+with how `emit` fields are bound). The handler calls `context.query.get_recipe_text(input)`
+without needing the query's own adapter context.
 
 ---
 
@@ -239,7 +241,7 @@ from dataclasses import dataclass
 from typing import Callable
 
 from gen_def.pydantic.events import recipe_ingested
-from gen_int.python.query.get_recipe_text import get_recipe_text_query
+from gen_def.pydantic.query.get_recipe_text import GetRecipeTextInput, GetRecipeTextOutput
 
 
 @dataclass
@@ -249,7 +251,7 @@ class extract_and_transform_recipe_emitters:
 
 @dataclass
 class extract_and_transform_recipe_queries:
-    get_recipe_text: get_recipe_text_query
+    get_recipe_text: Callable[[GetRecipeTextInput], GetRecipeTextOutput]
 
 
 @dataclass
@@ -286,23 +288,30 @@ class extract_and_transform_recipe_protocol(Protocol):
 ---
 
 ### `policies`
-Event-driven reaction handlers. Each policy listens to one event and optionally emits commands.
+Event-driven reaction handlers. Each policy listens to one event, may declare queries
+it consults, and **dispatches commands only** (never events). A query informs *which*
+command a policy dispatches, and with what arguments — the decision lives in read state,
+not in the policy's hard-coded logic. To change state, a policy emits a command, which
+flows through the normal command → procedure → event chain.
 
 ```yaml
 policies:
   trigger_priority_manifest:
     description: Issues command to create image priority manifest when scan completes
     event: scan_complete
+    queries:
+      - get_pending_scan_count
     emits:
       - create_image_priority_manifest
 ```
 
 Fields:
 - `event` (required): the event that triggers this policy
+- `queries` (optional): list of query names this policy consults to decide what to dispatch
 - `emits` (optional): list of command names this policy may dispatch
 
 **Gen generates:**
-- `gen_int/python/policy/<policy_name>_context.py` — context dataclass with an emitters nested dataclass (mirrors procedure context, no queries):
+- `gen_int/python/policy/<policy_name>_context.py` — context dataclass with emitters and (when declared) queries nested dataclasses (mirrors procedure context):
 
 ```python
 # AUTO-GENERATED — do not edit
@@ -310,6 +319,10 @@ from dataclasses import dataclass
 from typing import Callable
 
 from gen_def.pydantic.commands import create_image_priority_manifest
+from gen_def.pydantic.query.get_pending_scan_count import (
+    GetPendingScanCountInput,
+    GetPendingScanCountOutput,
+)
 
 
 @dataclass
@@ -318,11 +331,19 @@ class trigger_priority_manifest_emitters:
 
 
 @dataclass
+class trigger_priority_manifest_queries:
+    get_pending_scan_count: Callable[[GetPendingScanCountInput], GetPendingScanCountOutput]
+
+
+@dataclass
 class trigger_priority_manifest_context:
     emit: trigger_priority_manifest_emitters
+    query: trigger_priority_manifest_queries
 ```
 
-For policies with no `emits`, the emitters dataclass has `pass`.
+For policies with no `emits`, the emitters dataclass has `pass`. The `query` field and
+its `_queries` dataclass appear only when the policy declares `queries`. As with
+procedures, each query field is a host-bound `Callable[[Input], Output]` closure.
 
 - `gen_int/python/policy/<policy_name>_protocol.py` — Protocol stub:
 
@@ -533,9 +554,10 @@ to that root:
 | `gen_int/python/query/` | Query input/output models | `from gen_def.pydantic.query.<name> import <Name>Input, <Name>Output` |
 | `gen_int/python/procedure/` | Pydantic events | `from gen_def.pydantic.events import ...` |
 | `gen_int/python/procedure/` | Pydantic commands | `from gen_def.pydantic.commands import ...` |
-| `gen_int/python/procedure/` | Query Protocols | `from gen_int.python.query.<name> import ...` |
+| `gen_int/python/procedure/` | Query input/output models | `from gen_def.pydantic.query.<name> import <Name>Input, <Name>Output` |
 | `gen_int/python/policy/` | Pydantic events | `from gen_def.pydantic.events import ...` |
 | `gen_int/python/policy/` | Pydantic commands | `from gen_def.pydantic.commands import ...` |
+| `gen_int/python/policy/` | Query input/output models | `from gen_def.pydantic.query.<name> import <Name>Input, <Name>Output` |
 | `gen_int/python/projection/` | Pydantic events | `from gen_def.pydantic.events import ...` |
 | `src/query/` | Query Protocol + context | `from gen_int.python.query.<name> import ...` |
 | `src/procedure/` | Procedure Protocol + context | `from gen_int.python.procedure.<name>_protocol import ...` |

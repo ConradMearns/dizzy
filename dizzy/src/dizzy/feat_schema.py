@@ -109,7 +109,7 @@ class FeatureDefinition(ConfiguredBaseModel):
                        'PolicyDef',
                        'ProjectionDef']} })
     models: Optional[list[ModelDef]] = Field(default=[], description="""Named database schemas""", json_schema_extra = { "linkml_meta": {'domain_of': ['FeatureDefinition']} })
-    queries: Optional[list[QueryDef]] = Field(default=[], description="""Named read operations""", json_schema_extra = { "linkml_meta": {'domain_of': ['FeatureDefinition', 'ProcedureDef']} })
+    queries: Optional[list[QueryDef]] = Field(default=[], description="""Named read operations""", json_schema_extra = { "linkml_meta": {'domain_of': ['FeatureDefinition', 'ProcedureDef', 'PolicyDef']} })
     commands: Optional[list[CommandDef]] = Field(default=[], description="""Named write intents""", json_schema_extra = { "linkml_meta": {'domain_of': ['FeatureDefinition']} })
     events: Optional[list[EventDef]] = Field(default=[], description="""Immutable domain facts""", json_schema_extra = { "linkml_meta": {'domain_of': ['FeatureDefinition']} })
     procedures: Optional[list[ProcedureDef]] = Field(default=[], description="""Command handlers""", json_schema_extra = { "linkml_meta": {'domain_of': ['FeatureDefinition']} })
@@ -234,13 +234,13 @@ class ProcedureDef(ConfiguredBaseModel):
                        'PolicyDef',
                        'ProjectionDef']} })
     command: str = Field(default=..., description="""The command name this procedure handles""", json_schema_extra = { "linkml_meta": {'domain_of': ['ProcedureDef']} })
-    queries: Optional[list[str]] = Field(default=[], description="""Query names this procedure needs access to""", json_schema_extra = { "linkml_meta": {'domain_of': ['FeatureDefinition', 'ProcedureDef']} })
+    queries: Optional[list[str]] = Field(default=[], description="""Query names this procedure needs access to""", json_schema_extra = { "linkml_meta": {'domain_of': ['FeatureDefinition', 'ProcedureDef', 'PolicyDef']} })
     emits: Optional[list[str]] = Field(default=[], description="""Event names this procedure may emit""", json_schema_extra = { "linkml_meta": {'domain_of': ['ProcedureDef', 'PolicyDef']} })
 
 
 class PolicyDef(ConfiguredBaseModel):
     """
-    An event-driven reaction handler that listens to exactly one event and optionally dispatches commands.
+    An event-driven reaction handler that listens to exactly one event, may use queries and optionally dispatches commands.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/dizzy/feat'})
 
@@ -260,6 +260,7 @@ class PolicyDef(ConfiguredBaseModel):
                        'PolicyDef',
                        'ProjectionDef']} })
     event: str = Field(default=..., description="""The event name that triggers this policy""", json_schema_extra = { "linkml_meta": {'domain_of': ['PolicyDef', 'ProjectionDef']} })
+    queries: Optional[list[str]] = Field(default=[], description="""Query names this policy needs access to""", json_schema_extra = { "linkml_meta": {'domain_of': ['FeatureDefinition', 'ProcedureDef', 'PolicyDef']} })
     emits: Optional[list[str]] = Field(default=[], description="""Command names this policy may dispatch""", json_schema_extra = { "linkml_meta": {'domain_of': ['ProcedureDef', 'PolicyDef']} })
 
 

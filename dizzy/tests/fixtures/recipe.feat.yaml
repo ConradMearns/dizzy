@@ -38,6 +38,8 @@ policies:
   index_recipe_on_ingest:
     description: Adds recipe to the library projection when ingested
     event: recipe_ingested
+    queries:
+      - get_recipe
 
 projections:
   recipe_library:

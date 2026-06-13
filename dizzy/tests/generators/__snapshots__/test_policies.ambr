@@ -3,6 +3,9 @@
   '''
   # AUTO-GENERATED — do not edit
   from dataclasses import dataclass
+  from typing import Callable
+  
+  from gen_def.pydantic.query.get_recipe import GetRecipeInput, GetRecipeOutput
   
   
   @dataclass
@@ -11,8 +14,14 @@
   
   
   @dataclass
+  class index_recipe_on_ingest_queries:
+      get_recipe: Callable[[GetRecipeInput], GetRecipeOutput]
+  
+  
+  @dataclass
   class index_recipe_on_ingest_context:
       emit: index_recipe_on_ingest_emitters
+      query: index_recipe_on_ingest_queries
   
   '''
 # ---
