@@ -275,6 +275,18 @@ the **Provider + ad-hoc MCP** described in `point/PROVIDER.md`: "await_component
 is the Provider streaming the next tool call from the spawned Claude, and each
 `emit_/dispatch_/query_/report_finding` branch is the matching MCP tool *handler*.
 
+**Control model (the wrapper-agent stepper, `point/DRIVING.md`).** sim.py is *not* an
+autonomous Director — it is a stepper a claude/pi agent drives. The "pause" points below
+are realized as **print-and-quit**, not in-process dialogs: at a rule-11 first-execution
+gate, sim.py records a `gate` entry, checkpoints, prints `STATUS: GATE` + the verbatim
+description, and exits (status 10). The wrapping agent (the human's Director interface)
+reviews with the user, records the decision via `sim.py gate <session> <component>
+--confirm|--modified "…"` (a `ruling`, marking the component reviewed), and re-runs `load`
+to continue — only `--confirm` proceeds automatically. `load` continues an existing
+session (never overwrites), so a gate or crash is resumable by re-running the same command.
+Findings (rule 6) are likewise surfaced at `STATUS: HALT` for the agent to resolve with the
+Director, rather than blocking mid-run.
+
 ```py
 activate(component, trigger):
     # Rule 11: first-execution gate
