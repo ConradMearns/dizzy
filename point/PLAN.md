@@ -15,11 +15,19 @@ point/sim.py
 ├── EventStore     — append-only stream; queriers answer from it
 ├── FeatFile       — parsed feat with lookup helpers
 ├── Scenario       — parsed scenario; context materialization; one-at-a-time injection
+├── Levers         — resolve sim-vs-real per element (emitter implicit, executor/querier explicit)
+├── Executor       — run a component: sim (LLM via Provider) | lib (real handler). One contract.
+├── Emitter        — build a payload: sim (string) | lib (schema-validated). One factory.
+├── Querier        — answer a query: sim (jmQ over EventStore) | lib (read a Model)
+├── ModelStore     — the real read-side state (e.g. sqlite); OFF at level 0 (jmQ collapse)
+├── ProjectionExecutor — fold events → Model deltas to materialize ModelStore (level ≥ 2)
 ├── Harness        — main loop: phased drain, activation dispatch, budget, quiescence
 ├── Activation     — one exchange: prompt shape, tool list, validate, execute
-├── QueryEvaluator — jmQ collapse: sub-activation over event store for each query
 └── CLI (typer)    — `load` (from scratch) and `resume` (from session file)
 ```
+
+`Executor`/`Emitter`/`Querier`/`ProjectionExecutor` are the seams proven by the `try_*`
+spikes (`point/EXECUTORS.md`); `Levers` decides which side of each is live per element.
 
 ## Virtual-first, real-later
 
@@ -40,6 +48,77 @@ narrative blobs.
 **The contract**: every hook point takes the same inputs and returns the same output
 shape whether virtual or real. The harness loop doesn't care which side of the hook
 is active — it just calls `activate_procedure(...)` and gets back emissions or findings.
+
+**How a virtual activation is driven**: by spawning a Claude that plays the component
+and lets it *call tools* against an ad-hoc MCP server the harness stands up — emissions,
+dispatches, queries, and findings are all tool calls. This is abstracted behind a
+**Provider** seam (default = `claude` CLI subprocess). See `point/PROVIDER.md` for the
+full design; the rest of this plan treats `activate(...)` as a black box that returns an
+`ActivationResult`.
+
+**Two dials behind the hook table** — `point/EXECUTORS.md`: the *executor* (how a
+component runs: `sim_executor` = LLM agent, today's `try_mcp.py`; `lib_executor` = real
+compiled handler) and the *emitter* (how a payload is represented: `sim_emitter` =
+narrative string, `lib_emitter` = schema-validated dizzy payload). They are orthogonal
+and chosen per-element, so one scenario can mix real and faked commands/events. The
+`Commands`/`Events`/`Procedures`/`Policies` rows above are emitter and executor seams
+respectively. We prove each dial with `try_*` spikes before building `sim.py` proper.
+
+## Levers & levels (selecting sim vs real per element)
+
+Fidelity is not one global knob — each dial is set **per element**, and the *control* for
+each lever differs by what information is actually available:
+
+- **Emitter (events & commands) — IMPLICIT, from the scenario data shape.** A scenario
+  `events:`/`commands:` entry is either a **string** (narrative → `sim_emitter`) or a
+  **mapping/object** (structured → `lib_emitter`, validated against the `def/` schema for
+  that name). The harness picks the emitter by `isinstance(value, str)` vs `dict` at
+  materialization/injection — no extra config. One scenario can carry both forms for the
+  same message type (the `point/` scenario already does). For payloads *emitted during a
+  run*, the producing executor decides: a `lib_executor` yields a typed object, a
+  `sim_executor` a string (or a schema-conformant object at level 1).
+- **Executor (procedures & policies) — EXPLICIT, from a lib manifest.** The scenario
+  carries triggers, never handler code, so the executor lever can't be inferred from it.
+  It is set by **whether real lib code is wired** for that component (the `libconfig.yaml`
+  / generated `lib/<runtime>/<kind>/<name>` package, plus an implemented handler). Wired ⇒
+  `lib_executor`; absent ⇒ `sim_executor` (LLM plays it). Default is sim; you opt a
+  component into real code by implementing it. This is the project's progress bar.
+- **Querier (queries) — EXPLICIT, same basis as the executor.** A real model + projection
+  + query handler (lib) ⇒ `lib_querier` (reads the Model); otherwise `sim_querier` (jmQ
+  collapse over the EventStore). Default sim.
+
+### Fidelity levels, restated as lever combinations
+
+- **Level 0** — all sim. Strings everywhere; `sim_executor`, `sim_querier`; **no models,
+  no projections** (rule 10). The EventStore is the only state. A bare feat (no `def/`)
+  supports only this.
+- **Level 1** — schema-conformant payloads. `lib_emitter` validates emissions against
+  `def/` schemas, but execution may still be sim. Gated on authored `def/`.
+- **Level 2** — stateful / real read side. `lib_querier` + a live `ModelStore`:
+  projections materialize models so queries read real state (below). Requires the data
+  loop to be wired.
+
+### Model construction (projection → model → querier)
+
+At level 0 this subsystem is **entirely off** — the jmQ collapse means the minimal model
+*is* the event store, so we never build one. It switches on only when a **`lib_querier`**
+is selected, and then the real data loop must be materialized:
+
+1. **A `ModelStore`** — a real database the host owns (the demos use in-memory SQLite via
+   `SqlaAdapter`; a run could use a persistent one). Meaningless to query without it.
+2. **`ProjectionExecutor`** — projections are pure `event → model delta` (they emit
+   nothing). When an event is committed to the EventStore, the harness folds it through
+   the projections subscribed to it, mutating the `ModelStore`. This is a *third* kind of
+   activation, parallel to procedure/policy but writing to models, not the queues. It runs
+   in the event-drain phase (below), gated by level.
+3. **`lib_querier` reads** — the generated query handler + its read adapter answer from the
+   now-materialized `ModelStore`, returning a typed `Output`.
+
+So a real `projection → model → querier` path over SQLite is: events land in the store →
+`ProjectionExecutor` updates SQLite tables → `lib_querier` runs the query against them.
+The same query under `sim_querier` skips all of that and reads the raw event stream. Both
+satisfy the identical `answer_query(name, args)` contract — the Querier lever swaps which
+runs. (Full deployment design: `point/EXECUTORS.md` § lib_querier; seed dizzy-4ed2.)
 
 ## Session log format (JSONL)
 
@@ -83,7 +162,7 @@ The harness picks up exactly where it left off.
 
 ## Harness loop (the phased drain)
 
-```
+```py
 load(feat, scenario):
     session = SessionLog(session_path)
     write header
@@ -94,33 +173,30 @@ load(feat, scenario):
     pending_cmds = []    # remaining scenario commands
 
     while budget > 0:
-        # Phase 1: drain events through policies
+        budget -= 1
+
+        # Phase 1: drain events — materialize models, then react via policies
         while evt_queue:
             event = evt_queue.pop(0)
+            event_store.append(event)
+            # 1a. Projection drain (model construction). No-op at level 0 (jmQ collapse,
+            #     rule 10); at level ≥ 2 folds the event into the ModelStore so lib_queriers
+            #     read real state. Projections emit nothing — they only update models.
+            for projection in feat.projections_for_event(event.name):
+                apply_projection(projection, event, model_store)   # gated by level
+            # 1b. Policy drain (reactivity). Policies dispatch commands (never events).
             for policy in feat.policies_for_event(event.name):
-                if budget <= 0: break
                 result = activate_policy(policy, event)
                 for emission in result.emissions:
-                    if emission.kind == EVENT:
-                        evt_queue.append(emission)   # may trigger more policies
-                    elif emission.kind == COMMAND:
-                        cmd_queue.append(emission)
-                budget -= 1
+                    cmd_queue.append(emission)
 
         # Phase 2: drain commands through procedures
         while cmd_queue:
             command = cmd_queue.pop(0)
-            proc = feat.procedure_for_command(command.name)
-            if proc is None:
-                # Undeclared command → finding
-                log finding, continue
-            result = activate_procedure(proc, command)
-            for emission in result.emissions:
-                if emission.kind == EVENT:
+            for proc in feat.procedure_for_command(command.name)
+                result = activate_procedure(proc, command)
+                for emission in result.emissions:
                     evt_queue.append(emission)
-                elif emission.kind == COMMAND:
-                    cmd_queue.append(emission)
-            budget -= 1
 
         # Phase 3: inject next scenario command
         if not evt_queue and not cmd_queue and pending_cmds:
@@ -151,7 +227,12 @@ resume(session_path, feat, scenario):
 
 ## Activation protocol
 
-```
+The mechanics below (tool synthesis, validation, the call loop) are realized through
+the **Provider + ad-hoc MCP** described in `point/PROVIDER.md`: "await_component_response"
+is the Provider streaming the next tool call from the spawned Claude, and each
+`emit_/dispatch_/query_/report_finding` branch is the matching MCP tool *handler*.
+
+```py
 activate(component, trigger):
     # Rule 11: first-execution gate
     if execution_count[component.name] == 0:
@@ -160,12 +241,19 @@ activate(component, trigger):
             record ruling + feat revision
         # proceed
 
-    # Synthesize tool list from wiring (rule 2)
+    # Synthesize tool list from wiring (rule 2). Procedures and policies are MIRRORS
+    # (see "Procedure/policy duality" below) and NEVER mix output kinds:
+    #   procedure: trigger = command, outputs = events only   → emit_<event>
+    #   policy:    trigger = event,   outputs = commands only  → dispatch_<command>
+    # A procedure gets no dispatch_ tool; a policy gets no emit_ tool. The wiring
+    # graph cannot express a mixed-output component, so the gap is structural.
     tools = []
-    for query in component.queries:     tools.append(f"query_{query}")
-    for emit  in component.emits:       tools.append(f"emit_{emit}")
-    for cmd   in component.dispatches:  tools.append(f"dispatch_{cmd}")
-    tools.append("report_finding")      # always available (rule 3)
+    for query in component.queries:       tools.append(f"query_{query}")
+    if component.kind == PROCEDURE:
+        for event in component.emits:     tools.append(f"emit_{event}")
+    elif component.kind == POLICY:
+        for command in component.emits:   tools.append(f"dispatch_{command}")  # policy.emits names commands
+    tools.append("report_finding")        # always available (rule 3)
 
     # Present activation
     record activation entry
@@ -208,6 +296,31 @@ activate(component, trigger):
     return ActivationResult(emissions=emissions, findings=findings)
 ```
 
+## Procedure/policy duality (the mirror rule)
+
+Procedures and policies are the **same machine reflected**. One activation protocol
+serves both; only the trigger source and the output kind flip:
+
+| | Procedure | Policy |
+|---|---|---|
+| Triggered by | a **command** (from the command queue) | an **event** (from the event queue) |
+| May query | yes (`query_<name>`) | yes (`query_<name>`) |
+| Output kind | **events** (`emit_<event>`) | **commands** (`dispatch_<command>`) |
+| Output queue | emissions → **event** queue | emissions → **command** queue |
+| May report a finding | yes | yes |
+
+**Outputs never mix.** A procedure cannot dispatch a command; a policy cannot emit an
+event. This is enforced *structurally*, not by prompt: tool synthesis (above) hands a
+procedure only `emit_` tools and a policy only `dispatch_` tools, so the disallowed call
+has no tool to call (rule 2). In the feat schema both declare their outputs under
+`emits:` — for a procedure those names resolve to events, for a policy to commands; the
+harness reads the names through the component's `kind`. The phased loop is the same
+symmetry seen from the scheduler: Phase 1 drains events through policies into the command
+queue, Phase 2 drains commands through procedures into the event queue.
+
+This duality is why a single `activate(component, trigger)` covers both, and why the
+later `try_lib_executor` (real handlers) needs only one execution contract, not two.
+
 ## Termination & safety
 
 - **Step budget** (default 30): each activation (procedure, policy, or querier) costs 1
@@ -222,29 +335,40 @@ activate(component, trigger):
 
 ## Query evaluation (jmQ collapse, rule 10)
 
-At level 0, all queries are answered by a querier sub-activation:
+At level 0, a query is answered by a querier sub-activation over the EventStore. The
+querier is an activation **like any other** (PROVIDER.md): it acts by calling tools, and
+its tool stack is exactly two —
 
-```
-evaluate_query(query_name, args, event_store):
+- `answer(result)` — return the query result (a string at level 0; the typed `Output` at
+  level ≥ 1). This is the structured success outcome.
+- `report_finding` — the stream cannot answer (rule 10 failure mode). Always present,
+  same as every other activation.
+
+**A query MUST resolve to one of those two.** Critically, *a query that returns nothing
+is itself a problem*: if the querier ends its turn having called **no tool at all** (a
+NULL response — neither `answer` nor `report_finding`), the harness synthesizes a
+`report_finding` on its behalf (`category: null-query-response`). A silent non-answer is
+never allowed to look like an empty answer — it is a finding. (This is the protocol fix
+for the spike observation that an LLM tends to *explain in prose* that it can't answer
+instead of signalling it; `answer`-vs-`report_finding`-vs-NULL makes the outcome
+unambiguous for the calling component. Seed dizzy-6018.)
+
+```py
+answer_query(query_name, args):
     query_def = feat.queries[query_name]
-    querier_prompt = f"""
-      Query: {query_def.description}
-      Arguments: {args}
-      Event stream (all facts to date):
-      {event_store.dump()}
-
-      Answer the query from the stream. If the stream cannot answer →
-      respond with "report_finding".
-    """
-    answer = llm_activation(querier_prompt)
-    # In virtual mode: LLM reads the stream and answers
-    # In real mode later: run the projection + model query
-    return answer
+    if lever.querier(query_name) == LIB:
+        return lib_querier(query_def, args, model_store)   # read materialized Model
+    # sim_querier (jmQ): tools = [answer, report_finding]
+    result = activate_querier(query_def, args, event_store.dump())
+    if result.answered:        return result.answer
+    if result.finding:         return Finding(result.finding)
+    return Finding(category="null-query-response", query=query_name)  # NULL → finding
 ```
 
-No projections are applied, no models are materialized — the event store *is* the
-state (rule 10). This means feature-files may omit `j`/`m`/`Q` early in design and
-declare only `q`.
+At level 0 no projections run and no models exist — the event store *is* the state
+(rule 10). Feature-files may omit `j`/`m`/`Q` early and declare only `q`; selecting a
+`lib_querier` (level ≥ 2) is what brings the ModelStore + ProjectionExecutor online
+(see "Model construction" above).
 
 ## Scenario format
 
@@ -253,22 +377,39 @@ description: >
   What this scenario exercises and what outcome is expected.
 
 context:
-  - Givens: things a technician set up before the story.
-  - These are materialized as pre-existing events in the store.
-  - Example: Minting Server codes, pre-existing Test User.
+  - >
+    Givens: things a technician set up before the story.
+  - >
+    Example: Minting Server codes, pre-existing Test User.
+
+events:
+    - event_name: narrative payload - past tense fact
+    - event_name: narrative payload - past tense fact
 
 commands:
-  - command_name: narrative payload
-  - command_name: narrative payload
+  - command_name: narrative payload - intent of system or user
+  - command_name: narrative payload - intent of system or user
 ```
 
-The `context` section is materialized into the event store before the first command.
-Commands are injected one at a time (ruling, run 1) — run to quiescence before the
-next.
+Three sections, three jobs — and a deliberate split between them:
 
-The `point/` scenario copy added an `events:` key (structured pre-existing facts) —
-this is a possible evolution for when events have definitions. For now the virtual
-path uses `context:` only (narrative givens).
+- **`events:`** — pre-existing **state**. Anything the story assumes already happened is
+  a past-tense fact and is expressed as an event, materialized into the event store
+  before the first command. This is the rule: *state is events*. The store is the only
+  state (rule 10), so the only honest way to seed state is to seed the facts that
+  produced it. Queriers cite these exactly as they cite emitted facts.
+- **`context:`** — givens that are **not** events: out-of-model setup a technician
+  arranged that the design does not (and should not) model — e.g. the Minting Server SS
+  code assignments. If a "given" can be phrased as a past-tense fact about the domain, it
+  belongs in `events:`, not here. `context:` is the escape hatch for the genuinely
+  un-modeled, kept small on purpose.
+- **`commands:`** — the stimulus, injected one at a time (ruling, run 1); run to
+  quiescence before the next.
+
+The earlier "pre-existing Test User" given migrates from `context:` to `events:` (a
+`member_registered` fact) under this rule; only the non-event SS-code assignment stays
+in `context:`. When events gain real schemas (`lib_emitter`), `events:` entries become
+schema-backed payloads while still-virtual ones stay strings — see `point/EXECUTORS.md`.
 
 ## Building order (this implementation)
 
