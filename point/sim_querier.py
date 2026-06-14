@@ -36,33 +36,12 @@ DEFAULT_STREAM = [
     "book_reserved: Grace joined the reservation queue for SICP",
 ]
 
-SYSTEM_PROMPT = (
-    "You are a QUERIER in an event-sourced system (the jmQ collapse). Answer the query "
-    "using ONLY the event stream provided — it is the single source of truth; there are "
-    "no other facts and no database. Do not invent or assume anything not derivable from "
-    "the stream. Call exactly one tool: `answer` with a concise, direct result derived "
-    "from the stream, or `report_finding` if the stream genuinely cannot answer. Do not "
-    "reply in prose — always call a tool."
-)
-
-
 def load_query(feat_path: Path, name: str) -> str:
     feat = yaml.safe_load(feat_path.read_text())
     queries = feat.get("queries", {})
     if name not in queries:
         raise SystemExit(f"query {name!r} not found in {feat_path} (queries)")
     return (queries[name].get("description") or "").strip()
-
-
-def build_user_prompt(name: str, description: str, args: str, stream: list[str]) -> str:
-    dump = "\n".join(f"  - {e}" for e in stream) if stream else "  (empty — no facts yet)"
-    return (
-        f"query: {name}\n"
-        f"description: {description}\n"
-        f"arguments: {args}\n\n"
-        f"event stream (all facts to date):\n{dump}\n\n"
-        f"Answer the query from the stream above by calling `answer` or `report_finding`."
-    )
 
 
 def main() -> None:
@@ -75,31 +54,24 @@ def main() -> None:
     args = parser.parse_args()
 
     description = load_query(args.feat, args.query)
-    tools = [agent.ToolSpec("answer", "answer"), agent.ToolSpec("report_finding", "finding")]
 
     print(f"=== querier {args.query} via {args.engine} ===", file=sys.stderr)
-    result = agent.run_activation(
-        engine=args.engine, model=args.model, system_prompt=SYSTEM_PROMPT,
-        user_prompt=build_user_prompt(args.query, description, args.args, DEFAULT_STREAM),
-        tools=tools,
-    )
+    res = agent.run_querier(query_name=args.query, description=description, args=args.args,
+                            event_store=DEFAULT_STREAM, engine=args.engine, model=args.model)
 
-    answers = result.of_kind("answer")
-    findings = result.of_kind("finding")
-
-    if answers:
+    if res["outcome"] == "answered":
         print("=== answer ===")
-        print(answers[0]["args"]["answer"])
-    elif findings:
+        print(res["answer"])
+    elif res["outcome"] == "finding":
         print("=== report_finding (stream could not answer) ===")
-        print(json.dumps(findings[0]["args"]))
+        print(json.dumps(res["finding"]))
     else:
         # NULL response → the harness files the finding itself (PLAN § Query evaluation).
         print("=== null-query-response (synthesized finding) ===")
         print(json.dumps({"category": "null-query-response", "query": args.query,
                           "detail": "querier ended its turn without calling answer or report_finding"}))
 
-    sys.exit(0 if (answers or findings) else 1)
+    sys.exit(0 if res["outcome"] in ("answered", "finding") else 1)
 
 
 if __name__ == "__main__":

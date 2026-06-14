@@ -166,22 +166,39 @@ lib_querier work (seeds dizzy-9d88, dizzy-4ed2) — they only exist at level ≥
 `format_version` lets us add them without breaking level-0 logs. So: yes for level 0/1,
 with the level-2 entries blocked on the same work that produces them.
 
-## Crash-resume
+## The session as state (`session = system(session)`)
 
-The session file is the resume checkpoint. `resume` replays the JSONL to reconstruct:
+Crash-resume is not a separate replay-and-reconstruct routine — it falls out of *how we
+execute*. Treat the whole harness as **one pure-ish function over a single session
+object**:
 
-1. **Event store** — every `emission` with `queued: event` whose event has been fully
-   drained (no pending policy activations are mid-flight)
-2. **Command queue** — every `emission` with `queued: command` + remaining scenario
-   `injection`s not yet issued
-3. **Event queue** — events emitted but not yet drained through policies
-4. **Step count** — max `step` seen so far
-5. **Budget remaining** — `step_budget - steps_used`
-6. **Findings** — accumulated `finding` entries
-7. **Execution counts** — per-component activation count (for rule-11 gate)
-8. **Current phase** — are we draining events, draining commands, or waiting for next injection?
+```py
+session = Session.new(feat, scenario)        # or Session.load(path) to resume
+while not session.halted:
+    session = system(session)                # one advance; appends log entries, returns new state
+```
 
-The harness picks up exactly where it left off.
+`system` is the phased drain below; the **`session` object carries all live continuation
+state** so there is nothing to reconstruct by re-parsing the log. It holds:
+
+- `event_store` — facts to date · `evt_queue` — events awaiting projection+policy drain ·
+  `cmd_queue` — commands awaiting procedure drain · `pending_cmds` — scenario commands not
+  yet injected
+- `step`, `budget`, `findings`, `exec_counts` (rule-11 gate), `phase`
+- `cursor` — the current node id (the parent for the next entry); on a branched run this
+  is **the last non-halted branch** — the simple rule that pins where continuation
+  resumes
+- `log` — the append-only JSONL entries (the session file *is* the serialized session)
+
+So resume = `Session.load(path)` then re-enter the same loop. The session file is both the
+human-readable trace **and** the checkpoint: because every field above is either in the
+session object or trivially derived from its log tail, `load` is deserialization, not
+inference. The execution rule "continue from the last non-halted branch" is all the
+position-tracking the loop needs — no phase-guessing, no queue-rebuilding heuristics.
+
+(Practically: `system` may advance one activation at a time and persist the session each
+step, so a crash loses at most the in-flight activation; an idempotent re-run of that one
+activation — or recording it before acting — keeps the log consistent.)
 
 ## Harness loop (the phased drain)
 
@@ -241,11 +258,14 @@ load(feat, scenario):
 
 ### Resume loop
 
-```
-resume(session_path, feat, scenario):
-    session = SessionLog(session_path)
-    state = session.replay()   # reconstruct queues, store, budget, phase
-    # Continue the main loop from state.phase with state.queues, state.budget
+Resume is the same loop — there is no separate reconstruction (see "The session as
+state" above). The session object *is* the state, so `load` deserializes and we continue:
+
+```py
+resume(session_path):
+    session = Session.load(session_path)   # deserialize queues/store/budget/cursor
+    while not session.halted:               # identical loop; cursor = last non-halted branch
+        session = system(session)
 ```
 
 ## Activation protocol

@@ -28,9 +28,20 @@ import agent  # noqa: E402  (point/agent.py — the shared Provider)
 DEFAULT_FEAT = Path(__file__).resolve().parent / "library.feat.yaml"
 
 
-def load_component(feat_path: Path, name: str) -> dict:
+# A small event store for the inline query round-trip demo (lend_book): Ada is a member
+# and SICP has one copy on the shelf, so availability/membership queries resolve.
+DEFAULT_EVENT_STORE = [
+    "member_registered: Ada, member id 0042-02-00000001, minted at Front Desk",
+    'book_added: "Structure and Interpretation of Computer Programs" (SICP), 1 copy',
+]
+
+
+def load_feat(feat_path: Path) -> dict:
+    return yaml.safe_load(feat_path.read_text())
+
+
+def find_component(feat: dict, name: str) -> dict:
     """Find a component and return its kind, description, trigger, and wiring."""
-    feat = yaml.safe_load(feat_path.read_text())
     if name in feat.get("procedures", {}):
         c = feat["procedures"][name]
         return {"name": name, "kind": "procedure", "description": c.get("description", ""),
@@ -41,12 +52,17 @@ def load_component(feat_path: Path, name: str) -> dict:
         return {"name": name, "kind": "policy", "description": c.get("description", ""),
                 "trigger_kind": "event", "trigger_name": c.get("event"),
                 "queries": c.get("queries", []), "emits": c.get("emits", [])}
-    raise SystemExit(f"component {name!r} not found in {feat_path} (procedures/policies)")
+    raise SystemExit(f"component {name!r} not found in {feat} (procedures/policies)")
 
 
-def synthesize_tools(component: dict) -> list[agent.ToolSpec]:
-    """Tools per the mirror rule: procedures emit; policies dispatch; never both."""
-    tools = [agent.ToolSpec(f"query_{q}", "query") for q in component["queries"]]
+def synthesize_tools(component: dict, query_defs: dict) -> list[agent.ToolSpec]:
+    """Tools per the mirror rule: procedures emit; policies dispatch; never both. Query
+    tools carry the query's feat description in meta for the inline querier (dizzy-6018)."""
+    tools = [
+        agent.ToolSpec(f"query_{q}", "query",
+                       meta={"query": q, "description": (query_defs.get(q, {}).get("description") or "").strip()})
+        for q in component["queries"]
+    ]
     out_kind = "emit" if component["kind"] == "procedure" else "dispatch"
     tools += [agent.ToolSpec(f"{out_kind}_{e}", out_kind) for e in component["emits"]]
     tools.append(agent.ToolSpec("report_finding", "finding"))
@@ -80,10 +96,14 @@ def main() -> None:
     parser.add_argument("--component", default="catalog_book")
     parser.add_argument("--trigger",
                         default='One copy of "Structure and Interpretation of Computer Programs" arrives')
+    parser.add_argument("--events", default=None,
+                        help="JSON list of narrative facts for the event store (queries answer from it)")
     args = parser.parse_args()
 
-    component = load_component(args.feat, args.component)
-    tools = synthesize_tools(component)
+    feat = load_feat(args.feat)
+    component = find_component(feat, args.component)
+    tools = synthesize_tools(component, feat.get("queries", {}))
+    event_store = json.loads(args.events) if args.events else DEFAULT_EVENT_STORE
 
     print(f"=== {component['name']} ({component['kind']}) via {args.engine} ===", file=sys.stderr)
     print(f"=== synthesized tools: {[t.name for t in tools]} ===", file=sys.stderr)
@@ -91,6 +111,7 @@ def main() -> None:
     result = agent.run_activation(
         engine=args.engine, model=args.model, system_prompt=SYSTEM_PROMPT,
         user_prompt=build_user_prompt(component, args.trigger, tools), tools=tools,
+        event_store=event_store,
     )
 
     print("=== recorded tool calls ===")
