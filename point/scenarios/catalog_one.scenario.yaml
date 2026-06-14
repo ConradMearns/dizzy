@@ -1,0 +1,9 @@
+description: >
+  Cheap smoke test for the harness — one command, one procedure, no queries,
+  no policies. Should run to quiescence with book_added in the stream.
+
+context:
+  - Library is freshly initialized; the catalog is empty.
+
+commands:
+  - add_book: One copy of "Structure and Interpretation of Computer Programs" arrives
