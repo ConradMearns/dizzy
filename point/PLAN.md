@@ -57,7 +57,7 @@ full design; the rest of this plan treats `activate(...)` as a black box that re
 `ActivationResult`.
 
 **Two dials behind the hook table** — `point/EXECUTORS.md`: the *executor* (how a
-component runs: `sim_executor` = LLM agent, today's `try_mcp.py`; `lib_executor` = real
+component runs: `sim_executor` = LLM agent, today's `sim_executor.py`; `lib_executor` = real
 compiled handler) and the *emitter* (how a payload is represented: `sim_emitter` =
 narrative string, `lib_emitter` = schema-validated dizzy payload). They are orthogonal
 and chosen per-element, so one scenario can mix real and faked commands/events. The
@@ -319,7 +319,7 @@ symmetry seen from the scheduler: Phase 1 drains events through policies into th
 queue, Phase 2 drains commands through procedures into the event queue.
 
 This duality is why a single `activate(component, trigger)` covers both, and why the
-later `try_lib_executor` (real handlers) needs only one execution contract, not two.
+later `lib_executor` (real handlers) needs only one execution contract, not two.
 
 ## Termination & safety
 

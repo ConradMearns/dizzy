@@ -9,7 +9,7 @@ Two faces, one file:
   * Imported as a module — exposes `run_activation(...)`: stand up an ad-hoc MCP server,
     spawn an agent (`claude -p` or `pi -p`) that acts by calling the synthesized tools,
     and return what it did (recorded tool calls + final text). This is the Provider seam
-    from point/PROVIDER.md; try_sim_executor and try_sim_querier both drive through it.
+    from point/PROVIDER.md; sim_executor and sim_querier both drive through it.
 
   * Run as `uv run agent.py serve` — IS the ad-hoc MCP server (the process the agent
     launches via its MCP config). Tools are synthesized from $SIM_TOOLS; every call is

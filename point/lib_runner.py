@@ -1,7 +1,7 @@
 """lib_runner — runs ONE real generated handler inside the lib's own uv env and
 POSTs its emissions to the executor's HTTP sink.
 
-This is the language-specific half of try_lib_executor, kept behind the subprocess
+This is the language-specific half of lib_executor, kept behind the subprocess
 boundary: it is launched as `uv run --project <lib> python lib_runner.py <spec.json>`
 so it sees the generated gen_def/gen_int/handler packages. It imports only the stdlib
 plus those packages (urllib for the POST), so the lib env needs no extra deps.

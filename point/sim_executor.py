@@ -10,9 +10,9 @@ feat, synthesizes its tools per the mirror rule, and presents the result.
   procedure: trigger = command, tools = query_<q>* + emit_<event>*   + report_finding
   policy:    trigger = event,   tools = query_<q>* + dispatch_<cmd>* + report_finding
 
-Run:  uv run point/try_sim_executor.py                              # claude, haiku, catalog_book
-      uv run point/try_sim_executor.py --component lend_book --trigger "Ada asks to borrow SICP"
-      uv run point/try_sim_executor.py --engine pi                  # pi (requires pi-mcp extension)
+Run:  uv run point/sim_executor.py                              # claude, haiku, catalog_book
+      uv run point/sim_executor.py --component lend_book --trigger "Ada asks to borrow SICP"
+      uv run point/sim_executor.py --engine pi                  # pi (requires pi-mcp extension)
 """
 
 import argparse

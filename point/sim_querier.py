@@ -13,8 +13,8 @@ Querier tool stack = [answer, report_finding] (PLAN § Query evaluation):
                              null-query-response finding (a query that returns nothing is
                              itself a problem, never an empty answer).
 
-Run:  uv run point/try_sim_querier.py
-      uv run point/try_sim_querier.py --query get_next_reservation --args "who is next for SICP?"
+Run:  uv run point/sim_querier.py
+      uv run point/sim_querier.py --query get_next_reservation --args "who is next for SICP?"
 """
 
 import argparse

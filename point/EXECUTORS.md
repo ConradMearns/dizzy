@@ -25,12 +25,12 @@ execute(component, trigger) -> ActivationResult(emissions=[...], findings=[...])
 ```
 
 - **sim_executor** — spawn an LLM agent that *plays* the component from its description
-  and acts via tool calls. This is today's `try_mcp.py`. Cheap to author (no code), the
+  and acts via tool calls. This is `point/sim_executor.py`. Cheap to author (no code), the
   whole point of level-0 design validation.
 - **lib_executor** — run the component's **real handler code** (generated or
   hand-written; Python, TypeScript, Rust, or any compiled artifact). The trigger goes in,
   the handler runs its actual logic, and its `emit`/`dispatch` calls are captured as
-  emissions. No LLM. This is `try_lib_executor.py`.
+  emissions. No LLM. This is `lib_executor.py`.
 
 Both produce the identical `ActivationResult`, so the harness loop never branches on which
 executor ran a component.
@@ -87,10 +87,10 @@ deployment materializes it:
    history, or is there a separate **projection_executor** that builds model state which
    the querier then reads? (Mirrors the executor/emitter split — likely its own dial.)
 3. **The read path** — the generated query handler + its read adapter, given a populated
-   model, returning a typed `Output`. Then `context.query.<q>` in try_lib_executor is
+   model, returning a typed `Output`. Then `context.query.<q>` in lib_executor is
    backed by this instead of being unwired.
 
-**Boundary today:** `try_lib_executor` wires `context.emit` only. Query-bearing
+**Boundary today:** `lib_executor` wires `context.emit` only. Query-bearing
 components (e.g. `library.notify_next_on_return`, whose context has a `query` field)
 cannot run yet — the executor reports a clean finding rather than crashing, pending
 lib_querier. The all-emit components (lib_min, guestbook, library `record_hold`) run fully.
@@ -105,7 +105,7 @@ run is a *mixture*, not a single cell:
                  ┌────────────────────────────┬────────────────────────────┐
  sim_executor    │ level 0: LLM plays it,      │ level 1: LLM plays it, but  │
  (LLM agent)     │ emits narrative strings     │ its emissions are validated │
-                 │ (try_mcp today)             │ against real schemas        │
+                 │ (sim_executor today)             │ against real schemas        │
                  ├────────────────────────────┼────────────────────────────┤
  lib_executor    │ real handler, but fed/emit  │ real handler on real        │
  (compiled lib)  │ string payloads (bridging   │ payloads — production-      │
@@ -135,12 +135,12 @@ materialized/injected as validated payloads; the rest stay narrative strings. Ex
 are routed the same way: a real emission can be asserted structurally; a string emission
 is asserted narratively (shape/topology, per PLAN's testing strategy).
 
-## The `try_*` spikes (build order)
+## The spikes (build order)
 
-1. **Rename `try_mcp.py` → `try_sim_executor.py`.** It already *is* the sim_executor:
-   spawn agent (claude or pi) → ad-hoc MCP → record tool calls. Generalize its one
-   hardcoded component to read from the feat. (Provider/MCP wiring proven; see memory.)
-2. **`try_lib_executor.py`.** Mirror `try_sim_executor`'s shape, but instead of an LLM,
+1. **`sim_executor.py`** (done) — spawn agent (claude or pi) → ad-hoc MCP → record tool
+   calls; reads the component from the feat and synthesizes tools per the mirror rule.
+   Provider/MCP plumbing now factored into `point/agent.py`. (Originally `try_mcp.py`.)
+2. **`lib_executor.py`.** Mirror `sim_executor`'s shape, but instead of an LLM,
    invoke real handler code. Open a local **emit endpoint** (FastAPI/HTTP — the
    cross-language lingua franca, the same role the MCP server plays for the LLM path); the
    handler subprocess `POST`s its emissions/dispatches back, the harness records them.
@@ -157,12 +157,12 @@ is asserted narratively (shape/topology, per PLAN's testing strategy).
    justifies the whole two-axis design.
 
 Querier spikes sit alongside these (read side):
-- **`sim_querier`** — the inline `query_<q>` round-trip on `try_sim_executor` (seed
+- **`sim_querier`** — the inline `query_<q>` round-trip on `sim_executor` (seed
   dizzy-6018): the MCP handler runs an LLM sub-activation over the emitted event stream
   and returns the answer inline. Proves the riskiest unproven sim piece.
 - **`lib_querier`** — deferred (seed dizzy-…, low priority): needs the deployment plan in
   "lib_querier needs deployment planning" above (DB, projection application, read adapter)
-  before any code. Until then, `try_lib_executor` reports a clean finding for
+  before any code. Until then, `lib_executor` reports a clean finding for
   query-bearing components.
 
 Only after the matrix is proven do we return to the main `point/sim.py` architecture in

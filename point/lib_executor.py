@@ -3,10 +3,10 @@
 # dependencies = ["fastapi>=0.110", "uvicorn>=0.29", "pyyaml>=6.0"]
 # ///
 """lib_executor spike (point/EXECUTORS.md, seed dizzy-cc49) — the real-code mirror of
-try_sim_executor. Instead of spawning an LLM that PLAYS a component, it runs the
+sim_executor. Instead of spawning an LLM that PLAYS a component, it runs the
 component's REAL generated handler code (trigger in, emissions out).
 
-Same contract as try_sim_executor: execute(component, trigger) -> emissions. The
+Same contract as sim_executor: execute(component, trigger) -> emissions. The
 component calls back out to record each emission — but where the LLM path needs MCP
 tool-calling, real handler code only needs a plain RPC, so the emit sink here is a
 local FastAPI HTTP endpoint (the cross-language lingua franca; a Rust/TS handler can
@@ -14,8 +14,8 @@ POST to it too). The handler runs in its own uv env via lib_runner.py (language 
 the subprocess boundary); its emit.<name> callbacks POST to the sink, recorded here.
 
 Run (after generating + uv-syncing the lib under --lib):
-  uv run point/try_lib_executor.py --component catalog_book --payload '{"title":"SICP","copies":1}'
-  uv run point/try_lib_executor.py --component index_on_catalog \
+  uv run point/lib_executor.py --component catalog_book --payload '{"title":"SICP","copies":1}'
+  uv run point/lib_executor.py --component index_on_catalog \
       --payload '{"catalog_id":"abc","title":"SICP","copies":1}'
 """
 
@@ -115,7 +115,7 @@ def drive(feat: Path, lib: Path, component: str, payload: dict) -> None:
         print(json.dumps({"finding": True, "error": (
             f"{component} declares queries {spec['queries']} — lib_querier not implemented "
             "yet (needs a deployed model + projections; see EXECUTORS.md, seed dizzy-4ed2). "
-            "Only emit/dispatch-only components run under try_lib_executor today."
+            "Only emit/dispatch-only components run under lib_executor today."
         )}))
         sys.exit(1)
 
