@@ -149,6 +149,9 @@ def activate(session: Session, log: SessionLog, component: dict, trigger: dict) 
 
     user_prompt = ex.build_user_prompt(
         {**component, "trigger_name": trigger["name"]}, trigger_narr, tools)
+    if session.givens:  # context givens are available to ANY activation (ruling c2)
+        givens = "\n".join(f"  - {g}" for g in session.givens)
+        user_prompt += f"\n\ncontext (technician setup available to all activations):\n{givens}"
     result = agent.run_activation(
         engine=session.engine, model=session.model, system_prompt=ex.SYSTEM_PROMPT,
         user_prompt=user_prompt, tools=tools, event_store=session.stream_dump())
