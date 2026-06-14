@@ -1,0 +1,19 @@
+description: >
+  Happy path — a member borrows a book that is on the shelf. Exercises the
+  reactivity loop once (no policy firing). Expected to terminate quiescent
+  with book_borrowed in the stream.
+
+context:
+  - >
+    Minting Server codes are assigned: Online = 01, Front Desk = 02.
+
+events:
+  - member_registered: Test User exists with member id 0042-00-00000000
+  - member_registered:
+      name: Conrad
+      member_id: 0042-00-00000001
+
+commands:
+  - register_member: Ada joins the library at the Front Desk
+  - add_book: One copy of "Structure and Interpretation of Computer Programs" arrives
+  - borrow_book: Ada presents her member id and asks to borrow SICP
