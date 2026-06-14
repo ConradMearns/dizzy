@@ -126,22 +126,45 @@ Every line is `{id, parentId, type, ...}`. Entry types from the roleplay:
 
 | Type | When | Key fields |
 |---|---|---|
-| `header` | Run start | `format_version`, `feat`, `scenario`, `level`, `query_mode`, `step_budget` |
+| `header` | Run start | `format_version`, `feat`, `scenario`, `level`, `step_budget`, `engine`/`model`, `levers` (per-element sim/lib manifest) |
 | `context` | After header | `givens`, `materialized` — scenario context entering the event store |
-| `injection` | Scenario command injected | `queue`, `message`, `narrative` |
-| `activation` | Component activated | `step`, `component`, `kind`, `trigger`, `tools`, `played_by` |
-| `tool_call` | Component calls a tool | `component`, `tool`, `args`, `verdict` |
-| `query_answer` | Querier answers | `query`, `answer`, `provenance` |
-| `emission` | Event emitted or command dispatched | `step`, `event`/`command`, `narrative`, `queued` |
-| `finding` | report_finding called | `step`, `component`, `category`, `summary`, `status` |
+| `injection` | Scenario command injected | `queue`, `message`, `narrative`/`payload`, `emitter` (sim/lib) |
+| `activation` | Component activated | `step`, `component`, `kind`, `executor` (sim/lib), `trigger`, `tools`, `played_by` |
+| `tool_call` | Component calls a tool | `component`, `tool`, `kind` (emit/dispatch/query/answer/finding), `args`, `verdict` |
+| `query_answer` | Querier resolves a query | `query`, `querier` (sim/lib), `outcome` (`answered`/`finding`/`null`), `answer`, `provenance` |
+| `emission` | Event emitted or command dispatched | `step`, `event`/`command`, `emitter` (sim/lib), `narrative` *or* `payload`, `queued` |
+| `finding` | report_finding (or synthesized) | `step`, `component`, `category`, `summary`, `status`, `source` (`reported`/`null-query-response`/…) |
 | `ruling` | Director decides protocol question | `by`, `question`, `decision` |
 | `resolution` | Director resolves a finding | `resolves`, `by`, `category`, `decision`, `argument_as_stated` |
 | `branch` | Counterfactual fork | `reason`, `feat_revision`, `scenario_revision`, parentId points at fork node |
 | `activation_end` | Activation finishes | `step`, `component`, `emissions`, `outcome` |
 | `halt` | Run ends | `reason`, `steps_used`, `event_store`, `findings` |
+| `projection` | *(level ≥ 2, deferred)* event folded into a model | `step`, `projection`, `event`, `model`, `delta` |
+| `model_state` | *(level ≥ 2, deferred)* model snapshot | `model`, `state` (one JSON blob per Model) |
 
 Tree invariant: every entry (except header) has a `parentId` pointing at the entry
 that caused it. This gives us the execution DAG for free.
+
+**Provenance of the lever** is now a first-class field on the entries that have a
+sim/real choice (`activation.executor`, `emission.emitter`, `query_answer.querier`,
+`injection.emitter`). This is what lets the session honestly record a *mixed* run — a
+`lib_executor` activation next to a `sim_executor` one — and lets a reader see which
+facts came from real code vs an LLM. A `narrative` (string) emission is a `sim_emitter`
+fact; a `payload` (object) emission is a `lib_emitter` fact — the field present *is* the
+lever, mirroring the implicit emitter-selection rule.
+
+### Readiness — what's specified vs deferred
+
+Enough to build the **SessionLog + a level-0 run today**: the table, the tree invariant,
+the crash-resume reconstruction below, and a complete worked example
+(`sim/sessions/borrow_available_book__1.jsonl`, 60+ lines covering header→halt, two
+findings, seven rulings, a branch, and verification) pin the level-0 shape concretely.
+The lever-provenance and querier-`outcome` fields above are small, additive, and known
+now (we just built the executors/querier), so they go in from the first version. The
+`projection`/`model_state` entries are **deferred** to the projection-executor /
+lib_querier work (seeds dizzy-9d88, dizzy-4ed2) — they only exist at level ≥ 2, and
+`format_version` lets us add them without breaking level-0 logs. So: yes for level 0/1,
+with the level-2 entries blocked on the same work that produces them.
 
 ## Crash-resume
 
