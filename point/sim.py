@@ -38,7 +38,30 @@ import sim_executor as ex  # noqa: E402  — find_component / synthesize_tools /
 app = typer.Typer(add_completion=False)
 FORMAT_VERSION = 0
 REPETITION_LIMIT = 3   # rule 5: same component + message shape this many times → livelock halt
-EXIT_HALT, EXIT_GATE = 0, 10
+EXIT_HALT, EXIT_GATE, EXIT_REVIEW = 0, 10, 11
+
+
+# ================================================================================
+# live progress (to STDERR — keeps stdout clean for the wrapper's STATUS parsing)
+# ================================================================================
+def _progress(line: str) -> None:
+    print(line, file=sys.stderr, flush=True)
+
+
+def _progress_call(call: dict) -> None:
+    """Surface one tool call live as the serve process records it (agent.run_activation
+    tails the calls file). Lets you watch an otherwise-silent activation."""
+    kind, tool, a = call.get("kind"), call.get("tool", ""), call.get("args", {})
+    if kind in ("emit", "dispatch"):
+        verb = "emit" if kind == "emit" else "dispatch"
+        _progress(f"    ⤷ {verb} {tool.split('_', 1)[-1]}: {a.get('narrative', '')[:70]}")
+    elif kind == "query":
+        _progress(f"    ⤷ query {tool.split('_', 1)[-1]} … (running querier)")
+    elif kind == "query_answer":
+        ans = (a.get("answer") or "").replace("\n", " ")[:70]
+        _progress(f"    ⤷ {a.get('query')} → {a.get('outcome')}: {ans}")
+    elif kind == "finding":
+        _progress(f"    ⚑ finding [{a.get('category')}]: {a.get('summary', '')[:70]}")
 
 
 # ================================================================================
@@ -98,10 +121,12 @@ class Session:
     exec_counts: dict = field(default_factory=dict)         # component → activation count (rules 5/11)
     reviewed: dict = field(default_factory=dict)            # component → "confirm"|"modified" (rule-11 gate cleared)
     rep_counts: dict = field(default_factory=dict)          # (component, msg) → count (rule 5)
+    review_mode: bool = False                               # --review: pause after every activation
     cursor: str | None = None                               # parentId for the next entry = last non-halted node
     halted: bool = False
     halt_reason: str | None = None
-    gate: dict | None = None                                # transient: set when paused at a first-execution gate
+    gate: dict | None = None                                # transient: paused at a first-execution gate
+    review: dict | None = None                              # pending activation awaiting Director confirmation
 
     def stream_dump(self) -> list[str]:
         """The stream a sim_querier reasons over: givens + facts to date."""
@@ -118,6 +143,7 @@ class Session:
             "step": self.step, "budget": self.budget, "findings": self.findings,
             "exec_counts": self.exec_counts, "reviewed": self.reviewed,
             "rep_counts": {f"{k[0]}|{k[1]}": v for k, v in self.rep_counts.items()},
+            "review_mode": self.review_mode, "review": self.review,
             "cursor": self.cursor, "halted": self.halted, "halt_reason": self.halt_reason,
         }
 
@@ -125,6 +151,8 @@ class Session:
         for k in ("givens", "event_store", "evt_queue", "policy_queue", "cmd_queue", "pending_cmds",
                   "step", "budget", "findings", "exec_counts", "reviewed", "cursor", "halted", "halt_reason"):
             setattr(self, k, cp[k])
+        self.review_mode = cp.get("review_mode", False)
+        self.review = cp.get("review")
         self.rep_counts = {tuple(k.split("|", 1)): v for k, v in cp.get("rep_counts", {}).items()}
 
 
@@ -165,11 +193,13 @@ def activate(session: Session, log: SessionLog, component: dict, trigger: dict) 
     if session.givens:  # context givens are available to ANY activation (ruling c2)
         user_prompt += "\n\ncontext (technician setup available to all activations):\n" + \
                        "\n".join(f"  - {g}" for g in session.givens)
+
+    _progress(f"▶ step {session.step} · {name} ({component['kind']}) ← {trigger['name']}: {trigger_narr[:60]}")
     result = agent.run_activation(
         engine=session.engine, model=session.model, system_prompt=ex.SYSTEM_PROMPT,
-        user_prompt=user_prompt, tools=tools, event_store=session.stream_dump())
+        user_prompt=user_prompt, tools=tools, event_store=session.stream_dump(), on_call=_progress_call)
 
-    emissions = []
+    emissions, answers, act_findings = [], [], []
     for call in result.calls:
         kind = call.get("kind")
         if kind in ("emit", "dispatch"):
@@ -190,16 +220,29 @@ def activate(session: Session, log: SessionLog, component: dict, trigger: dict) 
                             outcome=call["args"]["outcome"], answer=call["args"].get("answer"),
                             provenance=["event stream"])
             session.cursor = qa["id"]
+            answers.append({"query": call["args"]["query"], "outcome": call["args"]["outcome"],
+                            "answer": call["args"].get("answer")})
         elif kind == "finding":
             f = log.append("finding", session.cursor, step=session.step, component=name,
                            source="reported", **call["args"], status="open")
             session.cursor = f["id"]
             session.findings.append({"id": f["id"], **call["args"]})
+            act_findings.append(call["args"])
 
     end = log.append("activation_end", session.cursor, step=session.step, component=name,
                      emissions=[e["name"] for e in emissions],
                      outcome="fact(s) recorded" if emissions else "no fact produced")
     session.cursor = end["id"]
+    _progress(f"✓ {name} → {[e['name'] for e in emissions] or 'no emission'}")
+
+    # --review (rule 6-style per-activation checkpoint): pause so the Director can confirm
+    # the LLM got it right before the emissions propagate. Mirrors the gate (print + quit).
+    if session.review_mode:
+        session.review = {"component": name, "kind": component["kind"], "step": session.step,
+                          "trigger": f"{trigger['name']}: {trigger_narr}", "entry": end["id"],
+                          "emissions": [{"name": e["name"], "narrative": e["narrative"], "kind": e["kind"]}
+                                        for e in emissions],
+                          "answers": answers, "findings": act_findings}
     return emissions
 
 
@@ -334,8 +377,8 @@ def materialize(session: Session, log: SessionLog) -> None:
 
 
 def run(session: Session, log: SessionLog) -> Session:
-    """Step until a gate (needs Director) or halt. Each advance writes a checkpoint."""
-    while not session.halted and session.gate is None:
+    """Step until a gate, a pending review, or halt. Each advance writes a checkpoint."""
+    while not session.halted and session.gate is None and session.review is None:
         session = system(session, log)
         log.append("checkpoint", None, state=session.checkpoint())
     return session
@@ -358,8 +401,12 @@ def _print_gate(session: Session) -> None:
     print(f"\nWired tools: {g['tools']}")
     print("\n" + "-" * 72)
     print("DIRECTOR ACTION (the wrapping agent should ask the user, then run ONE of):")
-    print(f"  confirm as-is:   uv run point/sim.py gate {sp} {g['component']} --confirm")
+    print(f"  confirm as-is:")
+    print(f"")
+    print(f"  uv run point/sim.py gate {sp} {g['component']} --confirm")
+    print(f"")
     print(f"  amended it:      (edit the description in {feat}, then)")
+    print(f"")
     print(f"                   uv run point/sim.py gate {sp} {g['component']} --modified \"<what changed>\"")
     print(f"then continue:     uv run point/sim.py load {feat} {scen} {sp}")
     print("=" * 72)
@@ -377,6 +424,31 @@ def _print_halt(session: Session) -> None:
     if session.findings:
         print("\nThe wrapping agent should review findings with the Director and record")
         print("resolutions (design-change / insufficient-context / unreviewed-component).")
+
+
+def _print_review(session: Session) -> None:
+    r = session.review
+    sp = session.session_path
+    print("\nSTATUS: REVIEW")
+    print("=" * 72)
+    print(f"ACTIVATION REVIEW — step {r['step']}: {r['component']} ({r['kind']})")
+    print(f"Triggered by: {r['trigger']}")
+    print("\nThe component (played by the LLM) produced:")
+    for a in r["answers"]:
+        print(f"  query {a['query']} → {a['outcome']}: {(a.get('answer') or '')[:90]}")
+    for e in r["emissions"]:
+        verb = "emit" if e["kind"] == "event" else "dispatch"
+        print(f"  {verb} {e['name']}: {e['narrative'][:90]}")
+    for f in r["findings"]:
+        print(f"  ⚑ finding [{f.get('category')}]: {f.get('summary', '')[:90]}")
+    if not (r["emissions"] or r["findings"]):
+        print("  (no fact produced)")
+    print("\n" + "-" * 72)
+    print("DIRECTOR ACTION (the wrapping agent should ask the user — did the LLM get it right?):")
+    print(f"  accept:   uv run point/sim.py review {sp} --ok")
+    print(f"  flag it:  uv run point/sim.py review {sp} --flag \"<what's wrong>\"  (records a finding)")
+    print(f"then continue with the same load command.")
+    print("=" * 72)
 
 
 # ================================================================================
@@ -407,6 +479,9 @@ def _finish(session: Session) -> None:
     if session.gate is not None:
         _print_gate(session)
         raise typer.Exit(EXIT_GATE)
+    if session.review is not None:
+        _print_review(session)
+        raise typer.Exit(EXIT_REVIEW)
     _print_halt(session)
     raise typer.Exit(EXIT_HALT)
 
@@ -417,9 +492,10 @@ def _finish(session: Session) -> None:
 @app.command()
 def load(feat_file: Path, scenario_file: Path,
          session_path: Path = typer.Argument(Path("point/session.jsonl")),
-         level: int = 0, engine: str = "claude", model: str = typer.Option(None), budget: int = 30):
+         level: int = 0, engine: str = "claude", model: str = typer.Option(None), budget: int = 30,
+         review: bool = typer.Option(False, "--review", help="pause after every activation for Director confirmation")):
     """Run a feature-file + scenario. CONTINUES an existing session file instead of
-    overwriting it (so a crash or gate is resumable by re-running the same command)."""
+    overwriting it (so a crash/gate/review is resumable by re-running the same command)."""
     if _has_run(session_path):
         session, _ = _load_session(session_path)
         if session.halted:
@@ -432,10 +508,11 @@ def load(feat_file: Path, scenario_file: Path,
     scenario = yaml.safe_load(scenario_file.read_text())
     session = Session(feat_path=str(feat_file), scenario_path=str(scenario_file),
                       session_path=str(session_path), level=level, engine=engine, model=model,
-                      step_budget=budget, budget=budget, feat=feat, scenario=scenario)
+                      step_budget=budget, budget=budget, feat=feat, scenario=scenario, review_mode=review)
     log = SessionLog(session_path)
     h = log.append("header", None, format_version=FORMAT_VERSION, feat=str(feat_file),
-                   scenario=str(scenario_file), level=level, step_budget=budget, engine=engine, model=model)
+                   scenario=str(scenario_file), level=level, step_budget=budget, engine=engine,
+                   model=model, review_mode=review)
     session.cursor = h["id"]
     materialize(session, log)
     _finish(run(session, log))
@@ -477,6 +554,37 @@ def gate(session_path: Path, component: str,
         print(f"continue: uv run point/sim.py load {session.feat_path} {session.scenario_path} {session_path}")
     else:
         print("re-read your feat amendment and continue with the same load command.")
+
+
+@app.command()
+def review(session_path: Path,
+           ok: bool = typer.Option(False, "--ok", help="the LLM got it right — accept and continue"),
+           flag: str = typer.Option(None, "--flag", help="the LLM got it wrong — record a finding")):
+    """Record the Director's verdict on the activation at a STATUS: REVIEW pause, so the
+    next `load`/`resume` proceeds. `--ok` accepts; `--flag "<what's wrong>"` records an
+    activation-review finding (the LLM's output did not match the Director's intent)."""
+    if ok == (flag is not None):
+        raise SystemExit("provide exactly one of --ok or --flag \"<what's wrong>\"")
+    session, _ = _load_session(session_path)
+    if session.review is None:
+        raise SystemExit("no activation is awaiting review")
+    r = session.review
+    log = SessionLog(session_path, resume=True)
+    if ok:
+        entry = log.append("review", session.cursor, by="director", resolves=r["entry"],
+                           component=r["component"], step=r["step"], verdict="accepted")
+        msg = f"accepted activation of {r['component']} (step {r['step']})"
+    else:
+        entry = log.append("finding", session.cursor, step=r["step"], component=r["component"],
+                           source="activation-review", category="activation-review",
+                           summary=flag, status="open")
+        session.findings.append({"id": entry["id"], "category": "activation-review", "summary": flag})
+        msg = f"flagged activation of {r['component']} (step {r['step']}): {flag}"
+    session.cursor = entry["id"]
+    session.review = None
+    log.append("checkpoint", None, state=session.checkpoint())
+    print(f"recorded: {msg}")
+    print(f"continue: uv run point/sim.py load {session.feat_path} {session.scenario_path} {session_path}")
 
 
 if __name__ == "__main__":

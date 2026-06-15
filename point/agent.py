@@ -28,6 +28,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -196,11 +197,16 @@ def _result_text(engine: str, stdout: str) -> str:
 
 def run_activation(
     *, engine: str, model: str | None, system_prompt: str, user_prompt: str,
-    tools: list[ToolSpec], event_store: list[str] | None = None, timeout: int = 300,
+    tools: list[ToolSpec], event_store: list[str] | None = None,
+    on_call=None, timeout: int = 300,
 ) -> ActivationResult:
     """Spawn the agent to play one activation; return its recorded tool calls + final text.
     `event_store` (narrative facts) is passed through to the serve process so query_<q>
-    tools can answer inline via a querier sub-activation (dizzy-6018)."""
+    tools can answer inline via a querier sub-activation (dizzy-6018).
+
+    `on_call(call)` — if given, is invoked LIVE for each tool call as the serve process
+    records it (the calls file is tailed while the subprocess runs), giving real-time
+    visibility into an otherwise silent multi-second activation."""
     if engine not in _SETUPS:
         raise ValueError(f"unknown engine {engine!r} (have {list(_SETUPS)})")
     model = model or DEFAULT_MODELS[engine]
@@ -208,14 +214,35 @@ def run_activation(
     ctx = {"SIM_EVENT_STORE": json.dumps(event_store or []), "SIM_ENGINE": engine, "SIM_MODEL": model}
     calls_file = Path(tempfile.mkstemp(prefix="sim_calls_", suffix=".jsonl")[1])
     calls_file.write_text("")
+    out_file = Path(tempfile.mkstemp(prefix="sim_out_", suffix=".txt")[1])
     cmd, cwd = _SETUPS[engine](model, calls_file, tools, system_prompt, user_prompt, ctx)
-
     env = {k: v for k, v in os.environ.items() if k != "VIRTUAL_ENV"}
-    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, cwd=cwd, env=env)
 
+    # Popen + tail the calls file so on_call sees each tool call live. stdout → a temp file
+    # (not PIPE) so a verbose stream can't deadlock the buffer while we poll.
+    seen, deadline = 0, time.monotonic() + timeout
+    with open(out_file, "w") as out:
+        proc = subprocess.Popen(cmd, stdout=out, stderr=subprocess.DEVNULL, cwd=cwd, env=env, text=True)
+        while True:
+            rc = proc.poll()
+            if on_call:
+                lines = calls_file.read_text().splitlines()
+                for line in lines[seen:]:
+                    if line.strip():
+                        on_call(json.loads(line))
+                seen = len(lines)
+            if rc is not None:
+                break
+            if time.monotonic() > deadline:
+                proc.kill()
+                break
+            time.sleep(0.12)
+
+    stdout = out_file.read_text()
     calls = [json.loads(line) for line in calls_file.read_text().splitlines() if line.strip()]
     calls_file.unlink(missing_ok=True)
-    return ActivationResult(calls=calls, result_text=_result_text(engine, proc.stdout), raw_stdout=proc.stdout)
+    out_file.unlink(missing_ok=True)
+    return ActivationResult(calls=calls, result_text=_result_text(engine, stdout), raw_stdout=stdout)
 
 
 # ================================================================================

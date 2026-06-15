@@ -4,10 +4,16 @@
 and act as the Director's interface to the human. The loop is small:
 
 ```
-run:   uv run point/sim.py load <feat> <scenario> <session.jsonl>
-        ├─ exit 0  + "STATUS: HALT" → done: review findings with the user (below)
-        └─ exit 10 + "STATUS: GATE" → a never-simulated component needs review (below)
+run:   uv run point/sim.py load <feat> <scenario> <session.jsonl> [--review]
+        ├─ exit 0  + "STATUS: HALT"   → done: review findings with the user (below)
+        ├─ exit 10 + "STATUS: GATE"   → a never-simulated component needs review (below)
+        └─ exit 11 + "STATUS: REVIEW" → (--review only) confirm the LLM's activation output (below)
 ```
+
+**Live visibility.** Each activation streams progress to **stderr** as it runs — the
+component starting (`▶ step N · <component>`), each tool call as the LLM makes it
+(`⤷ emit …`, `⤷ query … → answer`, `⚑ finding …`), and the result (`✓ …`). stdout carries
+only the `STATUS:` blocks, so the wrapper parses stdout and shows stderr to the user.
 
 `load` **continues** an existing `<session.jsonl>` (it never overwrites), so re-running the
 same command after a gate or a crash resumes from the last checkpoint.
@@ -29,6 +35,19 @@ printed its verbatim description + wired tools. Do this:
 3. Re-run the same `load …` command. Repeat until `STATUS: HALT`.
 
 Only proceed automatically on `--confirm`. On `--modified`, make the feat edit first.
+
+## On `STATUS: REVIEW` (only with `--review`)
+
+sim.py paused *after* an activation so the Director can confirm the LLM got it right. It
+prints what the component produced (query answers, emissions, findings). Ask the user:
+**does this output match what the component should have done?** Then:
+- **Right:** `uv run point/sim.py review <session.jsonl> --ok`
+- **Wrong:** `uv run point/sim.py review <session.jsonl> --flag "<what's wrong>"` — records
+  an `activation-review` finding (the LLM's output diverged from intent; usually a sign the
+  description is ambiguous).
+
+Then re-run the same `load …` command. Use `--review` when you want to vet every
+activation; omit it to run autonomously and only stop at gates/halt.
 
 ## On `STATUS: HALT`
 
