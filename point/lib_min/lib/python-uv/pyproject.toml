@@ -1,7 +1,0 @@
-[tool.uv.workspace]
-members = [
-  "gen_def",
-  "gen_int",
-  "procedure/catalog_book",
-  "policy/index_on_catalog",
-]
