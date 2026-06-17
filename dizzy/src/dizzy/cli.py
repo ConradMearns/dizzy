@@ -57,6 +57,8 @@ from dizzy.generators.lib_typescript_npm import (
     write_workspace_typescript_npm,
 )
 from dizzy.libconfig_loader import load_libconfig, validate_libconfig
+from dizzy.simulate.session import Session
+from dizzy.simulate.sim_executors import SimProcedureExecutor, SimPolicyExecutor
 
 app = typer.Typer()
 
@@ -327,6 +329,27 @@ def lib(
             write_workspace_typescript_npm(members, output_dir)
 
     logger.info("Generated lib/ packages. Implement the stubs in lib/<runtime>/<kind>/<name>/src/")
+
+
+@app.command()
+def simulate(
+    feat_file: Annotated[Path, typer.Argument(help="Path to the .feat.yaml file")],
+    scenario_file: Annotated[Path, typer.Argument(help="Path to the .scenario.yaml file")],
+    session_path: Annotated[Path, typer.Argument(help="Output session JSONL file")] = Path("session.jsonl"),
+    provider: Annotated[str, typer.Option(help="LLM provider: openrouter | ollama | unsloth")] = "openrouter",
+    model: Annotated[str | None, typer.Option(help="Model override (provider default if omitted)")] = None,
+    verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Stream LLM output")] = False,
+) -> None:
+    """LLM-driven execution of a feature-file against a scenario (level 0)."""
+    session = Session(session_path).load_features(feat_file)
+    procedure_executor = SimProcedureExecutor(session._feature, provider=provider, model=model, verbose_stream=verbose)
+    policy_executor = SimPolicyExecutor(session._feature, provider=provider, model=model, verbose_stream=verbose)
+    session.run_scenario(scenario_file, procedure_executor, policy_executor)
+    findings = [e for e in session._session if e["type"] == "finding"]
+    if findings:
+        logger.info("%d finding(s) recorded — see %s", len(findings), session_path)
+    else:
+        logger.info("Run complete, no findings. Session: %s", session_path)
 
 
 @app.command()

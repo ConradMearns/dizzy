@@ -3,17 +3,12 @@
 SimProcedureExecutor  — plays a procedure component via an LLM agent; returns emitted events.
 SimPolicyExecutor     — plays a policy component via an LLM agent; returns dispatched commands.
 
-Both accept a provider ("openrouter" | "ollama" | "unsloth") and an optional model override at construction time.
-The feat dict is required so tools can be synthesized per the mirror rule.
+Both accept a provider ("openrouter" | "ollama" | "unsloth") and an optional model override at
+construction time. The feat dict is required so tools can be synthesized per the mirror rule.
 """
 
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import agent
-
-from executor import ProcedureResult, PolicyResult
+from dizzy.simulate import agent
+from dizzy.simulate.executor import ProcedureResult, PolicyResult
 
 SYSTEM_PROMPT = (
     "You are playing a SINGLE component in an event-sourced system. You see only "

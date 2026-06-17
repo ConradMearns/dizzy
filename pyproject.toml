@@ -7,6 +7,7 @@ requires-python = ">=3.11"
 dependencies = [
     "linkml>=1.9.5",
     "openai>=2.42.0",
+    "python-dotenv>=1.0.0",
     "pyyaml>=6.0",
     "typer>=0.20.0",
 ]

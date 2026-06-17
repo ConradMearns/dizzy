@@ -38,7 +38,7 @@ class PolicyExecutor(Protocol):
 
 
 class ExampleProcedureExecutor:
-    """Mirrors the 'example emits' stub in sim.py: emits each declared event with placeholder data."""
+    """Mirrors the 'example emits' stub: emits each declared event with placeholder data."""
 
     def __init__(self, feat: dict):
         self._feat = feat
@@ -50,7 +50,7 @@ class ExampleProcedureExecutor:
 
 
 class ExamplePolicyExecutor:
-    """Mirrors the 'example emits' stub in sim.py: dispatches each declared command with placeholder data."""
+    """Mirrors the 'example emits' stub: dispatches each declared command with placeholder data."""
 
     def __init__(self, feat: dict):
         self._feat = feat

@@ -1,4 +1,4 @@
-"""point/agent.py — provider-based agent activation via direct API tool calls.
+"""dizzy.simulate.agent — provider-based agent activation via direct API tool calls.
 
 Supports OpenRouter, Ollama, and Unsloth (all OpenAI-compatible). Tools are
 synthesized from ToolSpec and executed in-process — no MCP server required.
@@ -14,12 +14,11 @@ import json
 import os
 import sys
 from dataclasses import dataclass
-from pathlib import Path
 
 import openai
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).resolve().parent / ".env")
+load_dotenv()
 
 # ---------------------------------------------------------------------------
 # providers
