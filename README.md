@@ -2,16 +2,43 @@
 
 **DIZZY is a methodology for writing event-sourced software.**
 
-You describe a *feature* in a single `.feat.yaml` file. Dizzy scaffolds typed schemas,
-generates protocols and implementation stubs, and packages each piece into
-redistributable libraries. You fill in the business logic; Dizzy owns the wiring.
+**HYPOTHESIS**
+A business Domain can be expressed a single artifact that is the litare design and source of implementation.
+Readable as prose, but precise enough to generate a checkable implementation against.
+As the entry point of change - the system stays tractable as the domain grows.
 
-The goal is **reproducible, redistributable software**: features defined as data, with
-no architecture or database baked in, so the same definition can target different
-runtimes and deployments.
+DIZZY defines a single feature-fule that declares every component of the domain: 
+commands, procedures, events, policies, projections, models, queries and queriers.
 
-> ⚠️ **Research code.** Dizzy is a work in progress. The Python (`python-uv`) path is
-> the most complete; the `rust-cargo` and `typescript-npm` runtimes are experimental.
+Code, typed contracts, deployment, stubs and tests are generated from the feature file as redistributable libraries in multiple languages.
+
+The goal is **reproducible, redistributable and literate software**: features defined as data,
+with no architecture or database baked in,
+so the same definition can target different runtimes and deployments.
+
+> ⚠️ **Research code.**
+> DIZZY is a work in progress.
+> The Python (`python-uv`) path is the most complete;
+>  the `rust-cargo` and `typescript-npm` runtimes are experimental.
+
+## Why DIZZY ?
+
+If the hypothesis holds - then programs built to service DIZZY features will serve all libraries implemented in DIZZY.
+
+If and when built for DIZZY, each additional system applies to all DIZZY libraries.
+
+- A deployment for k8s; reducing the upfront cost of deployment for new projects.
+- Telemetry - metrics and traces; ensuring deployed systems are transparent to operators without bespoke integration.
+
+## Install
+
+Requires **Python 3.11+**, [uv](https://docs.astral.sh/uv/), and (optionally)
+[just](https://github.com/casey/just).
+
+```bash
+uv tool install --editable .   # or: just install
+dizzy --help
+```
 
 ## The model
 
@@ -34,15 +61,7 @@ Procedures emit an event for every effect, every fact worth recording, and every
 business-level error. Those events accumulate in an event store and become the basis
 for everything the system knows about itself over time.
 
-## Install
 
-Requires **Python 3.11+**, [uv](https://docs.astral.sh/uv/), and (optionally)
-[just](https://github.com/casey/just).
-
-```bash
-uv tool install --editable .   # or: just install
-dizzy --help
-```
 
 ## A minimal feature
 
@@ -148,7 +167,7 @@ See [`examples/`](examples/) for the full walkthrough.
 
 ## For AI agents
 
-Dizzy ships a reference document tuned for LLM agents (the analog of `sd prime`):
+DIZZY ships a reference document tuned for LLM agents (the analog of `sd prime`):
 
 ```bash
 dizzy docs
