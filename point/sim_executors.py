@@ -3,7 +3,7 @@
 SimProcedureExecutor  — plays a procedure component via an LLM agent; returns emitted events.
 SimPolicyExecutor     — plays a policy component via an LLM agent; returns dispatched commands.
 
-Both accept engine ("claude" | "pi") and an optional model override at construction time.
+Both accept a provider ("openrouter" | "ollama" | "unsloth") and an optional model override at construction time.
 The feat dict is required so tools can be synthesized per the mirror rule.
 """
 
@@ -65,23 +65,24 @@ class SimProcedureExecutor:
     def __init__(
         self,
         feat: dict,
-        engine: str = "pi",
+        provider: str = "openrouter",
         model: str | None = None,
-        event_store: list[str] | None = None,
+        verbose_stream: bool = False,
     ):
         self._feat = feat
-        self._engine = engine
+        self._provider = provider
         self._model = model
-        self._event_store = event_store or []
+        self._verbose_stream = verbose_stream
 
-    def execute(self, component: str, trigger: str | dict) -> ProcedureResult:
+    def execute(self, component: str, trigger: str | dict, event_store: list) -> ProcedureResult:
         comp = _find_component(self._feat, component, "procedure")
         tools = _synthesize_tools(comp, self._feat.get("queries", {}))
         result = agent.run_activation(
-            engine=self._engine, model=self._model,
+            provider=self._provider, model=self._model,
             system_prompt=SYSTEM_PROMPT,
             user_prompt=_build_user_prompt(comp, trigger, tools),
-            tools=tools, event_store=self._event_store,
+            tools=tools, event_store=event_store,
+            verbose_stream=self._verbose_stream,
         )
         events = [
             {call["tool"].removeprefix("emit_"): call["args"]["narrative"]}
@@ -95,23 +96,24 @@ class SimPolicyExecutor:
     def __init__(
         self,
         feat: dict,
-        engine: str = "pi",
+        provider: str = "openrouter",
         model: str | None = None,
-        event_store: list[str] | None = None,
+        verbose_stream: bool = False,
     ):
         self._feat = feat
-        self._engine = engine
+        self._provider = provider
         self._model = model
-        self._event_store = event_store or []
+        self._verbose_stream = verbose_stream
 
-    def execute(self, component: str, trigger: str | dict) -> PolicyResult:
+    def execute(self, component: str, trigger: str | dict, event_store: list) -> PolicyResult:
         comp = _find_component(self._feat, component, "policy")
         tools = _synthesize_tools(comp, self._feat.get("queries", {}))
         result = agent.run_activation(
-            engine=self._engine, model=self._model,
+            provider=self._provider, model=self._model,
             system_prompt=SYSTEM_PROMPT,
             user_prompt=_build_user_prompt(comp, trigger, tools),
-            tools=tools, event_store=self._event_store,
+            tools=tools, event_store=event_store,
+            verbose_stream=self._verbose_stream,
         )
         commands = [
             {call["tool"].removeprefix("dispatch_"): call["args"]["narrative"]}

@@ -25,13 +25,13 @@ class PolicyResult:
 
 @runtime_checkable
 class ProcedureExecutor(Protocol):
-    def execute(self, component: str, trigger: str | dict) -> ProcedureResult:
+    def execute(self, component: str, trigger: str | dict, event_store: list) -> ProcedureResult:
         ...
 
 
 @runtime_checkable
 class PolicyExecutor(Protocol):
-    def execute(self, component: str, trigger: str | dict) -> PolicyResult:
+    def execute(self, component: str, trigger: str | dict, event_store: list) -> PolicyResult:
         ...
 
 
@@ -41,7 +41,7 @@ class ExampleProcedureExecutor:
     def __init__(self, feat: dict):
         self._feat = feat
 
-    def execute(self, component: str, trigger: str | dict) -> ProcedureResult:
+    def execute(self, component: str, trigger: str | dict, event_store: list) -> ProcedureResult:
         procedure = self._feat["procedures"][component]
         events = [{name: "example"} for name in procedure.get("emits", [])]
         return ProcedureResult(events=events)
@@ -53,7 +53,7 @@ class ExamplePolicyExecutor:
     def __init__(self, feat: dict):
         self._feat = feat
 
-    def execute(self, component: str, trigger: str | dict) -> PolicyResult:
+    def execute(self, component: str, trigger: str | dict, event_store: list) -> PolicyResult:
         policy = self._feat["policies"][component]
         commands = [{name: "example"} for name in policy.get("emits", [])]
         return PolicyResult(commands=commands)

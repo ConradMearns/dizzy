@@ -1,52 +1,64 @@
-# /// script
-# requires-python = ">=3.11"
-# dependencies = ["mcp>=1.2"]
-# ///
-"""point/agent.py — the shared agent Provider for the simulate spikes.
+"""point/agent.py — provider-based agent activation via direct API tool calls.
 
-Two faces, one file:
+Supports OpenRouter, Ollama, and Unsloth (all OpenAI-compatible). Tools are
+synthesized from ToolSpec and executed in-process — no MCP server required.
 
-  * Imported as a module — exposes `run_activation(...)`: stand up an ad-hoc MCP server,
-    spawn an agent (`claude -p` or `pi -p`) that acts by calling the synthesized tools,
-    and return what it did (recorded tool calls + final text). This is the Provider seam
-    from point/PROVIDER.md; sim_executor and sim_querier both drive through it.
-
-  * Run as `uv run agent.py serve` — IS the ad-hoc MCP server (the process the agent
-    launches via its MCP config). Tools are synthesized from $SIM_TOOLS; every call is
-    appended to $SIM_CALLS as {tool, kind, args} and answered with an ack/stub.
-
-Engine differences (claude vs pi) and the clean-cwd cost trick are encapsulated here so
-the spikes stay tiny. The current recording is out-of-process (a temp file the parent
-reads after the run); the inline query round-trip (seed dizzy-6018 half 2) will replace
-the query stub with a real sub-activation without changing this interface.
+  run_activation(provider, model, system_prompt, user_prompt, tools, event_store,
+                 verbose_stream)
+  run_querier(query_name, description, args, event_store, provider, model)
 """
 
 from __future__ import annotations
 
 import json
 import os
-import subprocess
 import sys
-import tempfile
-import time
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
 
-AGENT_SCRIPT = Path(__file__).resolve()
-SERVER_NAME = "sim"
+import openai
+from dotenv import load_dotenv
 
-# Per-engine MCP tool name prefix. claude: mcp__<server>__<tool>; pi (scaryrawr/pi-mcp): <server>_<tool>.
-TOOL_PREFIX = {"claude": f"mcp__{SERVER_NAME}__", "pi": f"{SERVER_NAME}_"}
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
-# Haiku default for both — cheap/fast; activations follow narrow instructions.
-DEFAULT_MODELS = {"claude": "claude-haiku-4-5-20251001", "pi": "anthropic/claude-haiku-4.5"}
+# ---------------------------------------------------------------------------
+# providers
+# ---------------------------------------------------------------------------
 
+PROVIDERS: dict[str, dict] = {
+    "openrouter": {
+        "base_url": "https://openrouter.ai/api/v1",
+        "api_key_env": "OPENROUTER_API_KEY",
+        "default_model": "anthropic/claude-haiku-4-5",
+    },
+    "ollama": {
+        "base_url": "http://localhost:11434/v1",
+        "api_key_env": None,
+        "default_model": "llama3.2",
+    },
+    "unsloth": {
+        "base_url": "http://localhost:2242/v1",
+        "api_key_env": "UNSLOTH_API_KEY",
+        "default_model": None,
+    },
+}
+
+
+def _client(provider: str) -> tuple[openai.OpenAI, str | None]:
+    cfg = PROVIDERS.get(provider)
+    if cfg is None:
+        raise ValueError(f"unknown provider {provider!r} (have: {list(PROVIDERS)})")
+    api_key = (os.environ.get(cfg["api_key_env"]) if cfg["api_key_env"] else None) or "no-key"
+    return openai.OpenAI(base_url=cfg["base_url"], api_key=api_key), cfg["default_model"]
+
+
+# ---------------------------------------------------------------------------
+# shared types
+# ---------------------------------------------------------------------------
 
 @dataclass
 class ToolSpec:
-    """One synthesized tool. kind ∈ emit|dispatch|query|answer|finding.
-    For a query tool, `meta` carries {"query": <name>, "description": <feat desc>} so the
-    serve-side handler can run the querier sub-activation (inline round-trip)."""
+    """One synthesized tool. kind ∈ emit | dispatch | query | answer | finding."""
     name: str
     kind: str
     meta: dict | None = None
@@ -54,232 +66,223 @@ class ToolSpec:
 
 @dataclass
 class ActivationResult:
-    calls: list[dict]      # recorded tool calls: {tool, kind, args}, in order
-    result_text: str       # the agent's final assistant text (json result field)
-    raw_stdout: str
+    calls: list[dict]
+    result_text: str
+    raw_stdout: str = ""
 
     def of_kind(self, kind: str) -> list[dict]:
         return [c for c in self.calls if c.get("kind") == kind]
 
 
-# ================================================================================
-# serve mode — the ad-hoc FastMCP server (child process launched by the agent)
-# ================================================================================
-def serve() -> None:
-    from mcp.server.fastmcp import FastMCP
+# ---------------------------------------------------------------------------
+# tool schema synthesis
+# ---------------------------------------------------------------------------
 
-    calls_path = os.environ.get("SIM_CALLS")
-    specs = json.loads(os.environ.get("SIM_TOOLS", "[]"))
-    # Context for inline querier sub-activations (the query_<q> round-trip):
-    event_store = json.loads(os.environ.get("SIM_EVENT_STORE", "[]"))
-    sub_engine = os.environ.get("SIM_ENGINE", "claude")
-    sub_model = os.environ.get("SIM_MODEL") or None
-
-    def record(tool: str, kind: str, args: dict) -> None:
-        if calls_path:
-            with open(calls_path, "a") as fh:
-                fh.write(json.dumps({"tool": tool, "kind": kind, "args": args}) + "\n")
-
-    # Factories: FastMCP infers the input schema from the returned function's signature,
-    # so handlers expose ONLY the tool's real fields (and no param may start with '_').
-    def make_emission(name: str, kind: str, ack: str):
-        def handler(narrative: str) -> str:
-            record(name, kind, {"narrative": narrative})
-            return f"{ack}: {name}"
-        return handler
-
-    def make_query(name: str, meta: dict | None):
-        qname = (meta or {}).get("query", name)
-        qdesc = (meta or {}).get("description", "")
-
-        def handler(narrative: str) -> str:
-            # Inline round-trip (dizzy-6018): run a querier sub-activation over the event
-            # store and return its answer INLINE. agent.py is both server and provider, so
-            # the handler simply calls run_querier (which spawns its own agent) — no bridge
-            # back to the parent harness is needed.
-            record(name, "query", {"narrative": narrative})
-            res = run_querier(query_name=qname, description=qdesc, args=narrative,
-                              event_store=event_store, engine=sub_engine, model=sub_model)
-            record(name, "query_answer", {"query": qname, "outcome": res["outcome"],
-                                          "answer": res.get("answer"), "finding": res.get("finding")})
-            if res["outcome"] == "answered":
-                return res["answer"]
-            if res["outcome"] == "finding":
-                return f"UNANSWERABLE — finding filed: {res['finding'].get('summary', '')}"
-            return "UNANSWERABLE — querier returned nothing (null-query-response finding filed)"
-        return handler
-
-    def make_answer(name: str):
-        def handler(answer: str) -> str:
-            record(name, "answer", {"answer": answer})
-            return "answer recorded; end your turn"
-        return handler
-
-    def make_finding(name: str):
-        def handler(category: str, summary: str, detail: str) -> str:
-            record(name, "finding", {"category": category, "summary": summary, "detail": detail})
-            return "finding recorded; end your turn without emitting unless the outcome is logically deducible"
-        return handler
-
-    mcp = FastMCP(SERVER_NAME)
-    for spec in specs:
-        name, kind = spec["name"], spec["kind"]
-        if kind in ("emit", "dispatch"):
-            verb = "Emit" if kind == "emit" else "Dispatch"
-            handler = make_emission(name, kind, "recorded" if kind == "emit" else "queued")
-            desc = f"{verb} {name}. `narrative`: free-text payload describing the fact/intent."
-        elif kind == "query":
-            handler, desc = make_query(name, spec.get("meta")), f"Run {name}. `narrative`: what you need to know from the event stream."
-        elif kind == "answer":
-            handler, desc = make_answer(name), "Return the query result. `answer`: the concise, direct answer derived from the event stream."
-        else:  # finding
-            handler, desc = make_finding(name), "Report a gap instead of healing it (missing/ambiguous/unanswerable). End your turn after."
-        mcp.add_tool(handler, name=name, description=desc)
-
-    mcp.run(transport="stdio")
+def _tool_schema(spec: ToolSpec) -> dict:
+    if spec.kind in ("emit", "dispatch"):
+        verb = "Emit" if spec.kind == "emit" else "Dispatch"
+        desc = f"{verb} {spec.name}. `narrative`: free-text payload describing the fact/intent."
+        params, required = {"narrative": {"type": "string"}}, ["narrative"]
+    elif spec.kind == "query":
+        desc = f"Run {spec.name}. `narrative`: what you need to know from the event stream."
+        params, required = {"narrative": {"type": "string"}}, ["narrative"]
+    elif spec.kind == "answer":
+        desc = "Return the query result. `answer`: concise, direct answer from the event stream."
+        params, required = {"answer": {"type": "string"}}, ["answer"]
+    else:  # finding
+        desc = "Report a gap instead of healing it (missing/ambiguous/unanswerable)."
+        params = {"category": {"type": "string"}, "summary": {"type": "string"}, "detail": {"type": "string"}}
+        required = ["category", "summary", "detail"]
+    return {"type": "function", "function": {"name": spec.name, "description": desc,
+            "parameters": {"type": "object", "properties": params, "required": required}}}
 
 
-# ================================================================================
-# provider API — run one activation through an agent subprocess
-# ================================================================================
-def allowed_tools(engine: str, tools: list[ToolSpec]) -> list[str]:
-    """Engine-prefixed allowlist (rule 2: tools from wiring only)."""
-    return [TOOL_PREFIX[engine] + t.name for t in tools]
+def _kind_for(tool_name: str, tools: list[ToolSpec]) -> str:
+    for t in tools:
+        if t.name == tool_name:
+            return t.kind
+    return "unknown"
 
 
-def _server_entry(calls_file: Path, tools: list[ToolSpec], ctx: dict) -> dict:
-    return {
-        "command": "uv", "args": ["run", str(AGENT_SCRIPT), "serve"],
-        "env": {"SIM_CALLS": str(calls_file), "SIM_TOOLS": json.dumps([asdict(t) for t in tools]),
-                **ctx},  # SIM_EVENT_STORE / SIM_ENGINE / SIM_MODEL for inline queriers
-    }
+# ---------------------------------------------------------------------------
+# single-turn helpers: streaming and non-streaming both return a message dict
+# ---------------------------------------------------------------------------
+
+def _plain_turn(client, model, messages, tool_defs, timeout) -> dict:
+    resp = client.chat.completions.create(
+        model=model, messages=messages, tools=tool_defs, timeout=timeout,
+    )
+    return resp.choices[0].message.model_dump(exclude_unset=True)
 
 
-def _claude_setup(model, calls_file, tools, system_prompt, user_prompt, ctx) -> tuple[list[str], Path]:
-    config = {"mcpServers": {SERVER_NAME: _server_entry(calls_file, tools, ctx)}}
-    cmd = [
-        "claude", "-p", "--model", model, "--output-format", "json",
-        "--strict-mcp-config", "--mcp-config", json.dumps(config),
-        "--allowedTools", *allowed_tools("claude", tools),
-        "--append-system-prompt", system_prompt, user_prompt,
-    ]
-    # Clean temp cwd: skip CLAUDE.md/.claude auto-discovery (halves cost), keeps OAuth.
-    return cmd, Path(tempfile.mkdtemp(prefix="sim_claude_"))
+def _stream_turn(client, model, messages, tool_defs, timeout) -> dict:
+    """Stream one turn, printing content and tool-call names/args live to stdout."""
+    stream = client.chat.completions.create(
+        model=model, messages=messages, tools=tool_defs, timeout=timeout, stream=True,
+    )
+
+    content_buf: list[str] = []
+    tc_buf: dict[int, dict] = {}  # index → {id, name, args}
+
+    for chunk in stream:
+        if not chunk.choices:
+            continue
+        delta = chunk.choices[0].delta
+
+        if delta.content:
+            sys.stdout.write(delta.content)
+            sys.stdout.flush()
+            content_buf.append(delta.content)
+
+        if delta.tool_calls:
+            for tc in delta.tool_calls:
+                idx = tc.index
+                if idx not in tc_buf:
+                    tc_buf[idx] = {"id": "", "name": "", "args": ""}
+                entry = tc_buf[idx]
+                if tc.id:
+                    entry["id"] = tc.id
+                if tc.function:
+                    if tc.function.name:
+                        if not entry["name"]:
+                            sys.stdout.write(f"\n[tool: {tc.function.name}] ")
+                            sys.stdout.flush()
+                        entry["name"] += tc.function.name
+                    if tc.function.arguments:
+                        sys.stdout.write(tc.function.arguments)
+                        sys.stdout.flush()
+                        entry["args"] += tc.function.arguments
+
+    if content_buf or tc_buf:
+        sys.stdout.write("\n")
+        sys.stdout.flush()
+
+    msg: dict = {"role": "assistant"}
+    if content_buf:
+        msg["content"] = "".join(content_buf)
+    if tc_buf:
+        msg["tool_calls"] = [
+            {"id": tc_buf[i]["id"], "type": "function",
+             "function": {"name": tc_buf[i]["name"], "arguments": tc_buf[i]["args"]}}
+            for i in sorted(tc_buf)
+        ]
+    return msg
 
 
-def _pi_setup(model, calls_file, tools, system_prompt, user_prompt, ctx) -> tuple[list[str], Path]:
-    workdir = Path(tempfile.mkdtemp(prefix="sim_pi_"))
-    entry = {**_server_entry(calls_file, tools, ctx), "tools": [t.name for t in tools]}
-    (workdir / ".mcp.json").write_text(json.dumps({SERVER_NAME: entry}))
-    cmd = [
-        "pi", "-p", "--model", model, "--mode", "json",
-        "--tools", ",".join(allowed_tools("pi", tools)),
-        "--append-system-prompt", system_prompt, user_prompt,
-    ]
-    return cmd, workdir
+# ---------------------------------------------------------------------------
+# activation loop
+# ---------------------------------------------------------------------------
 
-
-_SETUPS = {"claude": _claude_setup, "pi": _pi_setup}
-
-
-def _result_text(engine: str, stdout: str) -> str:
-    """The agent's final assistant text. claude: the json `result` field. pi: best-effort
-    (its --mode json is a verbose stream; the answer tool carries the payload anyway)."""
-    if not stdout.strip():
-        return ""
-    if engine == "claude":
-        try:
-            return (json.loads(stdout).get("result") or "").strip()
-        except json.JSONDecodeError:
-            return stdout.strip()
-    return ""
+TERMINAL_KINDS = {"emit", "dispatch", "finding", "answer"}
+MAX_TURNS = 10
 
 
 def run_activation(
-    *, engine: str, model: str | None, system_prompt: str, user_prompt: str,
-    tools: list[ToolSpec], event_store: list[str] | None = None,
-    on_call=None, timeout: int = 300,
+    *,
+    provider: str,
+    model: str | None,
+    system_prompt: str,
+    user_prompt: str,
+    tools: list[ToolSpec],
+    event_store: list[str] | None = None,
+    verbose_stream: bool = False,
+    timeout: int = 300,
 ) -> ActivationResult:
-    """Spawn the agent to play one activation; return its recorded tool calls + final text.
-    `event_store` (narrative facts) is passed through to the serve process so query_<q>
-    tools can answer inline via a querier sub-activation (dizzy-6018).
+    client, default_model = _client(provider)
+    model = model or default_model
 
-    `on_call(call)` — if given, is invoked LIVE for each tool call as the serve process
-    records it (the calls file is tailed while the subprocess runs), giving real-time
-    visibility into an otherwise silent multi-second activation."""
-    if engine not in _SETUPS:
-        raise ValueError(f"unknown engine {engine!r} (have {list(_SETUPS)})")
-    model = model or DEFAULT_MODELS[engine]
+    messages: list[dict] = []
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "user", "content": user_prompt})
 
-    ctx = {"SIM_EVENT_STORE": json.dumps(event_store or []), "SIM_ENGINE": engine, "SIM_MODEL": model}
-    calls_file = Path(tempfile.mkstemp(prefix="sim_calls_", suffix=".jsonl")[1])
-    calls_file.write_text("")
-    out_file = Path(tempfile.mkstemp(prefix="sim_out_", suffix=".txt")[1])
-    cmd, cwd = _SETUPS[engine](model, calls_file, tools, system_prompt, user_prompt, ctx)
-    env = {k: v for k, v in os.environ.items() if k != "VIRTUAL_ENV"}
+    tool_defs = [_tool_schema(t) for t in tools]
+    all_calls: list[dict] = []
+    _turn = _stream_turn if verbose_stream else _plain_turn
 
-    # Popen + tail the calls file so on_call sees each tool call live. stdout → a temp file
-    # (not PIPE) so a verbose stream can't deadlock the buffer while we poll.
-    seen, deadline = 0, time.monotonic() + timeout
-    with open(out_file, "w") as out:
-        proc = subprocess.Popen(cmd, stdout=out, stderr=subprocess.DEVNULL, cwd=cwd, env=env, text=True)
-        while True:
-            rc = proc.poll()
-            if on_call:
-                lines = calls_file.read_text().splitlines()
-                for line in lines[seen:]:
-                    if line.strip():
-                        on_call(json.loads(line))
-                seen = len(lines)
-            if rc is not None:
-                break
-            if time.monotonic() > deadline:
-                proc.kill()
-                break
-            time.sleep(0.12)
+    for _ in range(MAX_TURNS):
+        msg = _turn(client, model, messages, tool_defs, timeout)
+        messages.append(msg)
 
-    stdout = out_file.read_text()
-    calls = [json.loads(line) for line in calls_file.read_text().splitlines() if line.strip()]
-    calls_file.unlink(missing_ok=True)
-    out_file.unlink(missing_ok=True)
-    return ActivationResult(calls=calls, result_text=_result_text(engine, stdout), raw_stdout=stdout)
+        tool_calls = msg.get("tool_calls") or []
+        if not tool_calls:
+            break
+
+        tool_results = []
+        terminal_hit = False
+
+        for tc in tool_calls:
+            name = tc["function"]["name"]
+            args = json.loads(tc["function"]["arguments"])
+            kind = _kind_for(name, tools)
+            all_calls.append({"tool": name, "kind": kind, "args": args})
+
+            if kind == "query":
+                qmeta = next((t.meta for t in tools if t.name == name), None) or {}
+                qresult = run_querier(
+                    query_name=qmeta.get("query", name),
+                    description=qmeta.get("description", ""),
+                    args=args.get("narrative", ""),
+                    event_store=event_store or [],
+                    provider=provider, model=model,
+                    verbose_stream=verbose_stream,
+                )
+                all_calls.append({"tool": name, "kind": "query_answer", "args": qresult})
+                content = qresult["answer"] if qresult["outcome"] == "answered" \
+                    else f"UNANSWERABLE — {qresult.get('finding', {}).get('summary', '')}"
+            else:
+                content = f"recorded: {name}"
+                if kind in TERMINAL_KINDS:
+                    terminal_hit = True
+
+            tool_results.append({"role": "tool", "tool_call_id": tc["id"], "content": content})
+
+        messages.extend(tool_results)
+        if terminal_hit:
+            break
+
+    last = messages[-1] if messages else {}
+    result_text = last.get("content", "") if last.get("role") == "assistant" else ""
+    return ActivationResult(calls=all_calls, result_text=result_text or "")
 
 
-# ================================================================================
-# querier sub-activation (jmQ collapse, rule 10) — the read side
-# ================================================================================
+# ---------------------------------------------------------------------------
+# querier sub-activation
+# ---------------------------------------------------------------------------
+
 QUERIER_SYSTEM_PROMPT = (
-    "You are a QUERIER in an event-sourced system (the jmQ collapse). Answer the query "
-    "using ONLY the event stream provided — it is the single source of truth; there are "
-    "no other facts and no database. Do not invent or assume anything not derivable from "
-    "the stream. Call exactly one tool: `answer` with a concise, direct result derived "
-    "from the stream, or `report_finding` if the stream genuinely cannot answer. Do not "
-    "reply in prose — always call a tool."
+    "You are a QUERIER in an event-sourced system. Answer the query using ONLY the "
+    "event stream provided — it is the single source of truth. Do not invent or assume "
+    "anything not derivable from the stream. Call exactly one tool: `answer` with a "
+    "concise, direct result, or `report_finding` if the stream genuinely cannot answer. "
+    "Do not reply in prose — always call a tool."
 )
 
 
-def build_querier_prompt(query_name: str, description: str, args: str, event_store: list[str]) -> str:
+def _querier_prompt(query_name: str, description: str, args: str, event_store: list[str]) -> str:
     dump = "\n".join(f"  - {e}" for e in event_store) if event_store else "  (empty — no facts yet)"
     return (
-        f"query: {query_name}\n"
-        f"description: {description}\n"
-        f"arguments: {args}\n\n"
-        f"event stream (all facts to date):\n{dump}\n\n"
-        f"Answer the query from the stream above by calling `answer` or `report_finding`."
+        f"query: {query_name}\ndescription: {description}\narguments: {args}\n\n"
+        f"event stream:\n{dump}\n\nAnswer by calling `answer` or `report_finding`."
     )
 
 
 def run_querier(
-    *, query_name: str, description: str, args: str, event_store: list[str],
-    engine: str = "claude", model: str | None = None,
+    *,
+    query_name: str,
+    description: str,
+    args: str,
+    event_store: list[str],
+    provider: str = "openrouter",
+    model: str | None = None,
+    verbose_stream: bool = False,
 ) -> dict:
-    """Run a querier sub-activation over the event stream. Returns
-    {outcome: answered|finding|null, answer?, finding?} per the resolved querier protocol
-    (PLAN § Query evaluation): a NULL turn (no tool) is itself the null outcome."""
     tools = [ToolSpec("answer", "answer"), ToolSpec("report_finding", "finding")]
     result = run_activation(
-        engine=engine, model=model, system_prompt=QUERIER_SYSTEM_PROMPT,
-        user_prompt=build_querier_prompt(query_name, description, args, event_store), tools=tools,
+        provider=provider, model=model,
+        system_prompt=QUERIER_SYSTEM_PROMPT,
+        user_prompt=_querier_prompt(query_name, description, args, event_store),
+        tools=tools, verbose_stream=verbose_stream,
     )
     answers, findings = result.of_kind("answer"), result.of_kind("finding")
     if answers:
@@ -287,12 +290,3 @@ def run_querier(
     if findings:
         return {"outcome": "finding", "finding": findings[0]["args"]}
     return {"outcome": "null"}
-
-
-if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "serve":
-        serve()
-    else:
-        print("point/agent.py is a library + an MCP server. Use `serve`, or import run_activation.",
-              file=sys.stderr)
-        sys.exit(2)

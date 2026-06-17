@@ -7,6 +7,7 @@ import typer
 import yaml
 
 import executor
+import sim_executors
 
 app = typer.Typer(add_completion=False)
 
@@ -116,7 +117,7 @@ class Session:
 
 
     def event_store(self):
-        emitted = [x for x in self._session if x["type"] == "event_emitted"]
+        emitted = [x["log"] for x in self._session if x["type"] == "event_emitted"]
         return emitted
 
     def event_queue(self):
@@ -154,21 +155,33 @@ class Session:
         if self.is_empty():
             raise NotImplementedError()
 
+        print("="*30)
+        print("STEP")
+        print("="*30)
+
+        es = self.event_store()
+
+        print("EVENTS:")
+        for event in es:
+            print(es)
+
+        print("EVENT QUEUE:")
         for event in self.event_queue():
-            print(event)
+            print(event['log'])
             for policy_name, policy in self._policies_for_event_log(event):
                 print("do policy:", policy_name)
                 self.log('policy_started', {"procedure": policy_name, "event_id": event["id"]})
-                result = policy_executor.execute(policy_name, event)
+                result = policy_executor.execute(policy_name, event, es)
                 for cmd in result.commands:
                     self.log('command_emitted', cmd)
 
+        print("COMMAND QUEUE:")
         for command in self.command_queue():
-            print(command)
+            print(command['log'])
             for procedure_name, procedure in self._procedures_for_command_log(command):
                 print("do procedure:", procedure_name)
                 self.log('procedure_started', {"procedure": procedure_name, "command_id": command["id"]})
-                result = procedure_executor.execute(procedure_name, command)
+                result = procedure_executor.execute(procedure_name, command, es)
                 for evt in result.events:
                     self.log('event_emitted', evt)
 
@@ -183,9 +196,15 @@ def devtest():
     
     # session.begin_scenario(Path("point/scenarios/catalog_one.scenario.yaml"))
 
-    procedure_executor = executor.ExampleProcedureExecutor(session._feature)
-    policy_executor = executor.ExamplePolicyExecutor(session._feature)
+    # print(session.event_store())
+    # [{'member_registered': 'Test User exists with member id 0042-00-00000000'}, {'member_registered': {'name': 'Conrad', 'member_id': '0042-00-00000001'}}]
+    # exit()
 
+    procedure_executor = sim_executors.SimProcedureExecutor(session._feature, provider="openrouter", model="anthropic/claude-haiku-4-5", verbose_stream=True)
+    policy_executor = sim_executors.SimPolicyExecutor(session._feature, provider="openrouter", model="anthropic/claude-haiku-4-5", verbose_stream=True)
+
+    session.step(procedure_executor, policy_executor)
+    exit()
     while not session.is_quiescent():
         session.step(procedure_executor, policy_executor)
 
