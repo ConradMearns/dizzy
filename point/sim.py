@@ -19,11 +19,12 @@ class Session:
         self._feature = {}
         self._session_path = session_path
 
-    def _append(self, entry: dict):
+    def _append(self, entry: dict) -> int:
         self._session.append(entry)
         if self._session_path:
             with open(self._session_path, 'a') as f:
                 f.write(json.dumps(entry) + '\n')
+        return entry["id"]
 
     def load_features(self, feature_path: Path):
         if not feature_path.exists():
@@ -74,17 +75,28 @@ class Session:
             self.log("command_emitted", command)
 
 
-    def log(self, log_type: str, data: dict):
-        self._append({
+    def log(self, log_type: str, data: dict, parent_id: int | None = None) -> int:
+        return self._append({
             "id": self.next_id(),
-            "parent_id": self.current_id(),
+            "parent_id": parent_id if parent_id is not None else self.current_id(),
             "type": log_type,
             "log": data
         })
 
-    def is_data_logged(self, data: dict):
-        data in [x['log'] for x in self._session]
+    def resolve(self, finding_id: int, decision: str, argument: str) -> int:
+        return self.log("resolution", {
+            "finding_id": finding_id,
+            "decision": decision,
+            "argument": argument,
+        }, parent_id=finding_id)
 
+    def branch(self, from_id: int, reason: str, **meta) -> int:
+        return self._append({
+            "id": self.next_id(),
+            "parent_id": from_id,
+            "type": "branch",
+            "log": {"from_id": from_id, "reason": reason, **meta},
+        })
 
     def get_latest_scenario(self):
         scenarios = [n for n in self._session if n['type'] == "scenario"]
@@ -122,6 +134,17 @@ class Session:
                 matching.append((name, data))
         return matching
 
+
+    def _log_tool_calls(self, tool_calls: list[dict], activation_id: int):
+        last_query_id: int | None = None
+        for call in tool_calls:
+            kind = call.get("kind")
+            if kind == "query":
+                last_query_id = self.log("query_call", {"tool": call["tool"], "args": call["args"]}, parent_id=activation_id)
+            elif kind == "query_answer":
+                parent = last_query_id if last_query_id is not None else activation_id
+                self.log("query_response", call["args"], parent_id=parent)
+                last_query_id = None
 
     def event_store(self):
         emitted = [x["log"] for x in self._session if x["type"] == "event_emitted"]
@@ -177,8 +200,9 @@ class Session:
             print(event['log'])
             for policy_name, policy in self._policies_for_event_log(event):
                 print("do policy:", policy_name)
-                self.log('policy_started', {"procedure": policy_name, "event_id": event["id"]})
+                activation_id = self.log('policy_started', {"procedure": policy_name, "event_id": event["id"]})
                 result = policy_executor.execute(policy_name, event, es)
+                self._log_tool_calls(result.tool_calls, activation_id)
                 for cmd in result.commands:
                     self.log('command_emitted', cmd)
                 for finding in result.findings:
@@ -189,8 +213,9 @@ class Session:
             print(command['log'])
             for procedure_name, procedure in self._procedures_for_command_log(command):
                 print("do procedure:", procedure_name)
-                self.log('procedure_started', {"procedure": procedure_name, "command_id": command["id"]})
+                activation_id = self.log('procedure_started', {"procedure": procedure_name, "command_id": command["id"]})
                 result = procedure_executor.execute(procedure_name, command, es)
+                self._log_tool_calls(result.tool_calls, activation_id)
                 for evt in result.events:
                     self.log('event_emitted', evt)
                 for finding in result.findings:

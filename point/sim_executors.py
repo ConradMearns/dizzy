@@ -89,7 +89,7 @@ class SimProcedureExecutor:
             for call in result.of_kind("emit")
         ]
         findings = [call["args"] for call in result.of_kind("finding")]
-        return ProcedureResult(events=events, findings=findings)
+        return ProcedureResult(events=events, findings=findings, tool_calls=result.calls)
 
 
 class SimPolicyExecutor:
@@ -120,4 +120,4 @@ class SimPolicyExecutor:
             for call in result.of_kind("dispatch")
         ]
         findings = [call["args"] for call in result.of_kind("finding")]
-        return PolicyResult(commands=commands, findings=findings)
+        return PolicyResult(commands=commands, findings=findings, tool_calls=result.calls)

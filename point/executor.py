@@ -15,12 +15,14 @@ from typing import Protocol, runtime_checkable
 class ProcedureResult:
     events: list[dict] = field(default_factory=list)
     findings: list[dict] = field(default_factory=list)
+    tool_calls: list[dict] = field(default_factory=list)
 
 
 @dataclass
 class PolicyResult:
     commands: list[dict] = field(default_factory=list)
     findings: list[dict] = field(default_factory=list)
+    tool_calls: list[dict] = field(default_factory=list)
 
 
 @runtime_checkable
