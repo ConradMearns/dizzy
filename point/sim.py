@@ -14,14 +14,21 @@ app = typer.Typer(add_completion=False)
 
 
 class Session:
-    def __init__(self):
+    def __init__(self, session_path: Path | None = None):
         self._session = []
         self._feature = {}
+        self._session_path = session_path
+
+    def _append(self, entry: dict):
+        self._session.append(entry)
+        if self._session_path:
+            with open(self._session_path, 'a') as f:
+                f.write(json.dumps(entry) + '\n')
 
     def load_features(self, feature_path: Path):
         if not feature_path.exists():
             raise NotImplementedError()
-            
+
         self._feature = yaml.safe_load(feature_path.read_text())
 
         return self
@@ -30,10 +37,10 @@ class Session:
         if not session_path.exists():
             raise NotImplementedError()
 
-        # read session
+        self._session_path = session_path
         lines = session_path.read_text().splitlines()
         self._session = [json.loads(line) for line in lines]
-        
+
         return self
     
     def is_empty(self):
@@ -50,7 +57,7 @@ class Session:
 
     def begin_scenario(self, scenario_path):
         scenario_data = yaml.safe_load(scenario_path.read_text())
-        self._session.append({
+        self._append({
             "id": self.next_id(),
             "parent_id": None,
             "type": "scenario",
@@ -68,7 +75,7 @@ class Session:
 
 
     def log(self, log_type: str, data: dict):
-        self._session.append({
+        self._append({
             "id": self.next_id(),
             "parent_id": self.current_id(),
             "type": log_type,
@@ -163,7 +170,7 @@ class Session:
 
         print("EVENTS:")
         for event in es:
-            print(es)
+            print(event)
 
         print("EVENT QUEUE:")
         for event in self.event_queue():
@@ -174,6 +181,8 @@ class Session:
                 result = policy_executor.execute(policy_name, event, es)
                 for cmd in result.commands:
                     self.log('command_emitted', cmd)
+                for finding in result.findings:
+                    self.log('finding', finding)
 
         print("COMMAND QUEUE:")
         for command in self.command_queue():
@@ -184,29 +193,42 @@ class Session:
                 result = procedure_executor.execute(procedure_name, command, es)
                 for evt in result.events:
                     self.log('event_emitted', evt)
+                for finding in result.findings:
+                    self.log('finding', finding)
 
         return self
-    
-    
+
+    def run_scenario(
+        self,
+        scenario_path: Path,
+        procedure_executor: executor.ProcedureExecutor,
+        policy_executor: executor.PolicyExecutor,
+    ) -> 'Session':
+        scenario_data = yaml.safe_load(scenario_path.read_text())
+        self._append({
+            "id": self.next_id(),
+            "parent_id": None,
+            "type": "scenario",
+            "scenario": scenario_data
+        })
+        for event in scenario_data.get('events', []):
+            self.log("event_emitted", event)
+        for command in scenario_data['commands']:
+            self.log("command_emitted", command)
+            while not self.is_quiescent():
+                self.step(procedure_executor, policy_executor)
+        return self
+
+
 
 @app.command()
 def devtest():
-    session = Session().load_features(Path("point/library.feat.yaml"))
-    session.begin_scenario(Path("point/scenarios/borrow_available_book.scenario.yaml"))
-    
-    # session.begin_scenario(Path("point/scenarios/catalog_one.scenario.yaml"))
-
-    # print(session.event_store())
-    # [{'member_registered': 'Test User exists with member id 0042-00-00000000'}, {'member_registered': {'name': 'Conrad', 'member_id': '0042-00-00000001'}}]
-    # exit()
+    session = Session(Path("point/sessions/devtest.jsonl")).load_features(Path("point/library.feat.yaml"))
 
     procedure_executor = sim_executors.SimProcedureExecutor(session._feature, provider="openrouter", model="anthropic/claude-haiku-4-5", verbose_stream=True)
     policy_executor = sim_executors.SimPolicyExecutor(session._feature, provider="openrouter", model="anthropic/claude-haiku-4-5", verbose_stream=True)
 
-    session.step(procedure_executor, policy_executor)
-    exit()
-    while not session.is_quiescent():
-        session.step(procedure_executor, policy_executor)
+    session.run_scenario(Path("point/scenarios/borrow_available_book.scenario.yaml"), procedure_executor, policy_executor)
 
 @app.command()
 def new(
