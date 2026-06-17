@@ -92,16 +92,16 @@ the implementation stubs in `lib/`) are never clobbered.
 
 ```bash
 # 1. scaffold LinkML schemas + libconfig.yaml from the feat file
-dizzy def  guestbook.feat.yaml ./out
+dizzy generate definitions  guestbook.feat.yaml ./out
 
 #    ✍️  fill in field-level detail in out/def/*.yaml
 #        (attributes on commands/events, model classes, query input/output)
 
 # 2. compile schemas → the gen_def/gen_int type packages under lib/python-uv/
-dizzy gen  guestbook.feat.yaml ./out
+dizzy generate static  guestbook.feat.yaml ./out
 
 # 3. package each element into a redistributable per-runtime library
-dizzy lib  guestbook.feat.yaml ./out
+dizzy generate libraries  guestbook.feat.yaml ./out
 
 #    ✍️  implement the bodies in
 #        out/lib/python-uv/{procedure,policy,projection,query}/<name>/src/*.py
@@ -148,14 +148,17 @@ See [`examples/`](examples/) for the full walkthrough.
 
 ## For AI agents
 
-Dizzy ships a reference document tuned for LLM agents (the analog of `sd prime`):
+Dizzy ships its reference documentation in the CLI (the analog of `sd prime`):
 
 ```bash
-dizzy docs
+dizzy docs            # CLI manpage + roadmap (canonical: docs/cli.md)
+dizzy docs authoring  # agent guide: components, .feat.yaml shape, authoring surface
 ```
 
-It explains every component, the `.feat.yaml` shape, the authoring surface, and the
-generated layout in one pass. Point an agent at it before asking it to write a feature.
+The `authoring` page explains every component, the `.feat.yaml` shape, the authoring
+surface, and the generated layout in one pass. Point an agent at it before asking it
+to write a feature. The `cli` page (the default) doubles as the project roadmap: each
+unbuilt command's section is its requirements document.
 
 ## Project layout
 

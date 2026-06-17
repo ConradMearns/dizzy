@@ -683,6 +683,9 @@
     'lib/python-uv/gen_int/gen_int/python/policy/index_recipe_on_ingest_context.py': '''
       # AUTO-GENERATED — do not edit
       from dataclasses import dataclass
+      from typing import Callable
+      
+      from gen_def.pydantic.query.get_recipe import GetRecipeInput, GetRecipeOutput
       
       
       @dataclass
@@ -691,8 +694,14 @@
       
       
       @dataclass
+      class index_recipe_on_ingest_queries:
+          get_recipe: Callable[[GetRecipeInput], GetRecipeOutput]
+      
+      
+      @dataclass
       class index_recipe_on_ingest_context:
           emit: index_recipe_on_ingest_emitters
+          query: index_recipe_on_ingest_queries
   
     ''',
     'lib/python-uv/gen_int/gen_int/python/policy/index_recipe_on_ingest_protocol.py': '''
@@ -723,7 +732,7 @@
       from typing import Callable
       
       from gen_def.pydantic.events import RecipeIngested
-      from gen_int.python.query.get_recipe_text import get_recipe_text_query
+      from gen_def.pydantic.query.get_recipe_text import GetRecipeTextInput, GetRecipeTextOutput
       
       
       @dataclass
@@ -733,7 +742,7 @@
       
       @dataclass
       class extract_and_transform_recipe_queries:
-          get_recipe_text: get_recipe_text_query
+          get_recipe_text: Callable[[GetRecipeTextInput], GetRecipeTextOutput]
       
       
       @dataclass

@@ -87,17 +87,22 @@ procedures:
 Fields: `command` (required), `queries` (optional list), `emits` (optional list).
 
 ### Policies
-Event-driven reaction handlers. Each policy listens to one event and optionally
-dispatches commands to trigger further processing.
+Event-driven reaction handlers. Each policy listens to one event, may consult queries
+for reads, and **dispatches commands only** — never events. A query informs *which*
+command a policy dispatches (and with what arguments); to change state, the policy emits
+a command that flows through the normal command → procedure → event chain.
 
 ```yaml
 policies:
-  index_recipe_on_ingest:
-    description: Adds recipe to the library projection when ingested
-    event: recipe_ingested
+  notify_next_on_return:
+    description: When a book is returned, notify the next patron in the hold queue
+    event: book_returned
+    queries: [get_next_hold]
+    emits: [notify_next_patron]
 ```
 
-Fields: `event` (required), `emits` (optional list of command names).
+Fields: `event` (required), `queries` (optional list of query names), `emits` (optional
+list of command names). See `examples/library/` for a runnable policy-with-query feature.
 
 ### Projections
 Read-model builders. Respond to one event and write denormalized state into a model
@@ -114,6 +119,44 @@ projections:
 
 Fields: `description` (required), `event` (required), `model` (optional),
 `adapter` (required if model set).
+
+---
+
+## Descriptions Are Design
+
+A component's `description` is not a comment — it is the design. Downstream tooling
+treats it as executable prose: `dizzy simulate` uses descriptions as the *prompts* for
+component activations, and `scaffold` embeds them as docstrings. A one-line description
+simulates as a one-line brain.
+
+Use YAML block scalars to give descriptions room — `|` preserves line breaks
+(pseudocode, mermaid), `>` folds prose:
+
+```yaml
+procedures:
+  lend_book:
+    description: |
+      Decide whether a member may borrow a book, and record the outcome.
+
+      Check availability via get_book_availability. If no copies are on the
+      shelf, emit borrow_rejected with the reason. If the book has a
+      reservation queue, only the member at the head of the queue may borrow.
+
+      ```mermaid
+      flowchart TD
+        cmd[borrow_book] --> avail{copies available?}
+        avail -- no --> rej[borrow_rejected]
+        avail -- yes --> head{reserved by someone else?}
+        head -- yes --> rej
+        head -- no --> ok[book_borrowed]
+      ```
+    command: borrow_book
+    queries: [get_book_availability]
+    emits: [book_borrowed, borrow_rejected]
+```
+
+Rule of thumb: write the description an LLM (or a new engineer) could execute without
+asking you anything. Missing branches and vague conditions become `simulate` findings.
 
 ---
 
@@ -174,7 +217,7 @@ projections:
 ### Step 1: Scaffold definitions
 
 ```
-uv run dizzy def <feat_file> <output_dir>
+uv run dizzy generate definitions <feat_file> <output_dir>
 ```
 
 Reads the feat file and writes LinkML stub files into `def/`, plus a `libconfig.yaml`
@@ -184,7 +227,7 @@ they are yours to edit.
 ### Step 2: Generate code
 
 ```
-uv run dizzy gen <feat_file> <output_dir>
+uv run dizzy generate static <feat_file> <output_dir>
 ```
 
 Reads the feat file + your authored `def/` stubs. Runs the LinkML toolchain and
@@ -194,7 +237,7 @@ installable uv package). Requires that `def/` stubs exist; run `def` first.
 ### Step 3: Package per runtime
 
 ```
-uv run dizzy lib <feat_file> <output_dir>
+uv run dizzy generate libraries <feat_file> <output_dir>
 ```
 
 Reads `libconfig.yaml` and emits `lib/<runtime>/`, splitting each element into its
@@ -210,7 +253,7 @@ A complete, runnable example lives in `examples/guestbook/` in the repository.
 
 ## What You Author After `def`
 
-After running `dizzy def`, fill in the LinkML stubs in `def/`:
+After running `dizzy generate definitions`, fill in the LinkML stubs in `def/`:
 
 ### def/commands.yaml
 Add attributes to each command class. These become typed fields on the generated
@@ -289,13 +332,14 @@ required fields.
 
 ## What You Implement After `lib`
 
-After running `dizzy lib`, implement the function bodies in each element package at
+After running `dizzy generate libraries`, implement the function bodies in each element package at
 `lib/python-uv/<kind>/<name>/src/<name>.py`. Each stub imports its generated types and
 raises `NotImplementedError`.
 
 ### lib/python-uv/procedure/<name>/src/<name>.py
 You receive `context` and `command`. Use `context.emit.<event_name>(event)` to
-emit events, and `context.query.<query_name>(input, query_context)` for reads.
+emit events, and `context.query.<query_name>(input)` for reads — each query field is a
+host-bound closure taking just the query input (the host injects the read adapter).
 
 ```python
 def extract_receipt_data_from_image(
@@ -309,15 +353,22 @@ def extract_receipt_data_from_image(
 
 ### lib/python-uv/policy/<name>/src/<name>.py
 You receive `event` and `context`. Use `context.emit.<command_name>(cmd)` to
-dispatch new commands.
+dispatch new commands, and `context.query.<query_name>(input)` to consult read state
+when deciding *which* command to dispatch. Policies dispatch commands only — never events.
 
 ```python
-def index_recipe_on_ingest(
-    event: RecipeIngested,
-    context: index_recipe_on_ingest_context,
+def notify_next_on_return(
+    event: BookReturned,
+    context: notify_next_on_return_context,
 ) -> None:
-    # React to event, optionally dispatch commands
-    raise NotImplementedError
+    # Consult read state to decide what to do...
+    result = context.query.get_next_hold(GetNextHoldInput(book_id=event.book_id))
+    if result.patron is None:
+        return  # no one waiting -> dispatch nothing
+    # ...then dispatch a command (which flows through its procedure to an event).
+    context.emit.notify_next_patron(
+        NotifyNextPatron(book_id=event.book_id, patron=result.patron)
+    )
 ```
 
 ### lib/python-uv/projection/<name>/src/<name>.py
@@ -348,7 +399,7 @@ def get_receipt(
     raise NotImplementedError
 ```
 
-Element implementation stubs are **skip-if-exists** — `dizzy lib` never overwrites them.
+Element implementation stubs are **skip-if-exists** — `dizzy generate libraries` never overwrites them.
 
 ---
 

@@ -68,6 +68,7 @@ class TestLoadFeat:
         feat = load_feat(FIXTURES_DIR / "recipe.feat.yaml")
         policy = _by_name(feat.policies, "index_recipe_on_ingest")
         assert policy.event == "recipe_ingested"
+        assert "get_recipe" in policy.queries
 
     def test_projection_with_adapter(self):
         feat = load_feat(FIXTURES_DIR / "recipe.feat.yaml")
@@ -155,6 +156,22 @@ class TestValidateFeat:
         )
         errors = validate_feat(feat)
         assert any("event 'unknown_event'" in e for e in errors)
+
+    def test_policy_unknown_query(self):
+        feat = FeatureDefinition(
+            events=[EventDef(name="some_event", description="event")],
+            queries=[QueryDef(name="real_query", description="real")],
+            policies=[
+                PolicyDef(
+                    name="my_policy",
+                    description="policy",
+                    event="some_event",
+                    queries=["missing_query"],
+                )
+            ],
+        )
+        errors = validate_feat(feat)
+        assert any("query 'missing_query'" in e for e in errors)
 
     def test_policy_emits_unknown_command(self):
         feat = FeatureDefinition(

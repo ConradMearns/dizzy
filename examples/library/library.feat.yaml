@@ -1,0 +1,78 @@
+description: >-
+  Library hold queue — patrons place holds on checked-out books; when a book is
+  returned, a policy consults the hold queue and notifies the next patron in line.
+
+# The star of this example: a POLICY that runs a QUERY to decide which COMMAND to
+# dispatch. A policy emits commands only — never events — and a query informs
+# *which* command it dispatches (and with what arguments). Here, when a book is
+# returned, `notify_next_on_return` queries `get_next_hold` to find who is next
+# in the queue, then dispatches `notify_next_patron`.
+
+# Write intents
+commands:
+  place_hold: A patron wants to reserve a checked-out book
+  return_book: A patron returns a borrowed book
+  # Dispatched by the policy, not by an end user:
+  notify_next_patron: Tell the next patron in line that their book is ready
+
+# Immutable facts
+events:
+  hold_placed: A patron's hold was recorded
+  book_returned: A book was returned to the library
+  patron_notified: The next patron was told their book is ready
+
+# Command handlers (command -> procedure -> event)
+procedures:
+  record_hold:
+    description: Validate and record a patron's hold on a book
+    command: place_hold
+    emits:
+      - hold_placed
+
+  process_return:
+    description: Record that a book has come back
+    command: return_book
+    emits:
+      - book_returned
+
+  send_notification:
+    description: Record that a patron was notified their held book is ready
+    command: notify_next_patron
+    emits:
+      - patron_notified
+
+# Read-optimized schema (classes authored in def/models/holds.yaml)
+models:
+  holds:
+    description: The hold queue — who is waiting for which book, in order
+    adapters:
+      - sqla
+
+# Build read state: each placed hold is folded into the holds model
+projections:
+  hold_store:
+    description: Persist each placed hold into the holds model
+    event: hold_placed
+    model: holds
+    adapter: sqla
+
+# Read state back out
+queries:
+  get_next_hold:
+    description: The oldest active hold for a given book, or none if the queue is empty
+    model: holds
+    adapter: sqla
+
+# The reactivity loop's payoff: a policy that QUERIES to decide which command to
+# dispatch. Reacts to book_returned, asks get_next_hold who is next, and — only
+# if someone is waiting — dispatches notify_next_patron.
+policies:
+  notify_next_on_return:
+    description: >-
+      When a book is returned, consult the hold queue and, if a patron is
+      waiting, dispatch a notification command for the next one in line.
+    event: book_returned
+    queries:
+      - get_next_hold
+    emits:
+      - notify_next_patron

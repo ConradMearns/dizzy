@@ -1,0 +1,11 @@
+[tool.uv.workspace]
+members = [
+  "gen_def",
+  "gen_int",
+  "procedure/record_hold",
+  "procedure/process_return",
+  "procedure/send_notification",
+  "policy/notify_next_on_return",
+  "query/get_next_hold",
+  "projection/hold_store",
+]
