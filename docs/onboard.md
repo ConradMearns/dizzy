@@ -99,7 +99,7 @@ Bad (and why):
 | Build | Scaffold schemas, generate types + packages | `dizzy generate definitions` → `static` → `libraries` | shipped (python-uv) |
 | Change | Assess a feature-file edit | `diff`, `impact`, `compat` | planned |
 | Migrate | Replace a model after a schema change | `rebuild <model>` | planned |
-| Run | Observe / compare runtime vs. design | `trace`, `drift` | external repo |
+| Run | Observe / compare runtime vs. design | `trace`, `drift` | planned |
 | Adopt | Wrap a legacy API as commands/events | `wrap` | planned |
 | Deploy | Emit a deployment profile | `deploy` | planned |
 

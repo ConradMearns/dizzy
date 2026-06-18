@@ -46,8 +46,6 @@ how often a task needs them:
 
 - The two doc pages in `docs/` are symlinked into the package
   (`dizzy/src/dizzy/docs/`) so they ship in the wheel — edit the `docs/` copies.
-- Visualization and runtime-observability work (`trace`, `drift`, graph rendering)
-  lives in a **separate repo**. Don't build or seed it here.
 - Quality gates: `just test` (pytest + syrupy snapshots; `just test-update` to
   re-snapshot intentionally) and `just check` (ty).
 - Gotcha: despite the Seeds section below, `sd prime` does **not** accept

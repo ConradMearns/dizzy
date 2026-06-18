@@ -27,14 +27,13 @@ replaceable components sandwiched between deterministic checks.
 | Build | `generate` | **shipped** (python-uv; rust/ts experimental) |
 | Build | `scaffold`, `verify` | planned (stub scaffolding ships inside `generate libraries`) |
 | Change | `diff`, `impact`, `compat`, `rebuild` | planned |
-| Run | `trace`, `drift` | external — separate visualization/runtime repo |
+| Run | `trace`, `drift` | planned |
 | Adoption | `wrap` | planned |
 | Deploy | `deploy` | planned |
 | Utility | `docs`, `config` | **shipped** |
 
 Dependency/build order: `generate` → `diff` → `impact`/`lint` → `simulate` →
-`rebuild`/`compat` → `scaffold`/`verify` → `wrap` → `deploy`.
-(`trace`/`drift` sit between `verify` and `wrap` but are built elsewhere.)
+`rebuild`/`compat` → `scaffold`/`verify` → `trace`/`drift` → `wrap` → `deploy`.
 
 ---
 
@@ -268,25 +267,22 @@ The write-side adoption story (dj scripts are the read side). No one adopts gree
 ## dizzy deploy
 
 Deployment profile generation from the feature-file. v1 is **three hand-written profiles**
-— `monolith`, `per-component`, one `hybrid` — selected by flag. No optimizer yet
-(constrained-optimization topology selection is deliberately deferred until real
-deployments produce real cost data). Demonstrates "infrastructure follows."
+— `monolith`, `per-component`, one `hybrid` — selected by flag. Demonstrates
+"infrastructure follows."
 
----
+## dizzy trace
 
-# External (separate repository)
+Components log in feature-file vocabulary (command handled, events emitted — the
+structured-log-pipes / `dj` work is the prototype); renders production flows as the same
+c/d/e/y graph the workshop drew. Graph rendering / visualization front-ends may live in a
+separate repo, but `trace` itself — the feature-file-vocabulary log pipeline — is built here.
 
-Runtime observability and visualization are built outside this repo and are **not
-tracked in this project's seeds**:
+## dizzy drift
 
-- **trace** — components log in feature-file vocabulary (command handled, events
-  emitted — the structured-log-pipes / `dj` work is the prototype); renders production
-  flows as the same c/d/e/y graph the workshop drew.
-- **drift** — compares runtime traces against the feature-file: undeclared event
-  emissions, undeclared model access, components present in one but not the other.
-  The feature-file as an *enforced contract* against the running system, not
-  documentation. Without this the map eventually drifts from the territory — the exact
-  disease DIZZY exists to cure.
+Compares runtime traces against the feature-file: undeclared event emissions, undeclared
+model access, components present in one but not the other. The feature-file as an
+*enforced contract* against the running system, not documentation. Without this the map
+eventually drifts from the territory — the exact disease DIZZY exists to cure.
 
 ---
 
