@@ -19,10 +19,11 @@ class Batch(Base):
     recipe_id = Column(Text(), nullable=False )
     requires_type = Column(Text())
     status = Column(Text(), nullable=False )
+    opened_at = Column(DateTime(), nullable=False )
     
 
     def __repr__(self):
-        return f"Batch(id={self.id},recipe_id={self.recipe_id},requires_type={self.requires_type},status={self.status},)"
+        return f"Batch(id={self.id},recipe_id={self.recipe_id},requires_type={self.requires_type},status={self.status},opened_at={self.opened_at},)"
 
 
 

@@ -109,3 +109,4 @@ svg#graph { width: 100%; height: auto; background: var(--panel-2); border: 1px s
 .log .ev { color: var(--accent); min-width: 9.5rem; }
 .log .cmd { color: var(--completed); font-weight: 600; padding-top: 0.3rem; }
 .log .empty { color: var(--muted); }
+.log .entry.failed .ev { color: #e06c75; }

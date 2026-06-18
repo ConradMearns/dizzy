@@ -26,6 +26,7 @@ members = [
   "projection/step_input_catalog",
   "projection/batch_store",
   "projection/batch_finalizer",
+  "projection/batch_reblocker",
   "projection/inventory_store",
   "projection/inventory_consumer",
   "projection/generation_graph",

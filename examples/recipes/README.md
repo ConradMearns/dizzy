@@ -76,13 +76,23 @@ step and per input — there is no free-form recipe text anywhere.
 - **7 procedures** — five catalog recorders, `open_batch` (resolves ready/blocked via a
   query), and `run_batch` (emits the PROV facts).
 - **1 policy** — `advance_ready_batches`, the cascade engine.
-- **11 projections, 9 queries** — fold facts into the models and read them back
+- **12 projections, 9 queries** — fold facts into the models and read them back
   (`list_recipes` / `list_batches` are dashboard reads used by the UI).
 
 > `step_performed` and `entity_consumed` are emitted as immutable PROV facts but only
 > the parts `trace_provenance` needs (`generation_graph`, `derivation_graph`) are
 > projected — a deliberate event-sourcing choice: events are the source of truth, models
 > are rebuildable views of them.
+
+## Scarcity and failure are facts, not crashes
+
+One produced lot satisfies **one** consumer, so `advance_ready_batches` unblocks exactly
+the **oldest** waiting batch per `entity_produced` (FIFO by `opened_at`) — start three
+loaf batches against one starter and only one runs; produce another starter and the next
+loaf runs. When a batch genuinely can't proceed (its lot was consumed first), `run_batch`
+emits **`batch_run_failed`** rather than raising: the cascade never aborts, no partial
+state is left behind, the failed attempt is recorded as a fact, and the batch returns to
+*blocked* so a later lot can pull it.
 
 ## Run it
 

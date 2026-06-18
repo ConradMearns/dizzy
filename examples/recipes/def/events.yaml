@@ -50,6 +50,7 @@ classes:
         range: string
         required: true
         description: ready | blocked
+      opened_at: { range: datetime, required: true }
   step_performed:
     description: A recipe step was executed by a tool (prov:wasAssociatedWith)
     attributes:
@@ -89,3 +90,9 @@ classes:
     attributes:
       batch_id: { range: string, required: true }
       completed_at: { range: datetime, required: true }
+  batch_run_failed:
+    description: A batch could not run because a required entity was unavailable
+    attributes:
+      batch_id: { range: string, required: true }
+      reason: { range: string, required: true }
+      failed_at: { range: datetime, required: true }

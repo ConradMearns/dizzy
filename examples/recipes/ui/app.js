@@ -93,7 +93,7 @@ async function refresh() {
     b.className = "mini";
     b.textContent = `+ ${r.names}`;
     b.title = `${r.recipe_ids} → ${r.output_types}`;
-    b.onclick = () => startBatch(r, batches);
+    b.onclick = () => startBatch(r);
     bar.appendChild(b);
   }
 
@@ -111,10 +111,10 @@ function renderCard(b) {
   card.dataset.status = b.statuses;
   const waiting = b.requires_types
     ? `<div class="waiting">waiting on ${b.requires_types}</div>` : "";
-  const advance = b.statuses === "ready"
+  const advanceRow = b.statuses === "ready"
     ? `<div class="row"><button class="mini advance" data-batch="${b.batch_ids}">advance ▶</button></div>` : "";
   card.innerHTML =
-    `<div class="id">${b.batch_ids}</div><div class="meta">${b.recipe_ids}</div>${waiting}${advance}`;
+    `<div class="id">${b.batch_ids}</div><div class="meta">${b.recipe_ids}</div>${waiting}${advanceRow}`;
   col.appendChild(card);
   const btn = card.querySelector(".advance");
   if (btn) btn.onclick = () => advance(b.batch_ids);
@@ -144,13 +144,20 @@ async function seed() {
   await refresh();
 }
 
-async function startBatch(recipe, existing) {
-  const short = SHORT[recipe.recipe_ids] || recipe.recipe_ids;
-  const n = existing.filter((b) => b.recipe_ids === recipe.recipe_ids).length + 1;
-  const batch_id = `${short}-${n}`;
-  logCommand(`start_batch ${batch_id}`);
-  const { events } = await api("POST", "/batches", { batch_id, recipe_id: recipe.recipe_ids });
-  events.forEach(logEvent);
+async function startBatch(recipe) {
+  try {
+    // Count against a fresh read, so rapid clicks can't collide on a batch id.
+    const existing = await getBatches();
+    const short = SHORT[recipe.recipe_ids] || recipe.recipe_ids;
+    const n = existing.filter((b) => b.recipe_ids === recipe.recipe_ids).length + 1;
+    const batch_id = `${short}-${n}`;
+    logCommand(`start_batch ${batch_id}`);
+    const { events } = await api("POST", "/batches", { batch_id, recipe_id: recipe.recipe_ids });
+    events.forEach(logEvent);
+    setStatus(`opened ${batch_id}`);
+  } catch (e) {
+    setStatus(e.message);
+  }
   await refresh();
 }
 
@@ -158,25 +165,32 @@ async function advance(batchId) {
   setStatus(`advancing ${batchId}…`);
   document.querySelectorAll(".advance").forEach((b) => (b.disabled = true));
   logCommand(`advance_batch ${batchId}`);
-  const { events } = await api("POST", "/batches/advance", { batch_id: batchId });
+  try {
+    const { events } = await api("POST", "/batches/advance", { batch_id: batchId });
 
-  // Animated replay: reveal one event at a time, folding each into the live state.
-  for (const e of events) {
-    logEvent(e);
-    const d = e.data;
-    if (e.event === "entity_produced") {
-      graph.nodes.set(d.entity_id, { id: d.entity_id, type: d.entity_type });
-      drawGraph(d.entity_id);
-      pulse(d.batch_id);
-    } else if (e.event === "entity_derived") {
-      graph.edges.push({ output: d.output_entity_id, source: d.source_entity_id });
-      drawGraph();
-    } else if (e.event === "batch_completed") {
-      moveToCompleted(d.batch_id);
+    // Animated replay: reveal one event at a time, folding each into the live state.
+    for (const e of events) {
+      logEvent(e);
+      const d = e.data;
+      if (e.event === "entity_produced") {
+        graph.nodes.set(d.entity_id, { id: d.entity_id, type: d.entity_type });
+        drawGraph(d.entity_id);
+        pulse(d.batch_id);
+      } else if (e.event === "entity_derived") {
+        graph.edges.push({ output: d.output_entity_id, source: d.source_entity_id });
+        drawGraph();
+      } else if (e.event === "batch_completed") {
+        moveToCompleted(d.batch_id);
+      } else if (e.event === "batch_run_failed") {
+        // A run that couldn't proceed is a recorded fact; the batch re-blocks.
+        pulse(d.batch_id);
+      }
+      await sleep(STEP);
     }
-    await sleep(STEP);
+    setStatus(`done — ${batchId} cascaded`);
+  } catch (e) {
+    setStatus(e.message);
   }
-  setStatus(`done — ${batchId} cascaded`);
   await refresh();
 }
 
@@ -221,10 +235,11 @@ function logEvent(e) {
   const log = $("log");
   if (log.querySelector(".empty")) log.innerHTML = "";
   const d = e.data;
-  const detail =
-    d.entity_type || d.batch_id || d.entity_id || d.recipe_id || "";
+  const detail = e.event === "batch_run_failed"
+    ? `${d.batch_id} — ${d.reason}`
+    : (d.entity_type || d.batch_id || d.entity_id || d.recipe_id || "");
   const el = document.createElement("div");
-  el.className = "entry";
+  el.className = e.event === "batch_run_failed" ? "entry failed" : "entry";
   el.innerHTML = `<span class="ev">${e.event}</span><span>${detail}</span>`;
   log.appendChild(el);
   log.scrollTop = log.scrollHeight;

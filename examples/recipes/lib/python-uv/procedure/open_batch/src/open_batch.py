@@ -1,5 +1,7 @@
 # Open a batch for a recipe. If the recipe has no requires_type, or an entity of
 # that type is already available, the batch is ready; otherwise it is blocked.
+from datetime import datetime, timezone
+
 from gen_int.python.procedure.open_batch_context import open_batch_context
 from gen_def.pydantic.commands import StartBatch
 from gen_def.pydantic.events import BatchOpened
@@ -28,5 +30,6 @@ def open_batch(
             recipe_id=command.recipe_id,
             requires_type=requires,
             status=status,
+            opened_at=datetime.now(timezone.utc),
         )
     )

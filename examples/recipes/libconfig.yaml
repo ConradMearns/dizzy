@@ -56,6 +56,8 @@ projections:
     runtimes: [python-uv]
   batch_finalizer:
     runtimes: [python-uv]
+  batch_reblocker:
+    runtimes: [python-uv]
   inventory_store:
     runtimes: [python-uv]
   inventory_consumer:

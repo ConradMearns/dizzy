@@ -17,3 +17,7 @@ classes:
         range: string
         required: true
         description: ready | blocked | completed
+      opened_at:
+        range: datetime
+        required: true
+        description: When the batch was opened — the FIFO key for unblocking

@@ -14,6 +14,7 @@ def batch_store(
             recipe_id=event.recipe_id,
             requires_type=event.requires_type,
             status=event.status,
+            opened_at=event.opened_at,
         )
     )
     context.adapter.session.commit()

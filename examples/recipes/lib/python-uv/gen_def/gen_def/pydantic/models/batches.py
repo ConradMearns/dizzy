@@ -99,6 +99,7 @@ class Batch(ConfiguredBaseModel):
     recipe_id: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['Batch']} })
     requires_type: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['Batch']} })
     status: str = Field(default=..., description="""ready | blocked | completed""", json_schema_extra = { "linkml_meta": {'domain_of': ['Batch']} })
+    opened_at: datetime  = Field(default=..., description="""When the batch was opened — the FIFO key for unblocking""", json_schema_extra = { "linkml_meta": {'domain_of': ['Batch']} })
 
 
 # Model rebuild

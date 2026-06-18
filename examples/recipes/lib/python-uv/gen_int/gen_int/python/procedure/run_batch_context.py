@@ -7,6 +7,7 @@ from gen_def.pydantic.events import EntityConsumed
 from gen_def.pydantic.events import EntityProduced
 from gen_def.pydantic.events import EntityDerived
 from gen_def.pydantic.events import BatchCompleted
+from gen_def.pydantic.events import BatchRunFailed
 from gen_def.pydantic.query.get_batch import GetBatchInput, GetBatchOutput
 from gen_def.pydantic.query.get_recipe import GetRecipeInput, GetRecipeOutput
 from gen_def.pydantic.query.get_recipe_steps import GetRecipeStepsInput, GetRecipeStepsOutput
@@ -21,6 +22,7 @@ class run_batch_emitters:
     entity_produced: Callable[[EntityProduced], None]
     entity_derived: Callable[[EntityDerived], None]
     batch_completed: Callable[[BatchCompleted], None]
+    batch_run_failed: Callable[[BatchRunFailed], None]
 
 
 @dataclass

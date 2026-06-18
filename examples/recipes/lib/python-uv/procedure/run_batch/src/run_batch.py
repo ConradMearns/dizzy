@@ -6,6 +6,10 @@
 # output, emit entity_derived (prov:wasDerivedFrom) to link output -> source. The
 # terminal entity_produced (prov:wasGeneratedBy) is the signal the cascade policy
 # listens for; batch_completed closes the batch.
+#
+# A run that cannot proceed because its required lot is gone (another batch consumed
+# it first) emits batch_run_failed and stops *before* any other event — failures are
+# facts, not exceptions, so a cascade never aborts and never leaves partial state.
 from datetime import datetime, timezone
 from decimal import Decimal
 
@@ -17,6 +21,7 @@ from gen_def.pydantic.events import (
     EntityProduced,
     EntityDerived,
     BatchCompleted,
+    BatchRunFailed,
 )
 from gen_def.pydantic.query.get_batch import GetBatchInput
 from gen_def.pydantic.query.get_recipe import GetRecipeInput
@@ -44,6 +49,24 @@ def run_batch(
         raise ValueError(f"recipe {recipe_id} has no steps to run")
 
     now = datetime.now(timezone.utc)
+
+    # Resolve the upstream dependency up front. If it is not actually available — a
+    # lot existed when this batch opened but another batch consumed it since — record
+    # the failure as a fact and stop, before emitting any step or production events.
+    source_entity_id: str | None = None
+    requires = (recipe.requires_type or "").strip()
+    if requires:
+        upstream = context.query.check_inventory(CheckInventoryInput(entity_type=requires))
+        if not upstream.available or upstream.entity_id is None:
+            context.emit.batch_run_failed(
+                BatchRunFailed(
+                    batch_id=batch_id,
+                    reason=f"no available {requires} to consume",
+                    failed_at=now,
+                )
+            )
+            return
+        source_entity_id = upstream.entity_id
 
     # Perform each step as a PROV activity, consuming its ingredient inputs.
     activity_by_step: dict[int, str] = {}
@@ -77,14 +100,8 @@ def run_batch(
     final_step = steps.step_orders[-1]
     final_activity = activity_by_step[final_step]
 
-    # Consume the upstream chained dependency, if any.
-    source_entity_id: str | None = None
-    requires = (recipe.requires_type or "").strip()
-    if requires:
-        upstream = context.query.check_inventory(CheckInventoryInput(entity_type=requires))
-        if not upstream.available or upstream.entity_id is None:
-            raise ValueError(f"batch {batch_id} requires an available {requires}")
-        source_entity_id = upstream.entity_id
+    # Consume the upstream chained dependency (prov:used), if any.
+    if source_entity_id is not None:
         context.emit.entity_consumed(
             EntityConsumed(
                 activity_id=final_activity,

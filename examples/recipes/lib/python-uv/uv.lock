@@ -15,6 +15,7 @@ members = [
     "procedure-record-tool",
     "procedure-run-batch",
     "projection-batch-finalizer",
+    "projection-batch-reblocker",
     "projection-batch-store",
     "projection-derivation-graph",
     "projection-generation-graph",
@@ -31,6 +32,8 @@ members = [
     "query-get-recipe",
     "query-get-recipe-steps",
     "query-get-step-inputs",
+    "query-list-batches",
+    "query-list-recipes",
     "query-trace-provenance",
 ]
 
@@ -270,6 +273,21 @@ requires-dist = [
 name = "projection-batch-finalizer"
 version = "0.1.0"
 source = { editable = "projection/batch_finalizer" }
+dependencies = [
+    { name = "gen-def" },
+    { name = "gen-int" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "gen-def", editable = "gen_def" },
+    { name = "gen-int", editable = "gen_int" },
+]
+
+[[package]]
+name = "projection-batch-reblocker"
+version = "0.1.0"
+source = { editable = "projection/batch_reblocker" }
 dependencies = [
     { name = "gen-def" },
     { name = "gen-int" },
@@ -627,6 +645,36 @@ requires-dist = [
 name = "query-get-step-inputs"
 version = "0.1.0"
 source = { editable = "query/get_step_inputs" }
+dependencies = [
+    { name = "gen-def" },
+    { name = "gen-int" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "gen-def", editable = "gen_def" },
+    { name = "gen-int", editable = "gen_int" },
+]
+
+[[package]]
+name = "query-list-batches"
+version = "0.1.0"
+source = { editable = "query/list_batches" }
+dependencies = [
+    { name = "gen-def" },
+    { name = "gen-int" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "gen-def", editable = "gen_def" },
+    { name = "gen-int", editable = "gen_int" },
+]
+
+[[package]]
+name = "query-list-recipes"
+version = "0.1.0"
+source = { editable = "query/list_recipes" }
 dependencies = [
     { name = "gen-def" },
     { name = "gen-int" },

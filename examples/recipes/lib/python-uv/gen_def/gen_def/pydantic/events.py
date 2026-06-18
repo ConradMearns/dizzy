@@ -165,13 +165,15 @@ class BatchOpened(ConfiguredBaseModel):
     batch_id: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['batch_opened',
                        'step_performed',
                        'entity_produced',
-                       'batch_completed']} })
+                       'batch_completed',
+                       'batch_run_failed']} })
     recipe_id: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['recipe_defined',
                        'recipe_step_added',
                        'step_input_added',
                        'batch_opened']} })
     requires_type: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['recipe_defined', 'batch_opened']} })
     status: str = Field(default=..., description="""ready | blocked""", json_schema_extra = { "linkml_meta": {'domain_of': ['batch_opened']} })
+    opened_at: datetime  = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['batch_opened']} })
 
 
 class StepPerformed(ConfiguredBaseModel):
@@ -184,7 +186,8 @@ class StepPerformed(ConfiguredBaseModel):
     batch_id: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['batch_opened',
                        'step_performed',
                        'entity_produced',
-                       'batch_completed']} })
+                       'batch_completed',
+                       'batch_run_failed']} })
     step_order: int = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['recipe_step_added', 'step_input_added', 'step_performed']} })
     activity_kind: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['recipe_step_added', 'step_performed']} })
     tool_id: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['tool_registered', 'recipe_step_added', 'step_performed']} })
@@ -214,7 +217,8 @@ class EntityProduced(ConfiguredBaseModel):
     batch_id: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['batch_opened',
                        'step_performed',
                        'entity_produced',
-                       'batch_completed']} })
+                       'batch_completed',
+                       'batch_run_failed']} })
     entity_type: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['entity_consumed', 'entity_produced']} })
     qty: Decimal = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['step_input_added', 'entity_produced']} })
     unit: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['ingredient_registered', 'step_input_added', 'entity_produced']} })
@@ -240,8 +244,24 @@ class BatchCompleted(ConfiguredBaseModel):
     batch_id: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['batch_opened',
                        'step_performed',
                        'entity_produced',
-                       'batch_completed']} })
+                       'batch_completed',
+                       'batch_run_failed']} })
     completed_at: datetime  = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['batch_completed']} })
+
+
+class BatchRunFailed(ConfiguredBaseModel):
+    """
+    A batch could not run because a required entity was unavailable
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/events'})
+
+    batch_id: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['batch_opened',
+                       'step_performed',
+                       'entity_produced',
+                       'batch_completed',
+                       'batch_run_failed']} })
+    reason: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['batch_run_failed']} })
+    failed_at: datetime  = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['batch_run_failed']} })
 
 
 # Model rebuild
@@ -257,3 +277,4 @@ EntityConsumed.model_rebuild()
 EntityProduced.model_rebuild()
 EntityDerived.model_rebuild()
 BatchCompleted.model_rebuild()
+BatchRunFailed.model_rebuild()

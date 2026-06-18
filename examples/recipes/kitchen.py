@@ -38,6 +38,7 @@ from gen_def.pydantic.events import (
     EntityProduced,
     EntityDerived,
     BatchCompleted,
+    BatchRunFailed,
 )
 from gen_def.pydantic.query.get_recipe import GetRecipeInput, GetRecipeOutput
 from gen_def.pydantic.query.get_recipe_steps import GetRecipeStepsInput, GetRecipeStepsOutput
@@ -96,6 +97,7 @@ from gen_int.python.projection.step_catalog_projection import step_catalog_conte
 from gen_int.python.projection.step_input_catalog_projection import step_input_catalog_context
 from gen_int.python.projection.batch_store_projection import batch_store_context
 from gen_int.python.projection.batch_finalizer_projection import batch_finalizer_context
+from gen_int.python.projection.batch_reblocker_projection import batch_reblocker_context
 from gen_int.python.projection.inventory_store_projection import inventory_store_context
 from gen_int.python.projection.inventory_consumer_projection import inventory_consumer_context
 from gen_int.python.projection.generation_graph_projection import generation_graph_context
@@ -125,6 +127,7 @@ from step_catalog import step_catalog
 from step_input_catalog import step_input_catalog
 from batch_store import batch_store
 from batch_finalizer import batch_finalizer
+from batch_reblocker import batch_reblocker
 from inventory_store import inventory_store
 from inventory_consumer import inventory_consumer
 from generation_graph import generation_graph
@@ -232,6 +235,10 @@ def build_kitchen(adapter: SqlaAdapter, observer: Optional[EventObserver] = None
         batch_finalizer(e, batch_finalizer_context(adapter=adapter))
         note("batch_completed", e)
 
+    def on_batch_run_failed(e: BatchRunFailed) -> None:
+        batch_reblocker(e, batch_reblocker_context(adapter=adapter))
+        note("batch_run_failed", e)
+
     def on_step_performed(e: StepPerformed) -> None:
         note("step_performed", e)
 
@@ -287,6 +294,7 @@ def build_kitchen(adapter: SqlaAdapter, observer: Optional[EventObserver] = None
             entity_produced=on_entity_produced,
             entity_derived=on_entity_derived,
             batch_completed=on_batch_completed,
+            batch_run_failed=on_batch_run_failed,
         ),
         query=run_batch_queries(
             get_batch=q_get_batch,

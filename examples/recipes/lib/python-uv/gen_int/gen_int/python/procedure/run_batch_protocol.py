@@ -11,6 +11,7 @@ class run_batch_protocol(Protocol):
     """Run a batch to completion, emitting PROV relationship facts as it goes.
 Resolve the batch's recipe via get_batch, then load the recipe header (get_recipe), its steps (get_recipe_steps) and step inputs (get_step_inputs).
 For each step emit step_performed (the activity, with its tool). For each step input emit entity_consumed (prov:used). If the recipe has a requires_type, resolve the available upstream entity via check_inventory, emit entity_consumed for it, and after producing the output emit entity_derived to link output ⟶ source (prov:wasDerivedFrom).
+If the required upstream entity is not actually available (e.g. another batch consumed it first), emit batch_run_failed and stop — failures are facts, not exceptions, so the cascade never aborts mid-flight.
 Finally emit one entity_produced (prov:wasGeneratedBy) for the recipe's output_type — the signal the cascade policy listens for — then batch_completed."""
 
     def __call__(

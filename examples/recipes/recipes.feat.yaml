@@ -56,6 +56,8 @@ events:
   entity_produced: A batch produced an output entity           # prov:wasGeneratedBy
   entity_derived: An output entity was derived from a source   # prov:wasDerivedFrom
   batch_completed: A batch finished running all of its steps
+  # A run attempt that could not proceed — failures are facts too.
+  batch_run_failed: A batch could not run because a required entity was unavailable
 
 # Command handlers (command → procedure → event)
 procedures:
@@ -111,11 +113,21 @@ procedures:
       emit entity_consumed for it, and after producing the output emit
       entity_derived to link output ⟶ source (prov:wasDerivedFrom).
 
+      If the required upstream entity is not actually available (e.g. another batch
+      consumed it first), emit batch_run_failed and stop — failures are facts, not
+      exceptions, so the cascade never aborts mid-flight.
+
       Finally emit one entity_produced (prov:wasGeneratedBy) for the recipe's
       output_type — the signal the cascade policy listens for — then batch_completed.
     command: advance_batch
     queries: [get_batch, get_recipe, get_recipe_steps, get_step_inputs, check_inventory]
-    emits: [step_performed, entity_consumed, entity_produced, entity_derived, batch_completed]
+    emits:
+      - step_performed
+      - entity_consumed
+      - entity_produced
+      - entity_derived
+      - batch_completed
+      - batch_run_failed
 
 # Read-optimized schemas (classes authored under def/models/)
 models:
@@ -170,6 +182,13 @@ projections:
   batch_finalizer:
     description: Mark a batch completed when it finishes running
     event: batch_completed
+    model: batches
+    adapter: sqla
+  batch_reblocker:
+    description: >-
+      Return a batch to blocked when a run attempt failed for lack of an input, so a
+      later lot can pull it again.
+    event: batch_run_failed
     model: batches
     adapter: sqla
 
@@ -237,18 +256,19 @@ queries:
     model: batches
     adapter: sqla
 
-# The reactivity-loop payoff: a policy that QUERIES to decide which commands to
-# dispatch. Reacts to entity_produced, asks find_blocked_batches who was waiting on
-# that entity type, and dispatches advance_batch for each — driving the cascade.
+# The reactivity-loop payoff: a policy that QUERIES to decide which command to
+# dispatch. Reacts to entity_produced and dispatches advance_batch for the ONE
+# oldest batch waiting on that type — one produced lot satisfies one consumer.
 policies:
   advance_ready_batches:
     description: >-
-      When an entity is produced, any batch that was blocked waiting for that
-      entity type is now ready. Consult find_blocked_batches for the produced type
-      and dispatch advance_batch for each waiting batch. A policy emits commands
-      only — never events — so the host routes advance_batch back into run_batch,
-      whose entity_produced re-triggers this policy. The cascade ends when no batch
-      is waiting for the produced type.
+      When an entity is produced, exactly one lot of it now exists — so it can
+      unblock exactly one waiting batch. Consult find_blocked_batches for the
+      produced type (oldest-first) and dispatch advance_batch for only the first
+      one. A policy emits commands only — never events — so the host routes
+      advance_batch back into run_batch, whose own entity_produced re-triggers this
+      policy. Producing N lots advances N waiting batches, one per lot; the cascade
+      ends when nothing is waiting for the produced type.
     event: entity_produced
     queries: [find_blocked_batches]
     emits: [advance_batch]
