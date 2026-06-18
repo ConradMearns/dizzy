@@ -1,0 +1,25 @@
+id: https://example.org/queries/list_batches
+name: list_batches
+description: All batches with their status, for a dashboard
+prefixes:
+  linkml: https://w3id.org/linkml/
+default_range: string
+imports:
+  - linkml:types
+classes:
+  ListBatchesInput:
+    description: Input for list_batches — no parameters
+    attributes: {}
+  ListBatchesOutput:
+    description: Output for list_batches — one entry per batch, as parallel lists
+    attributes:
+      batch_ids: { range: string, multivalued: true }
+      recipe_ids: { range: string, multivalued: true }
+      requires_types:
+        range: string
+        multivalued: true
+        description: Upstream type per batch; empty string when none
+      statuses:
+        range: string
+        multivalued: true
+        description: ready | blocked | completed, per batch

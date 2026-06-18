@@ -1,0 +1,20 @@
+id: https://example.org/queries/get_step_inputs
+name: get_step_inputs
+description: The typed inputs of a recipe's steps, as parallel lists
+prefixes:
+  linkml: https://w3id.org/linkml/
+default_range: string
+imports:
+  - linkml:types
+classes:
+  GetStepInputsInput:
+    description: Input for get_step_inputs
+    attributes:
+      recipe_id: { range: string, required: true }
+  GetStepInputsOutput:
+    description: Output for get_step_inputs — one entry per step input, as parallel lists
+    attributes:
+      step_orders: { range: integer, multivalued: true }
+      ingredient_types: { range: string, multivalued: true }
+      qtys: { range: decimal, multivalued: true }
+      units: { range: string, multivalued: true }

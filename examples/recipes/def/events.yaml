@@ -1,0 +1,98 @@
+id: https://example.org/events
+name: events
+prefixes:
+  linkml: https://w3id.org/linkml/
+default_range: string
+imports:
+  - linkml:types
+classes:
+  ingredient_registered:
+    description: An ingredient type was added to the pantry
+    attributes:
+      ingredient_type: { range: string, required: true }
+      name: { range: string, required: true }
+      unit: { range: string, required: true }
+  tool_registered:
+    description: A tool was added to the catalog
+    attributes:
+      tool_id: { range: string, required: true }
+      name: { range: string, required: true }
+  recipe_defined:
+    description: A recipe header was declared
+    attributes:
+      recipe_id: { range: string, required: true }
+      name: { range: string, required: true }
+      requires_type: { range: string, required: false }
+      output_type: { range: string, required: true }
+      output_unit: { range: string, required: true }
+  recipe_step_added:
+    description: A structured step was added to a recipe
+    attributes:
+      recipe_id: { range: string, required: true }
+      step_order: { range: integer, required: true }
+      activity_kind: { range: string, required: true }
+      tool_id: { range: string, required: false }
+  step_input_added:
+    description: A typed input was declared for a recipe step
+    attributes:
+      recipe_id: { range: string, required: true }
+      step_order: { range: integer, required: true }
+      ingredient_type: { range: string, required: true }
+      qty: { range: decimal, required: true }
+      unit: { range: string, required: true }
+  batch_opened:
+    description: A batch was opened, either ready to run or blocked on a missing entity
+    attributes:
+      batch_id: { range: string, required: true }
+      recipe_id: { range: string, required: true }
+      requires_type: { range: string, required: false }
+      status:
+        range: string
+        required: true
+        description: ready | blocked
+      opened_at: { range: datetime, required: true }
+  step_performed:
+    description: A recipe step was executed by a tool (prov:wasAssociatedWith)
+    attributes:
+      activity_id: { range: string, required: true }
+      batch_id: { range: string, required: true }
+      step_order: { range: integer, required: true }
+      activity_kind: { range: string, required: true }
+      tool_id: { range: string, required: false }
+      performed_at: { range: datetime, required: true }
+  entity_consumed:
+    description: A step consumed an entity (prov:used)
+    attributes:
+      activity_id: { range: string, required: true }
+      entity_id: { range: string, required: true }
+      entity_type: { range: string, required: true }
+      role:
+        range: string
+        required: true
+        description: 'How the entity was used, e.g. ingredient or upstream'
+  entity_produced:
+    description: A batch produced an output entity (prov:wasGeneratedBy)
+    attributes:
+      entity_id: { range: string, required: true }
+      activity_id: { range: string, required: true }
+      batch_id: { range: string, required: true }
+      entity_type: { range: string, required: true }
+      qty: { range: decimal, required: true }
+      unit: { range: string, required: true }
+      produced_at: { range: datetime, required: true }
+  entity_derived:
+    description: An output entity was derived from a source (prov:wasDerivedFrom)
+    attributes:
+      output_entity_id: { range: string, required: true }
+      source_entity_id: { range: string, required: true }
+  batch_completed:
+    description: A batch finished running all of its steps
+    attributes:
+      batch_id: { range: string, required: true }
+      completed_at: { range: datetime, required: true }
+  batch_run_failed:
+    description: A batch could not run because a required entity was unavailable
+    attributes:
+      batch_id: { range: string, required: true }
+      reason: { range: string, required: true }
+      failed_at: { range: datetime, required: true }

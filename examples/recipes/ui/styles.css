@@ -1,0 +1,112 @@
+:root {
+  --bg: #0f1115;
+  --panel: #181b22;
+  --panel-2: #1f232c;
+  --line: #2b313c;
+  --text: #e6e9ef;
+  --muted: #9aa4b2;
+  --accent: #6ea8fe;
+  --blocked: #e0a458;
+  --ready: #6ea8fe;
+  --completed: #5cc98a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.45;
+}
+
+header {
+  padding: 1.4rem 1.6rem 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+h1 { margin: 0 0 0.2rem; font-size: 1.35rem; }
+.sub { margin: 0 0 0.9rem; color: var(--muted); max-width: 60rem; font-size: 0.9rem; }
+
+.actions { display: flex; align-items: center; gap: 0.6rem; }
+.status { color: var(--muted); font-size: 0.85rem; }
+
+button {
+  background: var(--accent);
+  color: #0c1220;
+  border: 0;
+  border-radius: 6px;
+  padding: 0.45rem 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+button:hover { filter: brightness(1.08); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+button.mini { padding: 0.25rem 0.55rem; font-size: 0.78rem; }
+
+main {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  grid-template-areas: "board graph" "board log";
+  gap: 1rem;
+  padding: 1rem 1.6rem 2rem;
+  align-items: start;
+}
+#board-panel { grid-area: board; }
+#graph-panel { grid-area: graph; }
+#log-panel { grid-area: log; }
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.9rem 1rem 1.1rem;
+}
+.panel h2 { margin: 0 0 0.7rem; font-size: 1rem; }
+.hint { color: var(--muted); font-weight: 400; font-size: 0.78rem; }
+
+.start-bar { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.8rem; }
+
+.board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem; }
+.column { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 0.5rem; min-height: 8rem; }
+.column h3 { margin: 0.1rem 0 0.5rem; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.column[data-status="blocked"] h3 { color: var(--blocked); }
+.column[data-status="ready"] h3 { color: var(--ready); }
+.column[data-status="completed"] h3 { color: var(--completed); }
+.cards { display: flex; flex-direction: column; gap: 0.45rem; }
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line);
+  border-radius: 6px;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.85rem;
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+.card[data-status="blocked"] { border-left-color: var(--blocked); }
+.card[data-status="ready"] { border-left-color: var(--ready); }
+.card[data-status="completed"] { border-left-color: var(--completed); }
+.card.pulse { transform: scale(1.04); border-color: var(--accent); }
+.card .id { font-weight: 600; }
+.card .meta { color: var(--muted); font-size: 0.76rem; }
+.card .waiting { color: var(--blocked); font-size: 0.76rem; }
+.card .row { display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; margin-top: 0.35rem; }
+
+svg#graph { width: 100%; height: auto; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; }
+.node rect { fill: var(--panel); stroke: var(--completed); stroke-width: 1.5; rx: 6; cursor: pointer; }
+.node.fresh rect { stroke: var(--accent); }
+.node text { fill: var(--text); font-size: 12px; pointer-events: none; }
+.edge { stroke: var(--muted); stroke-width: 1.6; marker-end: url(#arrow); fill: none; }
+.edge-label { fill: var(--muted); font-size: 10px; }
+.trace { margin-top: 0.6rem; font-size: 0.82rem; color: var(--muted); white-space: pre-line; min-height: 1rem; }
+
+.log { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 0.78rem; max-height: 16rem; overflow-y: auto; }
+.log .entry { padding: 0.12rem 0; border-bottom: 1px solid var(--line); display: flex; gap: 0.5rem; }
+.log .ev { color: var(--accent); min-width: 9.5rem; }
+.log .cmd { color: var(--completed); font-weight: 600; padding-top: 0.3rem; }
+.log .empty { color: var(--muted); }
+.log .entry.failed .ev { color: #e06c75; }

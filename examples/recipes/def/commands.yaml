@@ -1,0 +1,57 @@
+id: https://example.org/commands
+name: commands
+prefixes:
+  linkml: https://w3id.org/linkml/
+default_range: string
+imports:
+  - linkml:types
+classes:
+  register_ingredient:
+    description: Add an ingredient type to the pantry catalog
+    attributes:
+      ingredient_type: { range: string, required: true }
+      name: { range: string, required: true }
+      unit: { range: string, required: true }
+  register_tool:
+    description: Add a tool (a PROV agent) to the catalog
+    attributes:
+      tool_id: { range: string, required: true }
+      name: { range: string, required: true }
+  define_recipe:
+    description: Declare a recipe header — what it yields and what upstream entity it requires
+    attributes:
+      recipe_id: { range: string, required: true }
+      name: { range: string, required: true }
+      requires_type:
+        range: string
+        required: false
+        description: The upstream entity type this recipe consumes; empty for a root recipe
+      output_type: { range: string, required: true }
+      output_unit: { range: string, required: true }
+  add_recipe_step:
+    description: Add one ordered, structured step to a recipe
+    attributes:
+      recipe_id: { range: string, required: true }
+      step_order: { range: integer, required: true }
+      activity_kind:
+        range: string
+        required: true
+        description: What the step does, e.g. mix, ferment, bake, toss
+      tool_id: { range: string, required: false }
+  add_step_input:
+    description: Declare one typed input a recipe step consumes
+    attributes:
+      recipe_id: { range: string, required: true }
+      step_order: { range: integer, required: true }
+      ingredient_type: { range: string, required: true }
+      qty: { range: decimal, required: true }
+      unit: { range: string, required: true }
+  start_batch:
+    description: Open a batch — a durable running instance of a recipe
+    attributes:
+      batch_id: { range: string, required: true }
+      recipe_id: { range: string, required: true }
+  advance_batch:
+    description: Run a batch's steps to completion, producing its output entity
+    attributes:
+      batch_id: { range: string, required: true }

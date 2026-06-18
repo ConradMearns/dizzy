@@ -1,0 +1,20 @@
+id: https://example.org/queries/find_blocked_batches
+name: find_blocked_batches
+description: The ids of batches blocked waiting for a given entity type
+prefixes:
+  linkml: https://w3id.org/linkml/
+default_range: string
+imports:
+  - linkml:types
+classes:
+  FindBlockedBatchesInput:
+    description: Input for find_blocked_batches
+    attributes:
+      entity_type: { range: string, required: true }
+  FindBlockedBatchesOutput:
+    description: Output for find_blocked_batches
+    attributes:
+      batch_ids:
+        range: string
+        multivalued: true
+        description: Ids of batches blocked waiting for this entity type

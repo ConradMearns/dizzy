@@ -1,0 +1,23 @@
+id: https://example.org/queries/list_recipes
+name: list_recipes
+description: All recipe headers, for a dashboard
+prefixes:
+  linkml: https://w3id.org/linkml/
+default_range: string
+imports:
+  - linkml:types
+classes:
+  ListRecipesInput:
+    description: Input for list_recipes — no parameters
+    attributes: {}
+  ListRecipesOutput:
+    description: Output for list_recipes — one entry per recipe, as parallel lists
+    attributes:
+      recipe_ids: { range: string, multivalued: true }
+      names: { range: string, multivalued: true }
+      requires_types:
+        range: string
+        multivalued: true
+        description: Upstream type per recipe; empty string for a root recipe
+      output_types: { range: string, multivalued: true }
+      output_units: { range: string, multivalued: true }
