@@ -1,3 +1,7 @@
 # Runtime artifacts
 recipes.db
 *.db
+
+# Generated docs (build with `uv run build_docs.py`)
+recipes.typ
+recipes.pdf

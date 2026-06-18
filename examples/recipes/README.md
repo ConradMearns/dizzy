@@ -198,6 +198,20 @@ step-by-step**: cards move blocked → completed and the graph grows
 `active_starter → sourdough_loaf → garlic_croutons` as the policy cascades. **Reset**
 clears the read models (the event-sourced views are simply rebuilt).
 
+## Generate a reference doc
+
+[`build_docs.py`](build_docs.py) is a self-contained [uv](https://docs.astral.sh/uv/)
+script (PEP 723 inline dependencies) that turns the feature-file into a cross-linked
+[Typst](https://typst.app/) reference — every command, event, procedure, policy,
+projection, model, and query becomes a labelled section (`c1`, `e3`, `d6`, `y1`, … in
+the table of contents) whose text is its description, with hyperlinks following the
+wiring (a procedure links to the command it handles and the events it emits; a command
+links back to its procedures and dispatching policies; and so on).
+
+```bash
+uv run examples/recipes/build_docs.py   # writes recipes.typ and recipes.pdf
+```
+
 ## Rebuild it from scratch
 
 `def/` stubs and the `src/` implementations inside `lib/` are **never overwritten**, so
