@@ -12,6 +12,11 @@ Events   → Projections → Models → Queries  → Procedures (data loop)
 
 Core thesis: the design lives in the artifact, never in an LLM context window.
 
+**Before working on DIZZY implementations**, run:
+```
+dizzy onboard
+```
+
 ## Tree of knowledge
 
 This is a map, not a reading list — pull in only what your task needs. Ordered by
