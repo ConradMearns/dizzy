@@ -1,0 +1,21 @@
+id: https://example.org/models/inventory
+name: inventory
+description: Entity lots that have been produced and whether they are still available
+prefixes:
+  linkml: https://w3id.org/linkml/
+default_range: string
+imports:
+  - linkml:types
+classes:
+  InventoryEntity:
+    description: A produced entity lot
+    attributes:
+      id: { range: string, required: true, identifier: true }
+      entity_type: { range: string, required: true }
+      qty: { range: decimal, required: true }
+      unit: { range: string, required: true }
+      batch_id: { range: string, required: true }
+      available:
+        range: boolean
+        required: true
+        description: False once the lot has been consumed by a downstream step

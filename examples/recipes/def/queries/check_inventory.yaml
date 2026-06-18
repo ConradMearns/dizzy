@@ -1,0 +1,22 @@
+id: https://example.org/queries/check_inventory
+name: check_inventory
+description: Whether an available entity of a given type exists, and its id
+prefixes:
+  linkml: https://w3id.org/linkml/
+default_range: string
+imports:
+  - linkml:types
+classes:
+  CheckInventoryInput:
+    description: Input for check_inventory
+    attributes:
+      entity_type: { range: string, required: true }
+  CheckInventoryOutput:
+    description: Output for check_inventory
+    attributes:
+      available: { range: boolean, required: true }
+      entity_id:
+        range: string
+        required: false
+        description: The id of an available lot of this type, or null if none
+

@@ -1,0 +1,19 @@
+id: https://example.org/queries/get_batch
+name: get_batch
+description: A batch's recipe_id, requires_type, and status
+prefixes:
+  linkml: https://w3id.org/linkml/
+default_range: string
+imports:
+  - linkml:types
+classes:
+  GetBatchInput:
+    description: Input for get_batch
+    attributes:
+      batch_id: { range: string, required: true }
+  GetBatchOutput:
+    description: Output for get_batch — empty fields when the batch is unknown
+    attributes:
+      recipe_id: { range: string, required: false }
+      requires_type: { range: string, required: false }
+      status: { range: string, required: false }

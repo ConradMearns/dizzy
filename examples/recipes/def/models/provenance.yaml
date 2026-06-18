@@ -1,0 +1,22 @@
+id: https://example.org/models/provenance
+name: provenance
+description: The queryable PROV graph — generations and derivations of entities
+prefixes:
+  linkml: https://w3id.org/linkml/
+default_range: string
+imports:
+  - linkml:types
+classes:
+  ProvGeneration:
+    description: An entity and the activity/batch that generated it (prov:wasGeneratedBy)
+    attributes:
+      entity_id: { range: string, required: true, identifier: true }
+      entity_type: { range: string, required: true }
+      batch_id: { range: string, required: true }
+      activity_id: { range: string, required: true }
+      produced_at: { range: datetime, required: true }
+  ProvDerivation:
+    description: A derivation edge linking an output entity to its source (prov:wasDerivedFrom)
+    attributes:
+      output_entity_id: { range: string, required: true, identifier: true }
+      source_entity_id: { range: string, required: true }

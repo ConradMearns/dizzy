@@ -1,0 +1,20 @@
+id: https://example.org/queries/trace_provenance
+name: trace_provenance
+description: The derivation chain for an entity, rendered newest-source-first
+prefixes:
+  linkml: https://w3id.org/linkml/
+default_range: string
+imports:
+  - linkml:types
+classes:
+  TraceProvenanceInput:
+    description: Input for trace_provenance
+    attributes:
+      entity_id: { range: string, required: true }
+  TraceProvenanceOutput:
+    description: Output for trace_provenance
+    attributes:
+      lines:
+        range: string
+        multivalued: true
+        description: The derivation chain, one rendered edge per line

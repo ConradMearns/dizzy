@@ -1,0 +1,22 @@
+id: https://example.org/queries/get_recipe_steps
+name: get_recipe_steps
+description: The ordered steps of a recipe, as parallel lists
+prefixes:
+  linkml: https://w3id.org/linkml/
+default_range: string
+imports:
+  - linkml:types
+classes:
+  GetRecipeStepsInput:
+    description: Input for get_recipe_steps
+    attributes:
+      recipe_id: { range: string, required: true }
+  GetRecipeStepsOutput:
+    description: Output for get_recipe_steps — steps in order, as parallel lists
+    attributes:
+      step_orders: { range: integer, multivalued: true }
+      activity_kinds: { range: string, multivalued: true }
+      tool_ids:
+        range: string
+        multivalued: true
+        description: Tool per step; empty string where a step uses no tool

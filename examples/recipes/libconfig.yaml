@@ -1,0 +1,62 @@
+# Dizzy library configuration — assign runtimes to each element
+# Supported runtimes: python-uv | rust-cargo | typescript-npm
+
+procedures:
+  record_ingredient:
+    runtimes: [python-uv]
+  record_tool:
+    runtimes: [python-uv]
+  record_recipe:
+    runtimes: [python-uv]
+  record_step:
+    runtimes: [python-uv]
+  record_step_input:
+    runtimes: [python-uv]
+  open_batch:
+    runtimes: [python-uv]
+  run_batch:
+    runtimes: [python-uv]
+
+policies:
+  advance_ready_batches:
+    runtimes: [python-uv]
+
+queries:
+  get_recipe:
+    runtimes: [python-uv]
+  get_recipe_steps:
+    runtimes: [python-uv]
+  get_step_inputs:
+    runtimes: [python-uv]
+  get_batch:
+    runtimes: [python-uv]
+  check_inventory:
+    runtimes: [python-uv]
+  find_blocked_batches:
+    runtimes: [python-uv]
+  trace_provenance:
+    runtimes: [python-uv]
+
+projections:
+  ingredient_catalog:
+    runtimes: [python-uv]
+  tool_catalog:
+    runtimes: [python-uv]
+  recipe_catalog:
+    runtimes: [python-uv]
+  step_catalog:
+    runtimes: [python-uv]
+  step_input_catalog:
+    runtimes: [python-uv]
+  batch_store:
+    runtimes: [python-uv]
+  batch_finalizer:
+    runtimes: [python-uv]
+  inventory_store:
+    runtimes: [python-uv]
+  inventory_consumer:
+    runtimes: [python-uv]
+  generation_graph:
+    runtimes: [python-uv]
+  derivation_graph:
+    runtimes: [python-uv]

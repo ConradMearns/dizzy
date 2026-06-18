@@ -1,0 +1,21 @@
+id: https://example.org/queries/get_recipe
+name: get_recipe
+description: A recipe header — its requires_type, output_type, and output_unit
+prefixes:
+  linkml: https://w3id.org/linkml/
+default_range: string
+imports:
+  - linkml:types
+classes:
+  GetRecipeInput:
+    description: Input for get_recipe
+    attributes:
+      recipe_id: { range: string, required: true }
+  GetRecipeOutput:
+    description: Output for get_recipe — empty fields when the recipe is unknown
+    attributes:
+      recipe_id: { range: string, required: false }
+      name: { range: string, required: false }
+      requires_type: { range: string, required: false }
+      output_type: { range: string, required: false }
+      output_unit: { range: string, required: false }
