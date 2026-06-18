@@ -26,76 +26,102 @@ description: >-
 # Write intents
 commands:
   # Catalog authoring — ingredients, tools, recipes, and the typed steps of each recipe.
-  register_ingredient: Add an ingredient type to the pantry catalog
-  register_tool: Add a tool (a PROV agent) to the catalog
-  define_recipe: Declare a recipe header — what it yields and what upstream entity it requires
-  add_recipe_step: Add one ordered, structured step to a recipe
-  add_step_input: Declare one typed input a recipe step consumes
+  register_ingredient: Add an ingredient type (ingredient_type, name, unit) to the pantry catalog
+  register_tool: Add a tool (tool_id, name) — a PROV agent — to the catalog
+  define_recipe: Declare a recipe header (recipe_id, name) that turns an upstream requires_type into an output_type; empty requires_type means a root recipe
+  add_recipe_step: Add one ordered step (step_order, activity_kind, optional tool_id) to a recipe
+  add_step_input: Declare one typed input (ingredient_type, qty, unit) a recipe step consumes
 
   # Execution.
-  start_batch: Open a batch — a durable running instance of a recipe
+  start_batch: Open a batch (batch_id) — a durable running instance of a recipe
   # advance_batch is dispatched by an end user for the root batch and by the
   # advance_ready_batches policy for every downstream batch in the chain.
-  advance_batch: Run a batch's steps to completion, producing its output entity
+  advance_batch: Run a batch's steps to completion, producing its output entity (or recording a failure)
 
 # Immutable facts
 events:
   # Catalog facts.
-  ingredient_registered: An ingredient type was added to the pantry
-  tool_registered: A tool was added to the catalog
-  recipe_defined: A recipe header was declared
-  recipe_step_added: A structured step was added to a recipe
-  step_input_added: A typed input was declared for a recipe step
+  ingredient_registered: An ingredient type (ingredient_type, name, unit) was added to the pantry
+  tool_registered: A tool (tool_id, name) was added to the catalog
+  recipe_defined: A recipe header (recipe_id, name, requires_type?, output_type, output_unit) was declared
+  recipe_step_added: A structured step (step_order, activity_kind, tool_id?) was added to a recipe
+  step_input_added: A typed input (ingredient_type, qty, unit) was declared for a recipe step
 
   # A batch was opened; status records whether its required entity exists yet.
-  batch_opened: A batch was opened, either ready to run or blocked on a missing entity
+  batch_opened: A batch was opened ready or blocked, recording its requires_type, status, and opened_at
 
   # PROV relationship facts (see mapping above). Each carries identity + a timestamp.
-  step_performed: A recipe step was executed by a tool         # prov:wasAssociatedWith
-  entity_consumed: A step consumed an entity                   # prov:used
-  entity_produced: A batch produced an output entity           # prov:wasGeneratedBy
-  entity_derived: An output entity was derived from a source   # prov:wasDerivedFrom
-  batch_completed: A batch finished running all of its steps
+  step_performed: An activity ran a recipe step on a tool       # prov:wasAssociatedWith
+  entity_consumed: An activity used an entity, with a role      # prov:used
+  entity_produced: An activity generated an output entity lot   # prov:wasGeneratedBy
+  entity_derived: An output entity was derived from a source    # prov:wasDerivedFrom
+  batch_completed: A batch finished running all of its steps (completed_at)
   # A run attempt that could not proceed — failures are facts too.
-  batch_run_failed: A batch could not run because a required entity was unavailable
+  batch_run_failed: A batch could not run because a required entity was unavailable (reason, failed_at)
 
 # Command handlers (command → procedure → event)
 procedures:
   record_ingredient:
-    description: Validate and record a new pantry ingredient type.
+    description: >-
+      Validate and record a new pantry ingredient type.
+
+      Reject a blank ingredient_type, then emit ingredient_registered carrying the
+      trimmed ingredient_type (its identity in the catalog), a human-readable name,
+      and the unit its quantities are measured in.
     command: register_ingredient
     emits: [ingredient_registered]
 
   record_tool:
-    description: Validate and record a new tool.
+    description: >-
+      Validate and record a new tool — a PROV agent that steps are performed with.
+
+      Reject a blank tool_id, then emit tool_registered with the trimmed tool_id and a
+      human-readable name.
     command: register_tool
     emits: [tool_registered]
 
   record_recipe:
     description: >-
-      Record a recipe header. requires_type names the upstream entity this recipe
-      consumes (empty for a root recipe like the starter); output_type names the
-      entity it yields.
+      Validate recipe_id and record a recipe header — the template a batch later runs.
+
+      requires_type names the single upstream entity this recipe consumes, and is
+      normalised to none for a root recipe like the starter (which depends on nothing
+      but pantry ingredients). output_type and output_unit name the entity the recipe
+      yields — which becomes the requires_type of the next recipe in the chain.
     command: define_recipe
     emits: [recipe_defined]
 
   record_step:
-    description: Record one ordered step of a recipe as structured data.
+    description: >-
+      Record one ordered step of a recipe as structured data — never free text.
+
+      A step carries its step_order within the recipe, an activity_kind (mix, ferment,
+      bake, …), and an optional tool_id (normalised to none when absent). run_batch
+      later replays these steps in order, emitting one step_performed per step.
     command: add_recipe_step
     emits: [recipe_step_added]
 
   record_step_input:
-    description: Record one typed input consumed by a recipe step.
+    description: >-
+      Record one typed input a recipe step consumes.
+
+      Each input pins an ingredient_type to a step_order with a qty and unit; run_batch
+      emits an entity_consumed (prov:used) for every one of them as that step runs.
     command: add_step_input
     emits: [step_input_added]
 
   open_batch:
     description: >-
-      Open a batch for a recipe. Look up the recipe's requires_type; if it is empty
-      the batch is immediately ready. Otherwise ask check_inventory whether an
-      entity of that type is available: if so the batch is ready, if not it is
-      blocked. Emit batch_opened with the resolved status and requires_type so the
-      cascade policy can find it later.
+      Open a batch — a durable running instance of a recipe — after checking the
+      recipe exists.
+
+      Look up the recipe's requires_type. If it is empty the batch is immediately
+      ready. Otherwise ask check_inventory whether a lot of that type is available:
+      ready if so, blocked if not.
+
+      Emit batch_opened with the resolved status, the requires_type, and an opened_at
+      timestamp. opened_at is the FIFO key the cascade policy unblocks batches by, and
+      requires_type is how it finds this batch once the entity it needs appears.
     command: start_batch
     queries: [get_recipe, check_inventory]
     emits: [batch_opened]
@@ -105,20 +131,22 @@ procedures:
       Run a batch to completion, emitting PROV relationship facts as it goes.
 
       Resolve the batch's recipe via get_batch, then load the recipe header
-      (get_recipe), its steps (get_recipe_steps) and step inputs (get_step_inputs).
+      (get_recipe), its steps (get_recipe_steps), and step inputs (get_step_inputs).
 
-      For each step emit step_performed (the activity, with its tool). For each
-      step input emit entity_consumed (prov:used). If the recipe has a
-      requires_type, resolve the available upstream entity via check_inventory,
-      emit entity_consumed for it, and after producing the output emit
-      entity_derived to link output ⟶ source (prov:wasDerivedFrom).
+      First resolve the upstream dependency. If the recipe has a requires_type but no
+      lot of it is available — another batch consumed it first — emit batch_run_failed
+      with the reason and stop, before any other event. Failures are facts, not
+      exceptions, so the cascade never aborts mid-flight and no partial state is left
+      behind; the batch simply returns to blocked, ready for a later lot to pull it.
 
-      If the required upstream entity is not actually available (e.g. another batch
-      consumed it first), emit batch_run_failed and stop — failures are facts, not
-      exceptions, so the cascade never aborts mid-flight.
+      Otherwise replay the recipe: for each step emit step_performed (the activity,
+      with its tool) and an entity_consumed (prov:used) for each of that step's
+      ingredient inputs.
 
-      Finally emit one entity_produced (prov:wasGeneratedBy) for the recipe's
-      output_type — the signal the cascade policy listens for — then batch_completed.
+      Then consume the upstream lot (entity_consumed), emit one entity_produced
+      (prov:wasGeneratedBy) for the recipe's output_type — the signal the cascade
+      policy listens for — emit entity_derived to link output ⟶ source
+      (prov:wasDerivedFrom), and finally batch_completed.
     command: advance_batch
     queries: [get_batch, get_recipe, get_recipe_steps, get_step_inputs, check_inventory]
     emits:
@@ -262,13 +290,17 @@ queries:
 policies:
   advance_ready_batches:
     description: >-
-      When an entity is produced, exactly one lot of it now exists — so it can
-      unblock exactly one waiting batch. Consult find_blocked_batches for the
-      produced type (oldest-first) and dispatch advance_batch for only the first
+      When an entity is produced, exactly one lot of it now exists — so it can unblock
+      exactly one waiting batch.
+
+      Consult find_blocked_batches for the produced entity type (which returns blocked
+      batches oldest-first by opened_at) and dispatch advance_batch for only the first
       one. A policy emits commands only — never events — so the host routes
       advance_batch back into run_batch, whose own entity_produced re-triggers this
-      policy. Producing N lots advances N waiting batches, one per lot; the cascade
-      ends when nothing is waiting for the produced type.
+      policy.
+
+      Producing N lots therefore advances N waiting batches, one per lot, in FIFO
+      order; the cascade ends when nothing is left waiting for the produced type.
     event: entity_produced
     queries: [find_blocked_batches]
     emits: [advance_batch]
