@@ -116,6 +116,54 @@ Provenance of the croutons (trace_provenance):
   sourdough_loaf wasDerivedFrom active_starter
 ```
 
+## Run it as an HTTP service
+
+`server.py` is a second host: a thin [FastAPI](https://fastapi.tiangolo.com/) layer
+over the same wiring. `demo.py` and `server.py` both build a `Kitchen` from
+[`kitchen.py`](kitchen.py) — the shared host wiring that owns event routing and the
+policy cascade — so the feature behaves identically whether driven from the CLI or
+over HTTP.
+
+The generated Pydantic command/query models *are* the API contract: each command is a
+`POST` whose body is the generated command model and whose response is the list of
+PROV events it caused (including any policy cascade); each query is a `GET` returning
+the generated query output. State lives in a SQLite file (`recipes.db`, override with
+`RECIPES_DB`) so it survives restarts.
+
+Launch it inside the workspace environment, layering in the web dependencies so the
+generated workspace stays untouched — from the repository root:
+
+```bash
+uv run --project examples/recipes/lib/python-uv \
+    --with fastapi --with "uvicorn[standard]" \
+    python examples/recipes/server.py
+```
+
+Then open <http://127.0.0.1:8000/docs> for the full schema, or drive the chain with curl:
+
+```bash
+# define a recipe (a command -> returns the events it caused)
+curl -X POST localhost:8000/recipes -H 'content-type: application/json' \
+  -d '{"recipe_id":"cultivate_starter","name":"Sourdough starter","output_type":"active_starter","output_unit":"jar"}'
+
+# open a batch, then advance it — the response carries the whole cascade
+curl -X POST localhost:8000/batches -H 'content-type: application/json' \
+  -d '{"batch_id":"starter-1","recipe_id":"cultivate_starter"}'
+curl -X POST localhost:8000/batches/advance -H 'content-type: application/json' \
+  -d '{"batch_id":"starter-1"}'
+
+# read state back out (queries)
+curl localhost:8000/batches/starter-1
+curl localhost:8000/provenance/croutons-1:garlic_croutons
+```
+
+| Method & path | Element |
+|---------------|---------|
+| `POST /ingredients`, `/tools`, `/recipes`, `/recipe-steps`, `/step-inputs` | catalog commands |
+| `POST /batches`, `POST /batches/advance` | `start_batch`, `advance_batch` (cascade) |
+| `GET /recipes/{id}`, `/recipes/{id}/steps`, `/recipes/{id}/inputs` | recipe queries |
+| `GET /batches/{id}`, `/inventory/{type}`, `/blocked-batches/{type}`, `/provenance/{id}` | state queries |
+
 ## Rebuild it from scratch
 
 `def/` stubs and the `src/` implementations inside `lib/` are **never overwritten**, so
