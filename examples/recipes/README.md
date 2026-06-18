@@ -76,7 +76,8 @@ step and per input — there is no free-form recipe text anywhere.
 - **7 procedures** — five catalog recorders, `open_batch` (resolves ready/blocked via a
   query), and `run_batch` (emits the PROV facts).
 - **1 policy** — `advance_ready_batches`, the cascade engine.
-- **11 projections, 7 queries** — fold facts into the models and read them back.
+- **11 projections, 9 queries** — fold facts into the models and read them back
+  (`list_recipes` / `list_batches` are dashboard reads used by the UI).
 
 > `step_performed` and `entity_consumed` are emitted as immutable PROV facts but only
 > the parts `trace_provenance` needs (`generation_graph`, `derivation_graph`) are
@@ -163,6 +164,29 @@ curl localhost:8000/provenance/croutons-1:garlic_croutons
 | `POST /batches`, `POST /batches/advance` | `start_batch`, `advance_batch` (cascade) |
 | `GET /recipes/{id}`, `/recipes/{id}/steps`, `/recipes/{id}/inputs` | recipe queries |
 | `GET /batches/{id}`, `/inventory/{type}`, `/blocked-batches/{type}`, `/provenance/{id}` | state queries |
+| `GET /recipes`, `GET /batches` | `list_recipes`, `list_batches` (dashboard reads) |
+| `POST /reset` | host admin — drop & recreate the read models |
+
+## Run it in the browser
+
+The same server serves a dependency-free browser UI at **`/`** — there is no build step
+and no extra dependency; `server.py` mounts the static [`ui/`](ui/) folder and the page
+talks to the JSON endpoints above with `fetch`. Launch the server exactly as above, then
+open <http://127.0.0.1:8000/> (instead of `/docs`).
+
+Three panels make the two loops tangible:
+
+- **Batch board** — *blocked* / *ready* / *completed* columns. **Seed sourdough demo**
+  posts the catalog; then start the three batches (loaf & croutons land *blocked*).
+- **Provenance graph** — built live by folding the event stream (`entity_produced` →
+  node, `entity_derived` → edge), exactly as a projection would. Click a node to trace
+  its `wasDerivedFrom` chain.
+- **Event log** — the PROV facts each command produced.
+
+Press **advance ▶** on the starter and the response's event list is **replayed
+step-by-step**: cards move blocked → completed and the graph grows
+`active_starter → sourdough_loaf → garlic_croutons` as the policy cascades. **Reset**
+clears the read models (the event-sourced views are simply rebuilt).
 
 ## Rebuild it from scratch
 

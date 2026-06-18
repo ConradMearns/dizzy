@@ -228,6 +228,14 @@ queries:
     description: The derivation chain for an entity, rendered newest-source-first
     model: provenance
     adapter: sqla
+  list_recipes:
+    description: All recipe headers, for a dashboard
+    model: catalog
+    adapter: sqla
+  list_batches:
+    description: All batches with their status, for a dashboard
+    model: batches
+    adapter: sqla
 
 # The reactivity-loop payoff: a policy that QUERIES to decide which commands to
 # dispatch. Reacts to entity_produced, asks find_blocked_batches who was waiting on

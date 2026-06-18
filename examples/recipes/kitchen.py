@@ -49,6 +49,8 @@ from gen_def.pydantic.query.find_blocked_batches import (
     FindBlockedBatchesOutput,
 )
 from gen_def.pydantic.query.trace_provenance import TraceProvenanceInput, TraceProvenanceOutput
+from gen_def.pydantic.query.list_recipes import ListRecipesInput, ListRecipesOutput
+from gen_def.pydantic.query.list_batches import ListBatchesInput, ListBatchesOutput
 
 from gen_int.python.adapters.sqla import SqlaAdapter
 
@@ -105,6 +107,8 @@ from gen_int.python.query.get_batch import get_batch_context
 from gen_int.python.query.check_inventory import check_inventory_context
 from gen_int.python.query.find_blocked_batches import find_blocked_batches_context
 from gen_int.python.query.trace_provenance import trace_provenance_context
+from gen_int.python.query.list_recipes import list_recipes_context
+from gen_int.python.query.list_batches import list_batches_context
 
 from record_ingredient import record_ingredient
 from record_tool import record_tool
@@ -132,6 +136,8 @@ from get_batch import get_batch
 from check_inventory import check_inventory
 from find_blocked_batches import find_blocked_batches
 from trace_provenance import trace_provenance
+from list_recipes import list_recipes
+from list_batches import list_batches
 
 
 EventObserver = Callable[[str, Any], None]
@@ -158,6 +164,8 @@ class Kitchen:
     check_inventory: Callable[[CheckInventoryInput], CheckInventoryOutput]
     find_blocked_batches: Callable[[FindBlockedBatchesInput], FindBlockedBatchesOutput]
     trace_provenance: Callable[[TraceProvenanceInput], TraceProvenanceOutput]
+    list_recipes: Callable[[ListRecipesInput], ListRecipesOutput]
+    list_batches: Callable[[ListBatchesInput], ListBatchesOutput]
 
 
 def build_kitchen(adapter: SqlaAdapter, observer: Optional[EventObserver] = None) -> Kitchen:
@@ -188,6 +196,12 @@ def build_kitchen(adapter: SqlaAdapter, observer: Optional[EventObserver] = None
 
     def q_trace_provenance(inp: TraceProvenanceInput) -> TraceProvenanceOutput:
         return trace_provenance(inp, trace_provenance_context(adapter=adapter))
+
+    def q_list_recipes(inp: ListRecipesInput) -> ListRecipesOutput:
+        return list_recipes(inp, list_recipes_context(adapter=adapter))
+
+    def q_list_batches(inp: ListBatchesInput) -> ListBatchesOutput:
+        return list_batches(inp, list_batches_context(adapter=adapter))
 
     # --- Event routing (projections + the policy) ---
     def on_ingredient_registered(e: IngredientRegistered) -> None:
@@ -303,4 +317,6 @@ def build_kitchen(adapter: SqlaAdapter, observer: Optional[EventObserver] = None
         check_inventory=q_check_inventory,
         find_blocked_batches=q_find_blocked_batches,
         trace_provenance=q_trace_provenance,
+        list_recipes=q_list_recipes,
+        list_batches=q_list_batches,
     )

@@ -20,7 +20,7 @@ Run inside the workspace environment, layering in the web deps (from the repo ro
         --with fastapi --with "uvicorn[standard]" \\
         python examples/recipes/server.py
 
-Then open http://127.0.0.1:8000/docs
+Then open http://127.0.0.1:8000/ for the browser UI, or /docs for the raw API.
 """
 
 import os
@@ -29,6 +29,7 @@ from typing import Any, Callable
 
 from fastapi import FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -51,6 +52,8 @@ from gen_def.pydantic.query.find_blocked_batches import (
     FindBlockedBatchesOutput,
 )
 from gen_def.pydantic.query.trace_provenance import TraceProvenanceInput, TraceProvenanceOutput
+from gen_def.pydantic.query.list_recipes import ListRecipesInput, ListRecipesOutput
+from gen_def.pydantic.query.list_batches import ListBatchesInput, ListBatchesOutput
 
 from gen_def.sqla.models.catalog import Base as CatalogBase
 from gen_def.sqla.models.batches import Base as BatchesBase
@@ -192,6 +195,31 @@ def find_blocked_batches(entity_type: str) -> FindBlockedBatchesOutput:
 @app.get("/provenance/{entity_id}", response_model=TraceProvenanceOutput, tags=["queries"])
 def trace_provenance(entity_id: str) -> TraceProvenanceOutput:
     return run_query(lambda k: k.trace_provenance(TraceProvenanceInput(entity_id=entity_id)))
+
+
+@app.get("/recipes", response_model=ListRecipesOutput, tags=["queries"])
+def list_recipes() -> ListRecipesOutput:
+    return run_query(lambda k: k.list_recipes(ListRecipesInput()))
+
+
+@app.get("/batches", response_model=ListBatchesOutput, tags=["queries"])
+def list_batches() -> ListBatchesOutput:
+    return run_query(lambda k: k.list_batches(ListBatchesInput()))
+
+
+# --- Host admin (a demo affordance, not a domain command) ---
+@app.post("/reset", tags=["host"])
+def reset() -> dict[str, str]:
+    """Drop and recreate every model table, so the UI can restart cleanly."""
+    for base in (CatalogBase, BatchesBase, InventoryBase, ProvenanceBase):
+        base.metadata.drop_all(engine)
+        base.metadata.create_all(engine)
+    return {"status": "reset"}
+
+
+# --- The browser UI, served from this same app at / (must be mounted last) ---
+UI_DIR = Path(__file__).parent / "ui"
+app.mount("/", StaticFiles(directory=str(UI_DIR), html=True), name="ui")
 
 
 if __name__ == "__main__":

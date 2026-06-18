@@ -17,6 +17,8 @@ members = [
   "query/check_inventory",
   "query/find_blocked_batches",
   "query/trace_provenance",
+  "query/list_recipes",
+  "query/list_batches",
   "projection/ingredient_catalog",
   "projection/tool_catalog",
   "projection/recipe_catalog",

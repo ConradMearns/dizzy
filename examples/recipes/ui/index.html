@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Recipe kitchen</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Recipe kitchen</h1>
+    <p class="sub">
+      A chained, event-sourced workflow. Seed the demo, start the three batches, then
+      advance the starter once and watch the policy cascade through loaf and croutons.
+    </p>
+    <div class="actions">
+      <button id="seed">Seed sourdough demo</button>
+      <button id="reset" class="ghost">Reset</button>
+      <span id="status" class="status"></span>
+    </div>
+  </header>
+
+  <main>
+    <section id="board-panel" class="panel">
+      <h2>Batch board</h2>
+      <div id="start-bar" class="start-bar"></div>
+      <div class="board">
+        <div class="column" data-status="blocked">
+          <h3>Blocked</h3>
+          <div class="cards" id="col-blocked"></div>
+        </div>
+        <div class="column" data-status="ready">
+          <h3>Ready</h3>
+          <div class="cards" id="col-ready"></div>
+        </div>
+        <div class="column" data-status="completed">
+          <h3>Completed</h3>
+          <div class="cards" id="col-completed"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="graph-panel" class="panel">
+      <h2>Provenance graph <span class="hint">prov:wasDerivedFrom &mdash; click a node to trace</span></h2>
+      <svg id="graph" viewBox="0 0 900 220" preserveAspectRatio="xMinYMid meet"></svg>
+      <div id="trace" class="trace"></div>
+    </section>
+
+    <section id="log-panel" class="panel">
+      <h2>Event log <span class="hint">the PROV facts each command produced</span></h2>
+      <div id="log" class="log"></div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

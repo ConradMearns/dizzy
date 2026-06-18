@@ -40,6 +40,9 @@ def run_batch(
     steps = context.query.get_recipe_steps(GetRecipeStepsInput(recipe_id=recipe_id))
     inputs = context.query.get_step_inputs(GetStepInputsInput(recipe_id=recipe_id))
 
+    if not steps.step_orders:
+        raise ValueError(f"recipe {recipe_id} has no steps to run")
+
     now = datetime.now(timezone.utc)
 
     # Perform each step as a PROV activity, consuming its ingredient inputs.

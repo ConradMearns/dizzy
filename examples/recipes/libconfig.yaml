@@ -36,6 +36,10 @@ queries:
     runtimes: [python-uv]
   trace_provenance:
     runtimes: [python-uv]
+  list_recipes:
+    runtimes: [python-uv]
+  list_batches:
+    runtimes: [python-uv]
 
 projections:
   ingredient_catalog:
