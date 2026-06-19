@@ -1,13 +1,15 @@
 # DIZZY
 
-**DIZZY is a methodology for writing event-sourced software.**
+> ⚠️ **Research code.**
+> DIZZY is a work in progress.
+> The Python (`python-uv`) path is the most complete;
+>  the `rust-cargo` and `typescript-npm` runtimes are experimental.
 
-**HYPOTHESIS**
 A business Domain can be expressed a single artifact that is the litare design and source of implementation.
 Readable as prose, but precise enough to generate a checkable implementation against.
 As the entry point of change - the system stays tractable as the domain grows.
 
-DIZZY defines a single feature-fule that declares every component of the domain: 
+DIZZY defines a single feature-file that declares every component of the domain: 
 commands, procedures, events, policies, projections, models, queries and queriers.
 
 Code, typed contracts, deployment, stubs and tests are generated from the feature file as redistributable libraries in multiple languages.
@@ -16,14 +18,10 @@ The goal is **reproducible, redistributable and literate software**: features de
 with no architecture or database baked in,
 so the same definition can target different runtimes and deployments.
 
-> ⚠️ **Research code.**
-> DIZZY is a work in progress.
-> The Python (`python-uv`) path is the most complete;
->  the `rust-cargo` and `typescript-npm` runtimes are experimental.
 
 ## Why DIZZY ?
 
-If the hypothesis holds - then programs built to service DIZZY features will serve all libraries implemented in DIZZY.
+The core hypothesis is that programs built to service DIZZY features will serve all libraries implemented in DIZZY.
 
 If and when built for DIZZY, each additional system applies to all DIZZY libraries.
 
@@ -113,7 +111,7 @@ the implementation stubs in `lib/`) are never clobbered.
 # 1. scaffold LinkML schemas + libconfig.yaml from the feat file
 dizzy generate definitions  guestbook.feat.yaml ./out
 
-#    ✍️  fill in field-level detail in out/def/*.yaml
+#        fill in field-level detail in out/def/*.yaml
 #        (attributes on commands/events, model classes, query input/output)
 
 # 2. compile schemas → the gen_def/gen_int type packages under lib/python-uv/
@@ -122,7 +120,7 @@ dizzy generate static  guestbook.feat.yaml ./out
 # 3. package each element into a redistributable per-runtime library
 dizzy generate libraries  guestbook.feat.yaml ./out
 
-#    ✍️  implement the bodies in
+#        implement the bodies in
 #        out/lib/python-uv/{procedure,policy,projection,query}/<name>/src/*.py
 ```
 
