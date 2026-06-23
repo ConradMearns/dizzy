@@ -1,0 +1,16 @@
+# Dizzy library configuration — assign runtimes to each element
+# Supported runtimes: python-uv | rust-cargo | typescript-npm
+
+procedures:
+  run_agent_turn:
+    runtimes: [python-uv]
+
+queries:
+  get_conversation:
+    runtimes: [python-uv]
+
+projections:
+  conversation_log:
+    runtimes: [python-uv]
+  conversation_log_replies:
+    runtimes: [python-uv]

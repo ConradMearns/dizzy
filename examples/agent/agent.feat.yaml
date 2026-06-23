@@ -20,16 +20,16 @@ description: |
 commands:
   send_message: |
     A user wants to send a message to a conversation.
-    Carries conversation_id, role (user), and content.
+    Carries session_id (the shared conversation key), role (user), and content.
 
 # ── Immutable facts ──────────────────────────────────────────────────────
 events:
   user_message_sent: |
     A user message was appended to a conversation.
-    Carries conversation_id, content, and sent_at.
+    Carries session_id, content, and sent_at.
   agent_replied: |
     The agent completed a reply in a conversation.
-    Carries conversation_id, content, replied_at, and token/cost telemetry
+    Carries session_id, content, replied_at, and token/cost telemetry
     (prompt_tokens, completion_tokens, total_tokens, cost_usd). Telemetry is
     observed provenance from the model provider, not a derivation.
 
@@ -61,15 +61,15 @@ procedures:
       - user_message_sent
       - agent_replied
     environment:
-      - model
+      - llm
     telemetry:
       - stream_chunk
 
 # ── Injected constants (in place of os env) ──────────────────────────────
 environment:
-  model: |
-    The LLM model configuration to call for this turn (e.g. provider, model
-    name, decoding params). Injected by the host in place of reading os env.
+  llm: |
+    The LLM client configuration for this turn — model, API key, and base URL.
+    Injected by the host in place of reading os env.
 
 # ── Host-injected observation sinks ──────────────────────────────────────
 telemetry:
@@ -84,6 +84,11 @@ models:
     description: |
       Append-only log of messages (user + assistant) per conversation, with
       per-reply token/cost telemetry. Rebuilt from events by the projection.
+
+      Every row relies on a shared `session_id` — the conversation key that
+      flows in from `send_message`, is recorded on both events, and scopes
+      every `get_conversation` read. A conversation is exactly the set of rows
+      sharing one `session_id`, ordered by timestamp.
     adapters:
       - sqla
 

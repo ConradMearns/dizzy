@@ -1,0 +1,9 @@
+[tool.uv.workspace]
+members = [
+  "gen_def",
+  "gen_int",
+  "procedure/run_agent_turn",
+  "query/get_conversation",
+  "projection/conversation_log",
+  "projection/conversation_log_replies",
+]
