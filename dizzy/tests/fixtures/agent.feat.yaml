@@ -1,0 +1,68 @@
+description: Agent Chat — exercises environment + telemetry across all function kinds.
+
+environment:
+  model: |
+    The LLM model configuration to call for this turn (provider, model name,
+    decoding params). Injected by the host in place of reading os env.
+
+telemetry:
+  stream_chunk: Sink for live LLM token chunks forwarded to the SSE transport.
+
+models:
+  conversations:
+    description: Append-only log of messages per conversation.
+    adapters:
+      - sqla
+
+queries:
+  get_conversation:
+    description: List all messages in a conversation in chronological order.
+    model: conversations
+    adapter: sqla
+    environment:
+      - model
+    telemetry:
+      - stream_chunk
+
+commands:
+  send_message: A user wants to send a message to a conversation.
+
+events:
+  user_message_sent: A user message was appended to a conversation.
+  agent_replied: The agent completed a reply in a conversation.
+
+procedures:
+  run_agent_turn:
+    description: Handle a user message by producing an agent reply.
+    command: send_message
+    queries:
+      - get_conversation
+    emits:
+      - user_message_sent
+      - agent_replied
+    environment:
+      - model
+    telemetry:
+      - stream_chunk
+
+policies:
+  notify_on_reply:
+    description: React to a completed reply.
+    event: agent_replied
+    emits:
+      - send_message
+    environment:
+      - model
+    telemetry:
+      - stream_chunk
+
+projections:
+  conversation_log:
+    description: Fold messages into the conversations model.
+    event: user_message_sent
+    model: conversations
+    adapter: sqla
+    environment:
+      - model
+    telemetry:
+      - stream_chunk

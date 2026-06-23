@@ -31,7 +31,17 @@ def _normalize_section(raw: dict, section: str) -> None:
     raw[section] = normalised
 
 
-_SECTIONS = ("models", "queries", "commands", "events", "procedures", "policies", "projections")
+_SECTIONS = (
+    "models",
+    "queries",
+    "commands",
+    "events",
+    "procedures",
+    "policies",
+    "projections",
+    "environment",
+    "telemetry",
+)
 
 
 def _normalize(raw: dict) -> dict:
@@ -62,6 +72,21 @@ def validate_feat(feat: FeatureDefinition) -> list[str]:
     query_names = {q.name for q in feat.queries or []}
     model_names = {m.name for m in feat.models or []}
     models_by_name = {m.name: m for m in feat.models or []}
+    environment_names = {e.name for e in feat.environment or []}
+    telemetry_names = {t.name for t in feat.telemetry or []}
+
+    def _check_extras(kind: str, item) -> None:
+        """Validate environment/telemetry references on a function definition."""
+        for name in getattr(item, "environment", None) or []:
+            if name not in environment_names:
+                errors.append(
+                    f"{kind} '{item.name}': environment '{name}' not declared in environment"
+                )
+        for name in getattr(item, "telemetry", None) or []:
+            if name not in telemetry_names:
+                errors.append(
+                    f"{kind} '{item.name}': telemetry '{name}' not declared in telemetry"
+                )
 
     for proc in feat.procedures or []:
         if proc.command not in command_names:
@@ -78,6 +103,7 @@ def validate_feat(feat: FeatureDefinition) -> list[str]:
                 errors.append(
                     f"procedure '{proc.name}': emits '{e}' not declared in events"
                 )
+        _check_extras("procedure", proc)
 
     for policy in feat.policies or []:
         if policy.event not in event_names:
@@ -94,6 +120,7 @@ def validate_feat(feat: FeatureDefinition) -> list[str]:
                 errors.append(
                     f"policy '{policy.name}': emits '{e}' not declared in commands"
                 )
+        _check_extras("policy", policy)
 
     for proj in feat.projections or []:
         if proj.event not in event_names:
@@ -104,8 +131,10 @@ def validate_feat(feat: FeatureDefinition) -> list[str]:
             errors.append(
                 f"projection '{proj.name}': model '{proj.model}' not declared in models"
             )
+        _check_extras("projection", proj)
 
     for query in feat.queries or []:
+        _check_extras("querier", query)
         if query.model is not None and query.model not in model_names:
             errors.append(
                 f"query '{query.name}': model '{query.model}' not declared in models"

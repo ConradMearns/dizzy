@@ -5,6 +5,7 @@ from pathlib import Path
 from linkml_runtime.utils.formatutils import camelcase
 
 from dizzy.feat_schema import PolicyDef
+from dizzy.generators.context_extras import render_context_extras
 from dizzy.generators.paths import gen_int_root
 from dizzy.logger import logger
 
@@ -15,12 +16,14 @@ def render_policy_context(policy: PolicyDef) -> str:
     queries_class = f"{policy.name}_queries"
     context_class = f"{policy.name}_context"
 
+    extras = render_context_extras(policy.name, policy.environment, policy.telemetry)
+
     lines = ["# AUTO-GENERATED — do not edit"]
     lines.append("from dataclasses import dataclass")
-    if policy.emits or policy.queries:
+    if policy.emits or policy.queries or extras.needs_callable:
         lines.append("from typing import Callable")
 
-    if policy.emits or policy.queries:
+    if policy.emits or policy.queries or extras.imports:
         lines.append("")
         for cmd_name in policy.emits:
             lines.append(f"from gen_def.pydantic.commands import {camelcase(cmd_name)}")
@@ -29,6 +32,7 @@ def render_policy_context(policy: PolicyDef) -> str:
                 f"from gen_def.pydantic.query.{query_name} import "
                 f"{camelcase(query_name)}Input, {camelcase(query_name)}Output"
             )
+        lines.extend(extras.imports)
 
     # emitters dataclass
     lines.append("")
@@ -55,6 +59,9 @@ def render_policy_context(policy: PolicyDef) -> str:
                 f"[[{camelcase(query_name)}Input], {camelcase(query_name)}Output]"
             )
 
+    # env / telemetry dataclasses
+    lines.extend(extras.classes)
+
     # context dataclass
     lines.append("")
     lines.append("")
@@ -63,6 +70,7 @@ def render_policy_context(policy: PolicyDef) -> str:
     lines.append(f"    emit: {emitters_class}")
     if policy.queries:
         lines.append(f"    query: {queries_class}")
+    lines.extend(extras.fields)
 
     lines.append("")
     return "\n".join(lines)

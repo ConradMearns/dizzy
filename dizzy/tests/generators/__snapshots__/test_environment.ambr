@@ -1,0 +1,19 @@
+# serializer version: 1
+# name: test_render_scaffold_environment_snapshot
+  '''
+  id: https://example.org/environment
+  name: environment
+  prefixes:
+    linkml: https://w3id.org/linkml/
+  default_range: string
+  imports:
+    - linkml:types
+  classes:
+    model:
+      description: |-
+        The LLM model configuration to call for this turn (provider, model name,
+        decoding params). Injected by the host in place of reading os env.
+      attributes: {}
+  
+  '''
+# ---

@@ -1,0 +1,114 @@
+description: |
+  Agent Chat — a conversational agent with a streaming web UI.
+
+  Users send messages to a conversation; an LLM-backed procedure streams its
+  reply to the client over SSE, then records the completed reply (plus token /
+  cost telemetry) as a durable event. Conversation history is rebuilt from
+  events via a projection and served back to the UI through queries.
+
+  Two loops:
+
+    send_message → run_agent_turn → agent_replied → (none)                (reactivity)
+    user_message_sent / agent_replied → conversation_log → conversations  (data)
+
+  Streaming note: live token streaming is a TRANSPORT concern handled inside
+  the `run_agent_turn` procedure (it forwards LLM chunks to an SSE sink before
+  emitting anything). The event stream records only completed facts, never
+  individual tokens.
+
+# ── Write intents ────────────────────────────────────────────────────────
+commands:
+  send_message: |
+    A user wants to send a message to a conversation.
+    Carries conversation_id, role (user), and content.
+
+# ── Immutable facts ──────────────────────────────────────────────────────
+events:
+  user_message_sent: |
+    A user message was appended to a conversation.
+    Carries conversation_id, content, and sent_at.
+  agent_replied: |
+    The agent completed a reply in a conversation.
+    Carries conversation_id, content, replied_at, and token/cost telemetry
+    (prompt_tokens, completion_tokens, total_tokens, cost_usd). Telemetry is
+    observed provenance from the model provider, not a derivation.
+
+# ── Business logic ───────────────────────────────────────────────────────
+procedures:
+  run_agent_turn:
+    description: |
+      Handle a user message by producing an agent reply.
+
+      1. Read prior conversation history via `get_conversation` so the LLM has
+         context.
+      2. Emit `user_message_sent` to durably record the user's message.
+      3. Call the LLM with stream=True, forwarding each token chunk to the
+         caller-supplied telemetry sink.
+      4. On stream completion, emit `agent_replied` carrying the full reply
+         text and the aggregate token/cost usage returned by the provider.
+
+      ```mermaid
+      flowchart TD
+        cmd[send_message] --> hist[get_conversation]
+        hist --> umsg[user_message_sent]
+        umsg --> llm[LLM stream]
+        llm -- chunks --> telemetry[Chunk Stream]
+        llm -- done --> reply[agent_replied + usage]
+      ```
+    command: send_message
+    queries: [get_conversation]
+    emits:
+      - user_message_sent
+      - agent_replied
+    environment:
+      - model
+    telemetry:
+      - stream_chunk
+
+# ── Injected constants (in place of os env) ──────────────────────────────
+environment:
+  model: |
+    The LLM model configuration to call for this turn (e.g. provider, model
+    name, decoding params). Injected by the host in place of reading os env.
+
+# ── Host-injected observation sinks ──────────────────────────────────────
+telemetry:
+  stream_chunk: |
+    Sink for live LLM token chunks. `run_agent_turn` calls it per chunk to
+    forward streamed output to the SSE transport. A transport concern — never
+    recorded as an event.
+
+# ── Read-optimized state ─────────────────────────────────────────────────
+models:
+  conversations:
+    description: |
+      Append-only log of messages (user + assistant) per conversation, with
+      per-reply token/cost telemetry. Rebuilt from events by the projection.
+    adapters:
+      - sqla
+
+# ── Build read state from events ─────────────────────────────────────────
+projections:
+  conversation_log:
+    description: |
+      Fold `user_message_sent` and `agent_replied` into the conversations
+      model as ordered message rows, preserving role, content, timestamps,
+      and (for assistant rows) token/cost telemetry.
+    event: user_message_sent
+    model: conversations
+    adapter: sqla
+  conversation_log_replies:
+    description: Fold `agent_replied` rows (with telemetry) into the conversations model.
+    event: agent_replied
+    model: conversations
+    adapter: sqla
+
+# ── Read state back out ──────────────────────────────────────────────────
+queries:
+  get_conversation:
+    description: |
+      List all messages in a conversation in chronological order, including
+      role, content, timestamps, and assistant token/cost telemetry. Used by
+      the UI to render history and by `run_agent_turn` for LLM context.
+    model: conversations
+    adapter: sqla

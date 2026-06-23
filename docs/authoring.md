@@ -84,7 +84,8 @@ procedures:
     emits: [receipt_ingested, receipt_item_ingested]
 ```
 
-Fields: `command` (required), `queries` (optional list), `emits` (optional list).
+Fields: `command` (required), `queries` (optional list), `emits` (optional list),
+`environment` (optional list), `telemetry` (optional list).
 
 ### Policies
 Event-driven reaction handlers. Each policy listens to one event, may consult queries
@@ -102,7 +103,8 @@ policies:
 ```
 
 Fields: `event` (required), `queries` (optional list of query names), `emits` (optional
-list of command names). See `examples/library/` for a runnable policy-with-query feature.
+list of command names), `environment` (optional list), `telemetry` (optional list).
+See `examples/library/` for a runnable policy-with-query feature.
 
 ### Projections
 Read-model builders. Respond to one event and write denormalized state into a model
@@ -118,7 +120,47 @@ projections:
 ```
 
 Fields: `description` (required), `event` (required), `model` (optional),
-`adapter` (required if model set).
+`adapter` (required if model set), `environment` (optional list),
+`telemetry` (optional list).
+
+### Environment and Telemetry (context inputs)
+
+Two optional top-level sections supply extra inputs to a function's `context`.
+Neither is a component — they are injected dependencies, declared once and
+referenced by name from procedures, policies, projections, and queriers.
+
+**Environment** declares injected constants/variables — acquired from the host
+in place of reading `os.environ`. Each entry names a shape you author in
+`def/environment.yaml`; it surfaces as `context.env.<name>`.
+
+**Telemetry** declares host-injected observation sinks — callables the function
+invokes with a typed payload (the emitters pattern, but for observation rather
+than durable facts). A telemetry call is a *transport* concern: streamed tokens,
+progress, metrics. It is **never** recorded as an event. Each entry names the
+payload shape you author in `def/telemetry.yaml`; it surfaces as
+`context.telemetry.<name>(payload)`.
+
+```yaml
+environment:
+  model: |
+    The LLM model configuration (provider, model name, decoding params),
+    injected by the host in place of an os env var.
+
+telemetry:
+  stream_chunk: Sink for live LLM token chunks forwarded to the SSE transport.
+
+procedures:
+  run_agent_turn:
+    description: Stream an agent reply, then record the completed fact.
+    command: send_message
+    emits: [agent_replied]
+    environment: [model]
+    telemetry: [stream_chunk]
+```
+
+Any of `procedures`, `policies`, `projections`, and `queries` (the querier)
+may carry `environment` and `telemetry` lists. Each referenced name must be
+declared in the top-level `environment` / `telemetry` sections.
 
 ---
 
@@ -324,6 +366,39 @@ classes:
         range: string
 ```
 
+### def/environment.yaml
+Present only when the feature declares an `environment` section. Fill in the
+attributes of each injected-constant class. The class compiles to a Pydantic
+shape surfaced as `context.env.<name>`.
+
+```yaml
+classes:
+  model:
+    description: The LLM model configuration injected in place of an os env var.
+    attributes:
+      provider:
+        range: string
+        required: true
+      name:
+        range: string
+        required: true
+```
+
+### def/telemetry.yaml
+Present only when the feature declares a `telemetry` section. Fill in the
+attributes of each sink-payload class — the shape the function passes into
+`context.telemetry.<name>(payload)`.
+
+```yaml
+classes:
+  stream_chunk:
+    description: A single streamed LLM token chunk.
+    attributes:
+      delta:
+        range: string
+        required: true
+```
+
 All def files use `linkml:types` imports. The key authoring surface is the
 `attributes:` map on each class, using `range:` for types and `required:` for
 required fields.
@@ -350,6 +425,10 @@ def extract_receipt_data_from_image(
     # Emit events via context.emit.receipt_ingested(event)
     raise NotImplementedError
 ```
+
+If the procedure declares `environment` / `telemetry`, read injected constants
+from `context.env.<name>` and push observations to `context.telemetry.<name>(payload)`.
+Telemetry calls are transport-only — emit an event to record any durable fact.
 
 ### lib/python-uv/policy/<name>/src/<name>.py
 You receive `event` and `context`. Use `context.emit.<command_name>(cmd)` to

@@ -20,3 +20,7 @@ def test_render_gen_query_protocol_no_adapter(partial_feat, snapshot: SnapshotAs
 
 def test_render_src_query_stub(snapshot: SnapshotAssertion):
     assert render_src_query_stub("get_recipe_text") == snapshot
+
+
+def test_render_gen_query_protocol_with_env_telemetry(agent_feat, snapshot: SnapshotAssertion):
+    assert render_gen_query_protocol(by_name(agent_feat.queries, "get_conversation")) == snapshot

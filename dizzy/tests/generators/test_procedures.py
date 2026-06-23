@@ -20,3 +20,7 @@ def test_render_procedure_protocol_snapshot(recipe_feat, snapshot: SnapshotAsser
 
 def test_render_src_procedure_stub_snapshot(recipe_feat, snapshot: SnapshotAssertion):
     assert render_src_procedure_stub(by_name(recipe_feat.procedures, "extract_and_transform_recipe")) == snapshot
+
+
+def test_render_procedure_context_with_env_telemetry_snapshot(agent_feat, snapshot: SnapshotAssertion):
+    assert render_procedure_context(by_name(agent_feat.procedures, "run_agent_turn")) == snapshot

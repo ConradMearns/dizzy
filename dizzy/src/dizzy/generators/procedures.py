@@ -5,6 +5,7 @@ from pathlib import Path
 from linkml_runtime.utils.formatutils import camelcase
 
 from dizzy.feat_schema import ProcedureDef
+from dizzy.generators.context_extras import render_context_extras
 from dizzy.generators.paths import gen_int_root
 from dizzy.logger import logger
 
@@ -15,12 +16,14 @@ def render_procedure_context(proc: ProcedureDef) -> str:
     queries_class = f"{proc.name}_queries"
     context_class = f"{proc.name}_context"
 
+    extras = render_context_extras(proc.name, proc.environment, proc.telemetry)
+
     lines = ["# AUTO-GENERATED — do not edit"]
     lines.append("from dataclasses import dataclass")
-    if proc.emits or proc.queries:
+    if proc.emits or proc.queries or extras.needs_callable:
         lines.append("from typing import Callable")
 
-    if proc.emits or proc.queries:
+    if proc.emits or proc.queries or extras.imports:
         lines.append("")
         for event_name in proc.emits:
             lines.append(f"from gen_def.pydantic.events import {camelcase(event_name)}")
@@ -29,6 +32,7 @@ def render_procedure_context(proc: ProcedureDef) -> str:
                 f"from gen_def.pydantic.query.{query_name} import "
                 f"{camelcase(query_name)}Input, {camelcase(query_name)}Output"
             )
+        lines.extend(extras.imports)
 
     # emitters dataclass
     lines.append("")
@@ -55,6 +59,9 @@ def render_procedure_context(proc: ProcedureDef) -> str:
                 f"[[{camelcase(query_name)}Input], {camelcase(query_name)}Output]"
             )
 
+    # env / telemetry dataclasses
+    lines.extend(extras.classes)
+
     # context dataclass
     lines.append("")
     lines.append("")
@@ -63,6 +70,7 @@ def render_procedure_context(proc: ProcedureDef) -> str:
     lines.append(f"    emit: {emitters_class}")
     if proc.queries:
         lines.append(f"    query: {queries_class}")
+    lines.extend(extras.fields)
 
     lines.append("")
     return "\n".join(lines)

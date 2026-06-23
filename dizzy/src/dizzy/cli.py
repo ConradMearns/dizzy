@@ -10,6 +10,8 @@ from dizzy.logger import logger, setup_logging
 from dizzy.feat_loader import load_feat, validate_feat
 from dizzy.generators.commands import write_scaffold_commands
 from dizzy.generators.events import write_scaffold_events
+from dizzy.generators.environment import write_scaffold_environment
+from dizzy.generators.telemetry import write_scaffold_telemetry
 from dizzy.generators.queries import (
     write_scaffold_query,
     write_gen_query_protocol,
@@ -92,6 +94,12 @@ def def_cmd(
     if feat.events:
         write_scaffold_events(feat.events, output_dir)
 
+    if feat.environment:
+        write_scaffold_environment(feat.environment, output_dir)
+
+    if feat.telemetry:
+        write_scaffold_telemetry(feat.telemetry, output_dir)
+
     for query in feat.queries or []:
         write_scaffold_query(query, output_dir)
 
@@ -129,6 +137,10 @@ def gen(
         missing.append("def/commands.yaml")
     if feat.events and not (output_dir / "def" / "events.yaml").exists():
         missing.append("def/events.yaml")
+    if feat.environment and not (output_dir / "def" / "environment.yaml").exists():
+        missing.append("def/environment.yaml")
+    if feat.telemetry and not (output_dir / "def" / "telemetry.yaml").exists():
+        missing.append("def/telemetry.yaml")
     for query in feat.queries or []:
         stub = output_dir / "def" / "queries" / f"{query.name}.yaml"
         if not stub.exists():
@@ -158,6 +170,18 @@ def gen(
         run_linkml_pydantic(
             output_dir / "def" / "events.yaml",
             gen_def / "pydantic" / "events.py",
+        )
+
+    if feat.environment:
+        run_linkml_pydantic(
+            output_dir / "def" / "environment.yaml",
+            gen_def / "pydantic" / "environment.py",
+        )
+
+    if feat.telemetry:
+        run_linkml_pydantic(
+            output_dir / "def" / "telemetry.yaml",
+            gen_def / "pydantic" / "telemetry.py",
         )
 
     for query in feat.queries or []:

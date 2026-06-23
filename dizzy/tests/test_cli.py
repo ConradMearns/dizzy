@@ -136,6 +136,38 @@ def test_gen_error_when_def_missing(tmp_path: Path, caplog: pytest.LogCaptureFix
     assert "def/commands.yaml" in caplog.text
 
 
+def test_def_creates_environment_and_telemetry_stubs(tmp_path: Path) -> None:
+    def_cmd(feat_file=FIXTURES_DIR / "agent.feat.yaml", output_dir=tmp_path)
+
+    assert (tmp_path / "def" / "environment.yaml").exists()
+    assert (tmp_path / "def" / "telemetry.yaml").exists()
+
+
+def test_def_omits_environment_telemetry_when_absent(tmp_path: Path) -> None:
+    def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+
+    assert not (tmp_path / "def" / "environment.yaml").exists()
+    assert not (tmp_path / "def" / "telemetry.yaml").exists()
+
+
+def test_gen_compiles_environment_and_telemetry(tmp_path: Path) -> None:
+    def_cmd(feat_file=FIXTURES_DIR / "agent.feat.yaml", output_dir=tmp_path)
+    gen(feat_file=FIXTURES_DIR / "agent.feat.yaml", output_dir=tmp_path)
+
+    gen_def = tmp_path / "lib" / "python-uv" / "gen_def" / "gen_def"
+    gen_int = tmp_path / "lib" / "python-uv" / "gen_int" / "gen_int"
+
+    assert (gen_def / "pydantic" / "environment.py").exists()
+    assert (gen_def / "pydantic" / "telemetry.py").exists()
+
+    # The procedure context imports the compiled env/telemetry shapes.
+    ctx = (gen_int / "python" / "procedure" / "run_agent_turn_context.py").read_text()
+    assert "from gen_def.pydantic.environment import Model" in ctx
+    assert "from gen_def.pydantic.telemetry import StreamChunk" in ctx
+    assert "env: run_agent_turn_env" in ctx
+    assert "telemetry: run_agent_turn_telemetry" in ctx
+
+
 def test_def_partial_feat(tmp_path: Path) -> None:
     def_cmd(feat_file=FIXTURES_DIR / "partial.feat.yaml", output_dir=tmp_path)
 

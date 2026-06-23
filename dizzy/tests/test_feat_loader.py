@@ -77,6 +77,17 @@ class TestLoadFeat:
         assert proj.model == "recipes"
         assert proj.adapter == "sqla"
 
+    def test_environment_and_telemetry_sections(self):
+        feat = load_feat(FIXTURES_DIR / "agent.feat.yaml")
+        assert _by_name(feat.environment, "model").description.startswith("The LLM model")
+        assert _by_name(feat.telemetry, "stream_chunk")
+        proc = _by_name(feat.procedures, "run_agent_turn")
+        assert proc.environment == ["model"]
+        assert proc.telemetry == ["stream_chunk"]
+        querier = _by_name(feat.queries, "get_conversation")
+        assert querier.environment == ["model"]
+        assert querier.telemetry == ["stream_chunk"]
+
     def test_loads_partial(self):
         feat = load_feat(FIXTURES_DIR / "partial.feat.yaml")
         assert any(c.name == "do_thing" for c in feat.commands)
@@ -100,6 +111,52 @@ class TestValidateFeat:
 
     def test_valid_partial(self, partial_feat):
         assert validate_feat(partial_feat) == []
+
+    def test_valid_agent(self, agent_feat):
+        assert validate_feat(agent_feat) == []
+
+    def test_procedure_unknown_environment(self):
+        feat = FeatureDefinition(
+            commands=[CommandDef(name="do_thing", description="does a thing")],
+            procedures=[
+                ProcedureDef(
+                    name="my_proc",
+                    description="proc",
+                    command="do_thing",
+                    environment=["missing_env"],
+                )
+            ],
+        )
+        errors = validate_feat(feat)
+        assert any("environment 'missing_env'" in e for e in errors)
+
+    def test_procedure_unknown_telemetry(self):
+        feat = FeatureDefinition(
+            commands=[CommandDef(name="do_thing", description="does a thing")],
+            procedures=[
+                ProcedureDef(
+                    name="my_proc",
+                    description="proc",
+                    command="do_thing",
+                    telemetry=["missing_sink"],
+                )
+            ],
+        )
+        errors = validate_feat(feat)
+        assert any("telemetry 'missing_sink'" in e for e in errors)
+
+    def test_querier_unknown_telemetry(self):
+        feat = FeatureDefinition(
+            queries=[
+                QueryDef(
+                    name="my_query",
+                    description="query",
+                    telemetry=["missing_sink"],
+                )
+            ],
+        )
+        errors = validate_feat(feat)
+        assert any("querier 'my_query': telemetry 'missing_sink'" in e for e in errors)
 
     def test_procedure_unknown_command(self):
         feat = FeatureDefinition(
