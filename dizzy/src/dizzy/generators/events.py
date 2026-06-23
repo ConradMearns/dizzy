@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from dizzy.feat_schema import EventDef
+from dizzy.generators.yaml_util import description_lines
 from dizzy.logger import logger
 
 
@@ -20,7 +21,7 @@ def render_scaffold_events(events: list[EventDef]) -> str:
     ]
     for evt in events:
         lines.append(f"  {evt.name}:")
-        lines.append(f"    description: {evt.description}")
+        lines.extend(description_lines(evt.description, "    "))
         lines.append("    attributes: {}")
     lines.append("")
     return "\n".join(lines)

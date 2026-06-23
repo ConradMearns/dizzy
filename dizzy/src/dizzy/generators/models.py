@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from dizzy.feat_schema import ModelDef
+from dizzy.generators.yaml_util import description_lines
 from dizzy.logger import logger
 
 
@@ -11,7 +12,7 @@ def render_scaffold_model(model: ModelDef) -> str:
     lines = [
         f"id: https://example.org/models/{model.name}",
         f"name: {model.name}",
-        f"description: {model.description}",
+        *description_lines(model.description, ""),
         "prefixes:",
         "  linkml: https://w3id.org/linkml/",
         "default_range: string",

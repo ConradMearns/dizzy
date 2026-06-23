@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from dizzy.feat_schema import CommandDef
+from dizzy.generators.yaml_util import description_lines
 from dizzy.logger import logger
 
 
@@ -20,7 +21,7 @@ def render_scaffold_commands(commands: list[CommandDef]) -> str:
     ]
     for cmd in commands:
         lines.append(f"  {cmd.name}:")
-        lines.append(f"    description: {cmd.description}")
+        lines.extend(description_lines(cmd.description, "    "))
         lines.append("    attributes: {}")
     lines.append("")
     return "\n".join(lines)

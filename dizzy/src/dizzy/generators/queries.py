@@ -5,6 +5,7 @@ from pathlib import Path
 from dizzy.feat_schema import QueryDef
 from dizzy.generators.context_extras import render_context_extras
 from dizzy.generators.paths import gen_int_root
+from dizzy.generators.yaml_util import description_lines
 from dizzy.logger import logger
 
 
@@ -19,7 +20,7 @@ def render_scaffold_query(query: QueryDef) -> str:
     lines = [
         f"id: https://example.org/queries/{query.name}",
         f"name: {query.name}",
-        f"description: {query.description}",
+        *description_lines(query.description, ""),
         "prefixes:",
         "  linkml: https://w3id.org/linkml/",
         "default_range: string",
