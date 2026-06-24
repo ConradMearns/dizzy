@@ -25,16 +25,10 @@ load_dotenv(HERE / ".env")
 
 from gen_def.pydantic.commands import SendMessage
 from gen_def.pydantic.environment import Llm
-from gen_def.pydantic.events import UserMessageSent, AgentReplied
-from gen_def.pydantic.query.get_conversation import (
-    GetConversationInput,
-    GetConversationOutput,
-)
 from gen_int.python.procedure.run_agent_turn_context import (
     run_agent_turn_context,
     run_agent_turn_emitters,
     run_agent_turn_env,
-    run_agent_turn_queries,
     run_agent_turn_telemetry,
 )
 from run_agent_turn import run_agent_turn
@@ -51,41 +45,16 @@ def emit_event(event) -> None:
     EVENTS.append(event)
 
 
-# ── query closure: an inline projection folding events for one session ────
-def get_conversation(inp: GetConversationInput) -> GetConversationOutput:
-    roles, contents, created_ats, total_tokens = [], [], [], []
-    for e in EVENTS:
-        if e.session_id != inp.session_id:
-            continue
-        if isinstance(e, UserMessageSent):
-            roles.append("user")
-            contents.append(e.content)
-            created_ats.append(e.sent_at)
-            total_tokens.append(0)
-        elif isinstance(e, AgentReplied):
-            roles.append("assistant")
-            contents.append(e.content)
-            created_ats.append(e.replied_at)
-            total_tokens.append(e.total_tokens or 0)
-    return GetConversationOutput(
-        roles=roles,
-        contents=contents,
-        created_ats=created_ats,
-        total_tokens=total_tokens,
-    )
-
-
-# ── telemetry sink: stream chunks live to the CLI, capture usage ──────────
+# ── telemetry sinks: stream text live, capture usage separately ───────────
 captured = {}
 
 
 def stream_chunk(chunk) -> None:
-    if chunk.text:
-        print(chunk)
-        return
-        print(chunk.text, end="", flush=True)
-    if chunk.usage is not None:
-        captured["usage"] = chunk.usage
+    print(chunk.text, end="", flush=True)
+
+
+def usage(report) -> None:
+    captured["usage"] = report
 
 
 def build_context() -> run_agent_turn_context:
@@ -94,7 +63,6 @@ def build_context() -> run_agent_turn_context:
             user_message_sent=emit_event,
             agent_replied=emit_event,
         ),
-        query=run_agent_turn_queries(get_conversation=get_conversation),
         env=run_agent_turn_env(
             llm=Llm(
                 model=MODEL,
@@ -102,7 +70,7 @@ def build_context() -> run_agent_turn_context:
                 base_url=os.environ["OPENAI_API_BASE"],
             )
         ),
-        telemetry=run_agent_turn_telemetry(stream_chunk=stream_chunk),
+        telemetry=run_agent_turn_telemetry(stream_chunk=stream_chunk, usage=usage),
     )
 
 

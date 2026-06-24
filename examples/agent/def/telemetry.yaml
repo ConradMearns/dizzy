@@ -6,18 +6,9 @@ default_range: string
 imports:
   - linkml:types
 classes:
-  Usage:
-    description: Token usage reported by the provider for the turn so far.
-    attributes:
-      prompt_tokens:
-        range: integer
-      completion_tokens:
-        range: integer
-      total_tokens:
-        range: integer
   stream_chunk:
     description: |-
-      Sink for live LLM token chunks. `run_agent_turn` calls it per chunk to
+      A single live token delta. `run_agent_turn` calls this once per chunk to
       forward streamed output to the SSE transport. A transport concern — never
       recorded as an event.
     attributes:
@@ -25,6 +16,18 @@ classes:
         description: The incremental text delta for this chunk.
         range: string
         required: true
-      usage:
-        description: Cumulative token usage, present once the provider reports it.
-        range: Usage
+  usage:
+    description: |-
+      Turn-level token usage reported by the provider once, at stream
+      completion. An observation of provider provenance — never an event, and
+      not available per-chunk.
+    attributes:
+      prompt_tokens:
+        range: integer
+        required: true
+      completion_tokens:
+        range: integer
+        required: true
+      total_tokens:
+        range: integer
+        required: true

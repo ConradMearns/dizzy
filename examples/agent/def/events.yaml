@@ -42,16 +42,4 @@ classes:
         description: When the agent reply was recorded.
         range: datetime
         required: true
-      prompt_tokens:
-        range: integer
-        required: false
-      completion_tokens:
-        range: integer
-        required: false
-      total_tokens:
-        range: integer
-        required: false
-      cost_usd:
-        description: Provider-reported cost of the turn, in USD.
-        range: float
-        required: false
+      

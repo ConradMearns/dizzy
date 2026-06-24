@@ -112,10 +112,6 @@ class AgentReplied(ConfiguredBaseModel):
     session_id: str = Field(default=..., description="""Shared conversation key this reply belongs to.""", json_schema_extra = { "linkml_meta": {'domain_of': ['user_message_sent', 'agent_replied']} })
     content: str = Field(default=..., description="""The agent's full reply text.""", json_schema_extra = { "linkml_meta": {'domain_of': ['user_message_sent', 'agent_replied']} })
     replied_at: datetime  = Field(default=..., description="""When the agent reply was recorded.""", json_schema_extra = { "linkml_meta": {'domain_of': ['agent_replied']} })
-    prompt_tokens: Optional[int] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['agent_replied']} })
-    completion_tokens: Optional[int] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['agent_replied']} })
-    total_tokens: Optional[int] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['agent_replied']} })
-    cost_usd: Optional[float] = Field(default=None, description="""Provider-reported cost of the turn, in USD.""", json_schema_extra = { "linkml_meta": {'domain_of': ['agent_replied']} })
 
 
 # Model rebuild

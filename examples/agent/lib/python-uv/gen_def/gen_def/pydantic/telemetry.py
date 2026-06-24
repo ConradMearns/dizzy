@@ -88,30 +88,31 @@ linkml_meta = LinkMLMeta({'default_prefix': 'https://example.org/telemetry/',
      'source_file': 'examples/agent/def/telemetry.yaml'} )
 
 
-class Usage(ConfiguredBaseModel):
-    """
-    Token usage reported by the provider for the turn so far.
-    """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/telemetry'})
-
-    prompt_tokens: Optional[int] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['Usage']} })
-    completion_tokens: Optional[int] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['Usage']} })
-    total_tokens: Optional[int] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['Usage']} })
-
-
 class StreamChunk(ConfiguredBaseModel):
     """
-    Sink for live LLM token chunks. `run_agent_turn` calls it per chunk to
+    A single live token delta. `run_agent_turn` calls this once per chunk to
     forward streamed output to the SSE transport. A transport concern — never
     recorded as an event.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/telemetry'})
 
     text: str = Field(default=..., description="""The incremental text delta for this chunk.""", json_schema_extra = { "linkml_meta": {'domain_of': ['stream_chunk']} })
-    usage: Optional[Usage] = Field(default=None, description="""Cumulative token usage, present once the provider reports it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['stream_chunk']} })
+
+
+class Usage(ConfiguredBaseModel):
+    """
+    Turn-level token usage reported by the provider once, at stream
+    completion. An observation of provider provenance — never an event, and
+    not available per-chunk.
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/telemetry'})
+
+    prompt_tokens: int = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['usage']} })
+    completion_tokens: int = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['usage']} })
+    total_tokens: int = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['usage']} })
 
 
 # Model rebuild
 # see https://pydantic-docs.helpmanual.io/usage/models/#rebuilding-a-model
-Usage.model_rebuild()
 StreamChunk.model_rebuild()
+Usage.model_rebuild()
