@@ -28,64 +28,39 @@ You need DIZZY installed:
 $ dizzy --help | head -n 1
 ```
 
-Work in a fresh directory. The file edits in Step 3 ship as patches under `edits/` so
-you can apply them directly — grab that folder from the
-[tutorial source](https://github.com/PNNL/dizzy/tree/main/docs/tutorials/guestbook), or
-just make the highlighted changes by hand as you go:
+Work in a fresh directory. This tutorial's assets — the feature-file and the patches it
+applies in Step 3 — ship under the
+[tutorial source](https://github.com/PNNL/dizzy/tree/main/docs/tutorials/guestbook);
+grab that folder to follow along, or just copy each block by hand as you go:
 
 ```shell
-$ ls -1 edits
-commands.yaml.diff
-events.yaml.diff
+$ ls -1
+edits
+guestbook.feat.yaml
 ```
 
 ## Step 1 — Describe the feature
 
 The **feature-file** is the single source of truth: it declares every component of the
-domain in one readable artifact. Create `guestbook.feat.yaml`:
+domain in one readable artifact. Create `guestbook.feat.yaml` with this content (it also
+ships alongside the tutorial, so it's already in your working directory if you grabbed
+the folder):
 
-```shell
-$ cat > guestbook.feat.yaml <<'YAML'
-> description: Guestbook — visitors sign, signatures are stored and listed
->
-> commands:
->   sign_guestbook: A visitor wants to leave a signature
->
-> events:
->   guestbook_signed: A visitor signed the guestbook
->
-> procedures:
->   record_signature:
->     description: Validate the signature and record it as a fact
->     command: sign_guestbook
->     emits:
->       - guestbook_signed
->
-> models:
->   guestbook:
->     description: Stored guestbook signatures
->     adapters:
->       - sqla
->
-> projections:
->   signature_store:
->     description: Persist each signature into the guestbook model
->     event: guestbook_signed
->     model: guestbook
->     adapter: sqla
->
-> queries:
->   list_signatures:
->     description: List all guestbook signatures, newest first
->     model: guestbook
->     adapter: sqla
-> YAML
+```yaml title="guestbook.feat.yaml"
+--8<-- "tutorials/guestbook/guestbook.feat.yaml"
 ```
 
 That's the whole design. Each entry names a component and, where it matters, how the
 components connect (`record_signature` handles `sign_guestbook` and emits
 `guestbook_signed`; `signature_store` folds `guestbook_signed` into the `guestbook`
 model). Names are `snake_case`; LinkML will compile them to `PascalCase` classes later.
+
+A quick sanity check that the file is in place:
+
+```shell
+$ head -n 1 guestbook.feat.yaml
+description: Guestbook — visitors sign, signatures are stored and listed
+```
 
 ## Step 2 — Scaffold the schemas
 
