@@ -10,5 +10,5 @@ Learning-oriented lessons that take you through DIZZY hands-on.
 See also:
 
 - `dizzy onboard` — the agent-facing orientation.
-- [`examples/guestbook`](https://github.com/PNNL/dizzy/tree/main/examples/guestbook) —
-  the fully generated and implemented feature with a runnable demo.
+- [`examples/`](https://github.com/PNNL/dizzy/tree/main/examples) — larger worked features
+  (a policy consulting a query; a multi-step policy-driven cascade).

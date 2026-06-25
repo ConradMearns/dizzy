@@ -6,10 +6,10 @@ contexts, adapters, model tables) and the per-element packages under
 `lib/python-uv/`; this file just connects them.
 
 Everything imported here is an installed workspace package, so run demo inside
-the workspace environment (from the repo root):
+the generated workspace environment:
 
-    uv sync --project examples/guestbook/lib/python-uv
-    uv run --project examples/guestbook/lib/python-uv python examples/guestbook/demo.py
+    uv sync --project lib/python-uv
+    uv run --project lib/python-uv python demo.py
 """
 
 from sqlalchemy import create_engine

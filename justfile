@@ -30,10 +30,13 @@ fmt-check:
 # Everything CI runs, in the same order. Tests are the gate; the rest are advisory.
 ci: lint fmt-check check test
 
-# Regenerate the example features and fail if anything drifted from what's committed.
+# Regenerate a committed example and fail if any tracked file drifted. The compiled
+# type packages (gen_def/gen_int) are gitignored, so this checks the element packages
+# and authored sources only. (guestbook's end-to-end check now lives in tutorials-check.)
 examples-check:
-    uv run dizzy generate libraries examples/guestbook/guestbook.feat.yaml examples/guestbook
-    git diff --exit-code examples/guestbook
+    uv run dizzy generate static examples/library/library.feat.yaml examples/library
+    uv run dizzy generate libraries examples/library/library.feat.yaml examples/library
+    git diff --exit-code examples/library
 
 # --- Build ---
 
@@ -57,11 +60,6 @@ docs-serve:
 # Build the docs site into site/ and fail on any warning.
 docs-build:
     uv run --group docs mkdocs build --strict
-
-# Re-derive a tutorial's assets (feature-file, demo.py, edits/*.diff) from its worked
-# example under examples/<name>/. Edit the example, then run this to refresh the diffs.
-tutorial-capture name:
-    uv run --project . python scripts/capture_tutorial.py {{name}}
 
 # Run every tutorial under docs/tutorials/ end-to-end in a throwaway sandbox and check
 # that each command + file matches the documented output (via byexample).

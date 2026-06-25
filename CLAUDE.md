@@ -31,8 +31,9 @@ how often a task needs them:
    components, `.feat.yaml` shape, what you author after each stage, generated layout,
    import conventions. Ships with the tool; printed by `dizzy docs authoring`.
 4. **`docs/reference/SPECIFICATION.md`** — the `.feat.yaml` format spec.
-5. **`examples/guestbook/`** — a fully generated *and implemented* feature with a
-   runnable demo.
+5. **`docs/tutorials/guestbook.md`** — the minimal feature built end to end, validated
+   by `just tutorials-check`. Further worked features live in `examples/` (their
+   `gen_def`/`gen_int` are gitignored — regenerate with `dizzy generate static`).
 6. **`dizzy/src/dizzy/`** — implementation: `cli.py` (verbs), `feat_schema.py` /
    `libconfig_schema.py` (generated — edit `dizzy/src/dizzy/def/*.yaml` and run
    `just gen-feat-pydantic` / `just gen-libconfig-pydantic` instead), `generators/`.

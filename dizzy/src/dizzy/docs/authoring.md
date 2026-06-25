@@ -289,7 +289,8 @@ packages and carries a real-signature implementation stub in `src/<name>.py` for
 fill in. Requires that `libconfig.yaml` exists; run `def` first. The Python path is the
 most complete; `rust-cargo` and `typescript-npm` are experimental.
 
-A complete, runnable example lives in `examples/guestbook/` in the repository.
+The **Build a guestbook** tutorial (`docs/tutorials/guestbook.md`) walks the whole
+pipeline end to end, and `examples/` holds further worked features.
 
 ---
 

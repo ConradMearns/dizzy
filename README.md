@@ -148,18 +148,19 @@ installable packages, and every element package depends on them — so a generat
 
 ## See it run
 
-The [`examples/guestbook/`](examples/guestbook/) directory has this feature fully
-generated **and** implemented, with a `demo.py` that wires it together. The generated
-`lib/python-uv/` is a uv workspace, so sync it once and run the demo inside it:
+The **[Build a guestbook tutorial](docs/tutorials/guestbook.md)** takes this feature from
+an empty directory all the way to a running demo — describe it, generate and fill in the
+schemas, implement the stubs, and wire up a `demo.py` that prints the signatures back out:
 
-```bash
-uv sync --project examples/guestbook/lib/python-uv
-uv run --project examples/guestbook/lib/python-uv python examples/guestbook/demo.py
-# Guestbook (newest first):
-#   - Edsger: Goto considered harmful
-#   - Grace: Compiled it
-#   - Ada: Hello from 1843
+```text
+Guestbook (newest first):
+  - Edsger: Goto considered harmful
+  - Grace: Compiled it
+  - Ada: Hello from 1843
 ```
+
+Every command, edit, and output in that tutorial is executed and checked by
+`just tutorials-check`. For more committed examples, see [`examples/`](examples/).
 
 See [`examples/`](examples/) for the full walkthrough.
 

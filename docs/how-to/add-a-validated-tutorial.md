@@ -92,32 +92,33 @@ $ cat def/commands.yaml
 A diff makes clear the file **didn't start empty** — the context lines show the
 generated scaffold, and `- attributes: {}` → `+ attributes: …` shows what you added.
 
-## Generating the diffs — let the example be the source of truth
+## Generating a diff that applies cleanly
 
-Don't hand-write patches. If your tutorial mirrors a worked example under
-`examples/<name>/`, **edit the example** and re-derive every asset:
+A patch must match the scaffolder's output exactly, so derive it from a real run rather
+than writing it by hand. The reliable recipe: in a throwaway directory, scaffold, commit
+that baseline, make your edit, and dump the diff. `git diff` emits `a/ … b/ …` headers
+that `git apply` consumes:
 
 ```shell
-just tutorial-capture <name>
+cd "$(mktemp -d)"
+cp /path/to/your.feat.yaml .
+dizzy generate definitions your.feat.yaml .
+git init -q && git add -A && git commit -qm scaffold
+
+# edit def/commands.yaml (fill in the attributes) ...
+
+git diff def/commands.yaml > commands.yaml.diff   # → docs/tutorials/<name>/edits/
 ```
 
-[`scripts/capture_tutorial.py`](https://github.com/PNNL/dizzy/blob/main/scripts/capture_tutorial.py)
-runs the real pipeline in a throwaway git repo and writes the tutorial's assets into
-`docs/tutorials/<name>/`:
+Two phases mirror the tutorial: capture `def/**.yaml` edits against the scaffold from
+`generate definitions`, and capture `src/*.py` edits against the stubs from
+`generate libraries` (run `generate static` then `generate libraries`, commit, then edit
+and diff).
 
-- whole files the reader authors verbatim (`<name>.feat.yaml`, `demo.py`) are copied in;
-- every author edit to a *generated* file becomes `edits/<basename>.diff`, captured by
-  diffing the scaffold/stub against the example — in two phases (after
-  `generate definitions` for the `def/` schemas, after `generate libraries` for the
-  `src/` stubs).
-
-So the loop is: tweak `examples/<name>/`, `just tutorial-capture <name>`, then
-`just tutorials-check`. The patches always match the current scaffolder output; if the
-generator changes, re-capture.
-
-Under the hood it's just `git diff` against a committed scaffold, with git's
-`diff --git`/`index` preamble stripped so the rendered diff is a plain unified diff
-(`git apply` accepts either form, and works in a bare directory with no `.git`).
+Tidy the patch for rendering: strip git's `diff --git`/`index` preamble so the snippet is
+a plain unified diff (keep everything from the first `--- ` line). `git apply` accepts
+that form and works in a bare directory with no `.git`. If the scaffolder's output ever
+changes, `just tutorials-check` fails — regenerate the diff.
 
 ## Wiring it up
 
