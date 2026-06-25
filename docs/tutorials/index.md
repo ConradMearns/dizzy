@@ -8,6 +8,8 @@ Learning-oriented lessons that take you through DIZZY hands-on.
   edit, and output is executed and checked by `just tutorials-check`.
 - **[A policy that consults a query](library.md)** — build a library hold queue whose
   centerpiece is a policy that runs a query to decide which command to dispatch.
+- **[A streaming agent turn](agent.md)** — model an LLM agent turn from a scratch API
+  script, introducing environment (injected config) and telemetry (observation sinks).
 
 See also:
 

@@ -42,4 +42,3 @@ classes:
         description: When the agent reply was recorded.
         range: datetime
         required: true
-      

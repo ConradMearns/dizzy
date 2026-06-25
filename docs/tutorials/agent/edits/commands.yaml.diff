@@ -1,0 +1,20 @@
+--- a/def/commands.yaml
++++ b/def/commands.yaml
+@@ -10,4 +10,16 @@ classes:
+     description: |-
+       A user wants to send a message to a conversation.
+       Carries session_id (the shared conversation key), role (user), and content.
+-    attributes: {}
++    attributes:
++      session_id:
++        description: Shared conversation key this message belongs to.
++        range: string
++        required: true
++      role:
++        description: Author of the message — "user" for a sent message.
++        range: string
++        required: true
++      content:
++        description: The message text.
++        range: string
++        required: true

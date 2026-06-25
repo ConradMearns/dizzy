@@ -1,0 +1,37 @@
+--- a/def/telemetry.yaml
++++ b/def/telemetry.yaml
+@@ -8,13 +8,26 @@ imports:
+ classes:
+   stream_chunk:
+     description: |-
+-      Per-token text delta, forwarded live to the SSE transport — called once per
+-      chunk during the stream. A transport concern, never recorded as an event.
+-    attributes: {}
++      A single live token delta. `run_agent_turn` calls this once per chunk to
++      forward streamed output to the SSE transport. A transport concern — never
++      recorded as an event.
++    attributes:
++      text:
++        description: The incremental text delta for this chunk.
++        range: string
++        required: true
+   usage:
+     description: |-
+-      Turn-level token usage (prompt/completion/total) reported by the provider
+-      once at stream completion. An observation, not provenance — never an event,
+-      and not available per-chunk. Kept separate from `stream_chunk` because the
+-      two have different cadence and shape.
+-    attributes: {}
++      Turn-level token usage reported by the provider once, at stream
++      completion. An observation of provider provenance — never an event, and
++      not available per-chunk.
++    attributes:
++      prompt_tokens:
++        range: integer
++        required: true
++      completion_tokens:
++        range: integer
++        required: true
++      total_tokens:
++        range: integer
++        required: true
