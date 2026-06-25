@@ -6,6 +6,8 @@ Learning-oriented lessons that take you through DIZZY hands-on.
   way to a running demo: describe it, generate and fill in typed schemas, package each
   element, implement the stubs, and watch the signatures print back out. Every command,
   edit, and output is executed and checked by `just tutorials-check`.
+- **[A policy that consults a query](library.md)** — build a library hold queue whose
+  centerpiece is a policy that runs a query to decide which command to dispatch.
 
 See also:
 

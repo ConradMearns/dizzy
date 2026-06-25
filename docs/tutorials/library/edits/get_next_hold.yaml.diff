@@ -1,0 +1,24 @@
+--- a/def/queries/get_next_hold.yaml
++++ b/def/queries/get_next_hold.yaml
+@@ -8,8 +8,17 @@ imports:
+   - linkml:types
+ classes:
+   GetNextHoldInput:
+-    description: Input for get_next_hold
+-    attributes: {}
++    description: Input for get_next_hold — which book's queue to inspect
++    attributes:
++      book_id:
++        range: string
++        required: true
+   GetNextHoldOutput:
+-    description: Output for get_next_hold
+-    attributes: {}
++    description: >-
++      Output for get_next_hold — the next patron in line, or empty fields when
++      no one is waiting for this book
++    attributes:
++      patron:
++        range: string
++        required: false
++        description: The next patron waiting, or null if the queue is empty

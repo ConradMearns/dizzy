@@ -45,6 +45,7 @@ nav:
   - Tutorials:
       - tutorials/index.md
       - Build a guestbook: tutorials/guestbook.md
+      - A policy that consults a query: tutorials/library.md
   - How-to guides:
       - how-to/index.md
       - Add a validated tutorial: how-to/add-a-validated-tutorial.md

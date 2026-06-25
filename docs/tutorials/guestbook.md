@@ -289,7 +289,3 @@ Guestbook (newest first):
 projection folded it into a model, and a query read it back — both of DIZZY's loops,
 generated from a single feature-file and a handful of edits you made to the parts only
 you could decide.
-
-Want more? The [`examples/`](https://github.com/PNNL/dizzy/tree/main/examples) directory
-has larger worked features — a policy that consults a query, and a multi-step,
-policy-driven cascade.
