@@ -8,7 +8,7 @@ real harness will enforce. The experiment has two products:
 2. **Findings about simulate itself** — the prompt shape, the tool-call protocol, the
    query semantics, the session-log format. These feed back into plan `pl-f395`.
 
-Requirements being exercised: `docs/cli.md § dizzy simulate`.
+Requirements being exercised: `dizzy docs cli § dizzy simulate`.
 
 ## Cast
 

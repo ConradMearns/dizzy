@@ -8,6 +8,10 @@ dist/
 build/
 *.egg-info/
 
+# mkdocs site + auto-generated API reference pages
+site/
+docs/reference/api/
+
 # Generated at build time by hatch-vcs from the git tag
 dizzy/src/dizzy/_version.py
 

@@ -168,7 +168,7 @@ See [`examples/`](examples/) for the full walkthrough.
 DIZZY ships a reference document tuned for LLM agents (the analog of `sd prime`):
 
 ```bash
-dizzy docs            # CLI manpage + roadmap (canonical: docs/cli.md)
+dizzy docs            # CLI manpage + roadmap (ships in dizzy/src/dizzy/docs/cli.md)
 dizzy docs authoring  # agent guide: components, .feat.yaml shape, authoring surface
 ```
 
@@ -181,12 +181,15 @@ unbuilt command's section is its requirements document.
 
 This is a **uv monorepo**:
 
-- **`dizzy/`** — the core package and generators (`dizzy/src/dizzy/`).
+- **`dizzy/`** — the core package and generators (`dizzy/src/dizzy/`). The CLI's own
+  docs ship here (`dizzy/src/dizzy/docs/`) and print via `dizzy docs` / `dizzy onboard`.
 - **`examples/`** — worked examples.
-- **`docs/`** — specification, whitepaper, and design notes (Typst sources + PDFs).
+- **`docs/`** — the [mkdocs](https://www.mkdocs.org/) documentation site, organized by
+  [Diátaxis](https://diataxis.fr/) (tutorials / how-to / reference / explanation), plus
+  the maintainer whitepaper (Typst source + PDF). Run `just docs-serve` to preview it.
 
 Common commands live in the [`justfile`](justfile) (`just test`, `just check`,
-`just whitepaper`). Configuration is documented via `dizzy config`.
+`just docs-serve`, `just whitepaper`). Configuration is documented via `dizzy config`.
 
 ## Issue tracking
 

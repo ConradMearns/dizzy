@@ -48,6 +48,16 @@ whitepaper:
 whitepaper-watch:
     typst watch docs/whitepaper.typ
 
+# --- Documentation site (mkdocs) ---
+
+# Serve the Diátaxis docs site locally with live reload.
+docs-serve:
+    uv run --group docs mkdocs serve
+
+# Build the docs site into site/ and fail on any warning.
+docs-build:
+    uv run --group docs mkdocs build --strict
+
 
 install-completions:
     mkdir -p $HOME/.local/share/bash-completion

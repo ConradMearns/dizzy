@@ -25,5 +25,5 @@ Pass `--verbose` to stream LLM output. Sessions are written to `sessions/`
 
 ## See also
 
-- `docs/simulate-playbook.md` — the design record: protocol rulings, findings, session log format
-- `docs/cli.md § dizzy simulate` — full CLI reference
+- `docs/explanation/simulate-playbook.md` — the design record: protocol rulings, findings, session log format
+- `dizzy docs cli § dizzy simulate` — full CLI reference

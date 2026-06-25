@@ -50,11 +50,14 @@ We track issues with [Seeds](https://github.com/jayminwest/seeds). Run
 
 ## Documentation
 
-- `docs/cli.md` and `docs/authoring.md` are the authoritative docs (symlinked
-  into the package so they ship in the wheel — **edit the `docs/` copies**).
-  When scope changes, change `docs/cli.md` first, then the seeds.
-- The whitepaper/architecture Typst files are maintainer-authored; you may
-  fact-check them, but don't author them.
+- `dizzy/src/dizzy/docs/cli.md` and `dizzy/src/dizzy/docs/authoring.md` are the
+  authoritative tool-shipped docs (printed by `dizzy docs` / `dizzy onboard`, shipped
+  in the wheel — **edit them in the package**). When scope changes, change `cli.md`
+  first, then the seeds.
+- `docs/` is the mkdocs Diátaxis site (`just docs-serve` / `just docs-build`); its
+  `reference/api/` pages are generated from the code via mkdocstrings.
+- The whitepaper Typst files are maintainer-authored; you may fact-check them, but
+  don't author them.
 
 ## Releasing (maintainers)
 
