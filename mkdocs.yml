@@ -47,6 +47,7 @@ nav:
       - Build a guestbook: tutorials/guestbook.md
   - How-to guides:
       - how-to/index.md
+      - Add a validated tutorial: how-to/add-a-validated-tutorial.md
   - Reference:
       - Feature-file format: reference/SPECIFICATION.md
       - Code API: reference/api/

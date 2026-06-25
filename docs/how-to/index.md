@@ -2,9 +2,12 @@
 
 Task-oriented recipes for getting specific things done with DIZZY.
 
+- **[Add a validated tutorial](add-a-validated-tutorial.md)** — author a new
+  `docs/tutorials/` page that is executed and checked by `just tutorials-check`.
+
 !!! note "Work in progress"
-    Dedicated how-to guides are still being written. The authoring guide — how to write
-    a `.feat.yaml` and what to fill in after each generation stage — currently ships with
+    More how-to guides are being written. The authoring guide — how to write a
+    `.feat.yaml` and what to fill in after each generation stage — currently ships with
     the tool: run `dizzy docs authoring`.
 
 Common tasks today:
