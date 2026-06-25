@@ -88,3 +88,6 @@ tutorials-check:
 install-completions:
     mkdir -p $HOME/.local/share/bash-completion
     just --completions bash > $HOME/.local/share/bash-completion/just.bash
+
+tag tag:
+    git tag {{tag}}; git push origin {{tag}}
