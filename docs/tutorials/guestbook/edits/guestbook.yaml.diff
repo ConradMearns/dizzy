@@ -1,0 +1,24 @@
+--- a/def/models/guestbook.yaml
++++ b/def/models/guestbook.yaml
+@@ -6,4 +6,20 @@ prefixes:
+ default_range: string
+ imports:
+   - linkml:types
+-classes: {}
++classes:
++  Signature:
++    description: A single stored guestbook signature
++    attributes:
++      id:
++        range: string
++        required: true
++        identifier: true
++      visitor_name:
++        range: string
++        required: true
++      message:
++        range: string
++        required: true
++      signed_at:
++        range: datetime
++        required: true

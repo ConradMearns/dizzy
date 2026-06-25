@@ -58,6 +58,11 @@ docs-serve:
 docs-build:
     uv run --group docs mkdocs build --strict
 
+# Re-derive a tutorial's assets (feature-file, demo.py, edits/*.diff) from its worked
+# example under examples/<name>/. Edit the example, then run this to refresh the diffs.
+tutorial-capture name:
+    uv run --project . python scripts/capture_tutorial.py {{name}}
+
 # Run every tutorial under docs/tutorials/ end-to-end in a throwaway sandbox and check
 # that each command + file matches the documented output (via byexample).
 tutorials-check:
@@ -73,7 +78,11 @@ tutorials-check:
         # Stage any per-tutorial assets (e.g. edits/*.diff) that the steps apply.
         assets="${doc%.md}"
         [ -d "$assets" ] && cp -r "$assets/." "$work/"
-        ( cd "$work" && uv run --group docs --project "$repo" byexample -l shell "$doc" )
+        # LinkML compilation + uv sync are slow; give every step a generous timeout.
+        # Drop VIRTUAL_ENV so a tutorial's own `uv run --project ...` doesn't warn about
+        # a mismatch with this runner's environment.
+        ( cd "$work" && uv run --group docs --project "$repo" \
+            env -u VIRTUAL_ENV byexample -l shell --timeout 300 "$doc" )
     done
 
 

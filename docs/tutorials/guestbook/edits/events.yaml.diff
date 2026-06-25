@@ -1,6 +1,6 @@
 --- a/def/events.yaml
 +++ b/def/events.yaml
-@@ -8,4 +8,16 @@
+@@ -8,4 +8,16 @@ imports:
  classes:
    guestbook_signed:
      description: A visitor signed the guestbook

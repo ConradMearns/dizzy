@@ -1,0 +1,28 @@
+--- a/lib/python-uv/query/list_signatures/src/list_signatures.py
++++ b/lib/python-uv/query/list_signatures/src/list_signatures.py
+@@ -1,7 +1,21 @@
+-# Implementation stub — fill in your logic here
+-from gen_int.python.query.list_signatures import list_signatures_query, list_signatures_context
++# Implementation — read the guestbook model back out, newest first.
++from gen_int.python.query.list_signatures import list_signatures_context
+ from gen_def.pydantic.query.list_signatures import ListSignaturesInput, ListSignaturesOutput
++from gen_def.sqla.models.guestbook import Signature
+ 
+ 
+-def list_signatures(input: ListSignaturesInput, context: list_signatures_context) -> ListSignaturesOutput:
+-    raise NotImplementedError
++def list_signatures(
++    input: ListSignaturesInput,
++    context: list_signatures_context,
++) -> ListSignaturesOutput:
++    # context.adapter is a SqlaAdapter — read from the same store the projection wrote.
++    query = (
++        context.adapter.session.query(Signature)
++        .order_by(Signature.signed_at.desc())
++    )
++    if input.limit is not None:
++        query = query.limit(input.limit)
++
++    return ListSignaturesOutput(
++        signatures=[f"{row.visitor_name}: {row.message}" for row in query.all()],
++    )

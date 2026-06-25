@@ -2,14 +2,10 @@
 
 Learning-oriented lessons that take you through DIZZY hands-on.
 
-- **[Build a guestbook](guestbook.md)** — describe a feature and generate typed schemas
-  from it, from an empty directory. Every step is executed and checked by
-  `just tutorials-check`.
-
-!!! note "Work in progress"
-    The guestbook tutorial currently covers the first steps (feature-file → generated
-    schemas). The remaining steps — compiling type packages, packaging per runtime,
-    implementing the stubs, and running the demo — are being added.
+- **[Build a guestbook](guestbook.md)** — take a feature from an empty directory all the
+  way to a running demo: describe it, generate and fill in typed schemas, package each
+  element, implement the stubs, and watch the signatures print back out. Every command,
+  edit, and output is executed and checked by `just tutorials-check`.
 
 See also:
 
