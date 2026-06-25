@@ -2,15 +2,17 @@
 
 Learning-oriented lessons that take you through DIZZY hands-on.
 
+- **[Build a guestbook](guestbook.md)** — describe a feature and generate typed schemas
+  from it, from an empty directory. Every step is executed and checked by
+  `just tutorials-check`.
+
 !!! note "Work in progress"
-    This section is still being built. A *Getting started* tutorial — generating and
-    running your first feature end-to-end — will be extracted from the three-stage
-    workflow in the [README](https://github.com/PNNL/dizzy#readme) and the
-    [`examples/guestbook`](https://github.com/PNNL/dizzy/tree/main/examples/guestbook)
-    worked example.
+    The guestbook tutorial currently covers the first steps (feature-file → generated
+    schemas). The remaining steps — compiling type packages, packaging per runtime,
+    implementing the stubs, and running the demo — are being added.
 
-In the meantime:
+See also:
 
-- Run `dizzy onboard` for the agent-facing orientation.
-- See [`examples/guestbook`](https://github.com/PNNL/dizzy/tree/main/examples/guestbook)
-  for a fully generated and implemented feature with a runnable demo.
+- `dizzy onboard` — the agent-facing orientation.
+- [`examples/guestbook`](https://github.com/PNNL/dizzy/tree/main/examples/guestbook) —
+  the fully generated and implemented feature with a runnable demo.

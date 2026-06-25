@@ -44,6 +44,7 @@ nav:
   - Home: index.md
   - Tutorials:
       - tutorials/index.md
+      - Build a guestbook: tutorials/guestbook.md
   - How-to guides:
       - how-to/index.md
   - Reference:

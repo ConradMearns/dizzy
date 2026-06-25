@@ -45,6 +45,7 @@ docs = [
     "mkdocstrings[python]>=0.26",
     "mkdocs-gen-files>=0.5",
     "mkdocs-literate-nav>=0.6",
+    "byexample>=11.0",
 ]
 
 [build-system]

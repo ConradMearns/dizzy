@@ -58,6 +58,21 @@ docs-serve:
 docs-build:
     uv run --group docs mkdocs build --strict
 
+# Run every tutorial under docs/tutorials/ end-to-end in a throwaway sandbox and check
+# that each command + file matches the documented output (via byexample).
+tutorials-check:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    repo="$(pwd)"
+    work="$(mktemp -d)"
+    trap 'rm -rf "$work"' EXIT
+    for doc in "$repo"/docs/tutorials/*.md; do
+        [ "$(basename "$doc")" = "index.md" ] && continue
+        echo "▶ ${doc#$repo/}"
+        ( cd "$work" && rm -rf ./* ./.[!.]* 2>/dev/null || true
+          cd "$work" && uv run --group docs --project "$repo" byexample -l shell "$doc" )
+    done
+
 
 install-completions:
     mkdir -p $HOME/.local/share/bash-completion
