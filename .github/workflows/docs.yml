@@ -34,6 +34,24 @@ jobs:
         with:
           path: site
 
+  # Run every docs/tutorials/*.md end to end in a sandbox and check that each command,
+  # edit, and output still matches the tool (via byexample). Needs network: the
+  # tutorials run `dizzy generate` and `uv sync` against the generated workspaces.
+  tutorials:
+    name: tutorials (byexample)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: just
+      - run: just tutorials-check
+
   deploy:
     name: deploy to GitHub Pages
     if: github.ref == 'refs/heads/main'

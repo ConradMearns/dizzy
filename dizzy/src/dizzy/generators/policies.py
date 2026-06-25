@@ -25,7 +25,7 @@ def render_policy_context(policy: PolicyDef) -> str:
 
     if policy.emits or policy.queries or extras.imports:
         lines.append("")
-        for cmd_name in policy.emits:
+        for cmd_name in policy.emits or []:
             lines.append(f"from gen_def.pydantic.commands import {camelcase(cmd_name)}")
         for query_name in policy.queries or []:
             lines.append(
@@ -89,7 +89,7 @@ def render_policy_protocol(policy: PolicyDef) -> str:
     context_class = f"{policy.name}_context"
     protocol_class = f"{policy.name}_protocol"
     event_class = camelcase(policy.event)
-    description = policy.description.strip()
+    description = (policy.description or "").strip()
 
     lines = [
         "# AUTO-GENERATED — do not edit",
