@@ -17,9 +17,9 @@ from dizzy.feat_schema import (
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
-def _by_name(items: list, name: str):
+def _by_name(items: list | None, name: str):
     """Find a Def object in a list by its name field."""
-    return next(item for item in items if item.name == name)
+    return next(item for item in (items or []) if item.name == name)
 
 
 class TestLoadFeat:
@@ -88,9 +88,9 @@ class TestLoadFeat:
 
     def test_loads_partial(self):
         feat = load_feat(FIXTURES_DIR / "partial.feat.yaml")
-        assert any(c.name == "do_thing" for c in feat.commands)
-        assert any(q.name == "find_thing" for q in feat.queries)
-        assert any(p.name == "run_thing" for p in feat.procedures)
+        assert any(c.name == "do_thing" for c in feat.commands or [])
+        assert any(q.name == "find_thing" for q in feat.queries or [])
+        assert any(p.name == "run_thing" for p in feat.procedures or [])
         assert not feat.models
         assert not feat.events
         assert not feat.policies

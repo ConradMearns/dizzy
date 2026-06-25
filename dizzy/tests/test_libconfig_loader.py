@@ -35,9 +35,11 @@ def test_load_dict_key_shorthand(tmp_path: Path) -> None:
         """,
     )
     config = load_libconfig(p)
+    assert config.procedures is not None
     assert len(config.procedures) == 1
     binding = config.procedures[0]
     assert binding.name == "my_proc"
+    assert binding.runtimes is not None
     assert LanguageRuntime.python_uv in binding.runtimes
     assert LanguageRuntime.rust_cargo in binding.runtimes
 
@@ -51,6 +53,7 @@ def test_load_list_shorthand(tmp_path: Path) -> None:
         """,
     )
     config = load_libconfig(p)
+    assert config.policies is not None
     assert len(config.policies) == 1
     assert config.policies[0].runtimes == [LanguageRuntime.typescript_npm]
 
@@ -65,6 +68,7 @@ def test_load_empty_runtimes(tmp_path: Path) -> None:
         """,
     )
     config = load_libconfig(p)
+    assert config.procedures is not None
     assert config.procedures[0].runtimes == []
 
 

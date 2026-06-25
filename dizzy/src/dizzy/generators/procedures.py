@@ -25,9 +25,9 @@ def render_procedure_context(proc: ProcedureDef) -> str:
 
     if proc.emits or proc.queries or extras.imports:
         lines.append("")
-        for event_name in proc.emits:
+        for event_name in proc.emits or []:
             lines.append(f"from gen_def.pydantic.events import {camelcase(event_name)}")
-        for query_name in proc.queries:
+        for query_name in proc.queries or []:
             lines.append(
                 f"from gen_def.pydantic.query.{query_name} import "
                 f"{camelcase(query_name)}Input, {camelcase(query_name)}Output"
@@ -89,7 +89,7 @@ def render_procedure_protocol(proc: ProcedureDef) -> str:
     context_class = f"{proc.name}_context"
     protocol_class = f"{proc.name}_protocol"
     command_class = camelcase(proc.command)
-    description = proc.description.strip()
+    description = (proc.description or "").strip()
 
     lines = [
         "# AUTO-GENERATED — do not edit",
