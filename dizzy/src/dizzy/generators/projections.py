@@ -5,6 +5,7 @@ from pathlib import Path
 from linkml_runtime.utils.formatutils import camelcase
 
 from dizzy.feat_schema import ProjectionDef
+from dizzy.generators.context_extras import render_context_extras
 from dizzy.generators.paths import gen_int_root
 from dizzy.logger import logger
 
@@ -21,27 +22,35 @@ def render_projection(proj: ProjectionDef) -> str:
     event_class = camelcase(proj.event)
     description = proj.description.strip()
 
+    extras = render_context_extras(proj.name, proj.environment, proj.telemetry)
+
+    context_body: list[str] = []
     adapter_import = ""
     if proj.adapter is not None:
         adapter_cls = _adapter_class_name(proj.adapter)
-        adapter_import = (
-            f"from gen_int.python.adapters.{proj.adapter} import {adapter_cls}"
-        )
-        context_body = [f"    adapter: {adapter_cls}"]
-    else:
-        context_body = ["    pass"]
+        adapter_import = f"from gen_int.python.adapters.{proj.adapter} import {adapter_cls}"
+        context_body.append(f"    adapter: {adapter_cls}")
+    context_body.extend(extras.fields)
+    if not context_body:
+        context_body.append("    pass")
 
     imports = [
         "# AUTO-GENERATED — do not edit",
         "from dataclasses import dataclass",
         "from typing import Protocol",
+    ]
+    if extras.needs_callable:
+        imports.append("from typing import Callable")
+    imports += [
         "",
         f"from gen_def.pydantic.events import {event_class}",
     ]
     if adapter_import:
         imports.append(adapter_import)
+    imports.extend(extras.imports)
 
     lines = imports + [
+        *extras.classes,
         "",
         "",
         "@dataclass",
@@ -65,12 +74,7 @@ def render_projection(proj: ProjectionDef) -> str:
 
 def write_projection(proj: ProjectionDef, output_dir: Path) -> None:
     """Write gen_int/python/projection/<proj.name>_projection.py (always overwritten)."""
-    dest = (
-        gen_int_root(output_dir)
-        / "python"
-        / "projection"
-        / f"{proj.name}_projection.py"
-    )
+    dest = gen_int_root(output_dir) / "python" / "projection" / f"{proj.name}_projection.py"
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_projection(proj))
     logger.debug("wrote file", extra={"path": str(dest)})

@@ -1,8 +1,12 @@
 """Snapshot tests for queries generator."""
 
+from dizzy.generators.queries import (
+    render_gen_query_protocol,
+    render_scaffold_query,
+    render_src_query_stub,
+)
 from syrupy.assertion import SnapshotAssertion
 
-from dizzy.generators.queries import render_scaffold_query, render_gen_query_protocol, render_src_query_stub
 from tests.conftest import by_name
 
 
@@ -20,3 +24,7 @@ def test_render_gen_query_protocol_no_adapter(partial_feat, snapshot: SnapshotAs
 
 def test_render_src_query_stub(snapshot: SnapshotAssertion):
     assert render_src_query_stub("get_recipe_text") == snapshot
+
+
+def test_render_gen_query_protocol_with_env_telemetry(agent_feat, snapshot: SnapshotAssertion):
+    assert render_gen_query_protocol(by_name(agent_feat.queries, "get_conversation")) == snapshot

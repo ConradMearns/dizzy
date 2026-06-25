@@ -14,7 +14,10 @@ def run_linkml_pydantic(def_file: Path, output_file: Path) -> None:
         text=True,
         check=True,
     )
-    logger.debug("gen-pydantic completed", extra={"command": "gen-pydantic", "input": str(def_file), "output": str(output_file)})
+    logger.debug(
+        "gen-pydantic completed",
+        extra={"command": "gen-pydantic", "input": str(def_file), "output": str(output_file)},
+    )
     output_file.parent.mkdir(parents=True, exist_ok=True)
     output_file.write_text(result.stdout)
 
@@ -27,7 +30,10 @@ def run_linkml_sqla(def_file: Path, output_file: Path) -> None:
         text=True,
         check=True,
     )
-    logger.debug("gen-sqla completed", extra={"command": "gen-sqla", "input": str(def_file), "output": str(output_file)})
+    logger.debug(
+        "gen-sqla completed",
+        extra={"command": "gen-sqla", "input": str(def_file), "output": str(output_file)},
+    )
     output_file.parent.mkdir(parents=True, exist_ok=True)
     output_file.write_text(result.stdout)
 
@@ -41,7 +47,10 @@ def run_linkml_rust(def_file: Path, output_file: Path) -> None:
         text=True,
         check=True,
     )
-    logger.debug("gen-rust completed", extra={"command": "gen-rust", "input": str(def_file), "output": str(output_file)})
+    logger.debug(
+        "gen-rust completed",
+        extra={"command": "gen-rust", "input": str(def_file), "output": str(output_file)},
+    )
 
 
 def run_linkml_typescript(def_file: Path, output_file: Path) -> None:
@@ -52,6 +61,9 @@ def run_linkml_typescript(def_file: Path, output_file: Path) -> None:
         text=True,
         check=True,
     )
-    logger.debug("gen-typescript completed", extra={"command": "gen-typescript", "input": str(def_file), "output": str(output_file)})
+    logger.debug(
+        "gen-typescript completed",
+        extra={"command": "gen-typescript", "input": str(def_file), "output": str(output_file)},
+    )
     output_file.parent.mkdir(parents=True, exist_ok=True)
     output_file.write_text(result.stdout)

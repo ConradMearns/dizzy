@@ -1,8 +1,7 @@
 """Snapshot tests for commands generator."""
 
-from syrupy.assertion import SnapshotAssertion
-
 from dizzy.generators.commands import render_scaffold_commands
+from syrupy.assertion import SnapshotAssertion
 
 
 def test_render_scaffold_commands_snapshot(recipe_feat, snapshot: SnapshotAssertion):

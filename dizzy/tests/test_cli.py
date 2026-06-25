@@ -1,12 +1,12 @@
 """End-to-end def + gen + lib integration tests."""
 
 import logging
+from pathlib import Path
+
 import pytest
 from click.exceptions import Exit as ClickExit
-from pathlib import Path
-from syrupy.assertion import SnapshotAssertion
-
 from dizzy.cli import DOC_PAGES, app, def_cmd, gen, lib
+from syrupy.assertion import SnapshotAssertion
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
@@ -70,7 +70,6 @@ def test_def_does_not_overwrite(tmp_path: Path) -> None:
     def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
 
     commands_path = tmp_path / "def" / "commands.yaml"
-    original_content = commands_path.read_text()
     commands_path.write_text("# custom content\n")
 
     def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
@@ -134,6 +133,38 @@ def test_gen_error_when_def_missing(tmp_path: Path, caplog: pytest.LogCaptureFix
     assert exc_info.value.exit_code == 1
     assert "dizzy generate definitions" in caplog.text
     assert "def/commands.yaml" in caplog.text
+
+
+def test_def_creates_environment_and_telemetry_stubs(tmp_path: Path) -> None:
+    def_cmd(feat_file=FIXTURES_DIR / "agent.feat.yaml", output_dir=tmp_path)
+
+    assert (tmp_path / "def" / "environment.yaml").exists()
+    assert (tmp_path / "def" / "telemetry.yaml").exists()
+
+
+def test_def_omits_environment_telemetry_when_absent(tmp_path: Path) -> None:
+    def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
+
+    assert not (tmp_path / "def" / "environment.yaml").exists()
+    assert not (tmp_path / "def" / "telemetry.yaml").exists()
+
+
+def test_gen_compiles_environment_and_telemetry(tmp_path: Path) -> None:
+    def_cmd(feat_file=FIXTURES_DIR / "agent.feat.yaml", output_dir=tmp_path)
+    gen(feat_file=FIXTURES_DIR / "agent.feat.yaml", output_dir=tmp_path)
+
+    gen_def = tmp_path / "lib" / "python-uv" / "gen_def" / "gen_def"
+    gen_int = tmp_path / "lib" / "python-uv" / "gen_int" / "gen_int"
+
+    assert (gen_def / "pydantic" / "environment.py").exists()
+    assert (gen_def / "pydantic" / "telemetry.py").exists()
+
+    # The procedure context imports the compiled env/telemetry shapes.
+    ctx = (gen_int / "python" / "procedure" / "run_agent_turn_context.py").read_text()
+    assert "from gen_def.pydantic.environment import Model" in ctx
+    assert "from gen_def.pydantic.telemetry import StreamChunk" in ctx
+    assert "env: run_agent_turn_env" in ctx
+    assert "telemetry: run_agent_turn_telemetry" in ctx
 
 
 def test_def_partial_feat(tmp_path: Path) -> None:
@@ -203,9 +234,7 @@ def test_def_custom_default_runtime(tmp_path: Path) -> None:
     assert "runtimes: [python-uv]" not in content
 
 
-def test_lib_error_missing_libconfig(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_lib_error_missing_libconfig(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
     (tmp_path / "libconfig.yaml").unlink()
 

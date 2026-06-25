@@ -53,13 +53,15 @@ def render_workspace_tsconfig_json() -> str:
 
 
 def render_index_ts_stub(name: str) -> str:
-    return "\n".join([
-        "// Implementation stub — fill in your logic here",
-        f"export function {name}(): void {{",
-        '    throw new Error("Not implemented");',
-        "}",
-        "",
-    ])
+    return "\n".join(
+        [
+            "// Implementation stub — fill in your logic here",
+            f"export function {name}(): void {{",
+            '    throw new Error("Not implemented");',
+            "}",
+            "",
+        ]
+    )
 
 
 def _write_if_absent(path: Path, content: str) -> None:

@@ -48,6 +48,46 @@
   
   '''
 # ---
+# name: test_render_gen_query_protocol_with_env_telemetry
+  '''
+  # AUTO-GENERATED — do not edit
+  from dataclasses import dataclass
+  from typing import Protocol
+  from typing import Callable
+  
+  from gen_def.pydantic.query.get_conversation import GetConversationInput, GetConversationOutput
+  from gen_int.python.adapters.sqla import SqlaAdapter
+  from gen_def.pydantic.environment import Model
+  from gen_def.pydantic.telemetry import StreamChunk
+  
+  
+  @dataclass
+  class get_conversation_env:
+      model: Model
+  
+  
+  @dataclass
+  class get_conversation_telemetry:
+      stream_chunk: Callable[[StreamChunk], None]
+  
+  
+  @dataclass
+  class get_conversation_context:
+      adapter: SqlaAdapter
+      env: get_conversation_env
+      telemetry: get_conversation_telemetry
+  
+  
+  class get_conversation_query(Protocol):
+      """List all messages in a conversation in chronological order."""
+  
+      def __call__(
+          self, input: GetConversationInput, context: get_conversation_context
+      ) -> GetConversationOutput:
+          ...
+  
+  '''
+# ---
 # name: test_render_scaffold_query_snapshot
   '''
   id: https://example.org/queries/get_recipe_text

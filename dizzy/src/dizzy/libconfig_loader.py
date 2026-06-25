@@ -4,10 +4,9 @@ from pathlib import Path
 
 import yaml
 
-from dizzy.logger import logger
 from dizzy.feat_schema import FeatureDefinition
 from dizzy.libconfig_schema import LibConfig
-
+from dizzy.logger import logger
 
 _SECTIONS = ("procedures", "policies", "queries", "projections")
 

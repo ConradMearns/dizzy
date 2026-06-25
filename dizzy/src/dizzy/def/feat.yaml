@@ -58,6 +58,46 @@ classes:
         range: ProjectionDef
         multivalued: true
         inlined: true
+      environment:
+        description: >-
+          Named injected constants/variables, acquired in place of os env vars.
+          Each names a shape authored in def/environment.yaml.
+        range: EnvironmentDef
+        multivalued: true
+        inlined: true
+      telemetry:
+        description: >-
+          Named host-injected observation sinks (callables). Each names the
+          payload shape authored in def/telemetry.yaml.
+        range: TelemetryDef
+        multivalued: true
+        inlined: true
+
+  EnvironmentDef:
+    description: >-
+      A named injected constant/variable available to functions in place of an
+      os environment variable. Its shape is authored in def/environment.yaml.
+    attributes:
+      name:
+        description: Environment entry name (snake_case)
+        range: string
+        required: true
+      description:
+        description: Human-readable description of the environment entry
+        range: string
+
+  TelemetryDef:
+    description: >-
+      A named host-injected observation sink. The function calls it with a typed
+      payload whose shape is authored in def/telemetry.yaml.
+    attributes:
+      name:
+        description: Telemetry sink name (snake_case)
+        range: string
+        required: true
+      description:
+        description: Human-readable description of the telemetry sink
+        range: string
 
   ModelDef:
     description: >-
@@ -93,6 +133,14 @@ classes:
       adapter:
         description: The adapter name on the model that this query uses
         range: string
+      environment:
+        description: Environment entry names this querier needs injected
+        range: string
+        multivalued: true
+      telemetry:
+        description: Telemetry sink names this querier may call
+        range: string
+        multivalued: true
 
   CommandDef:
     description: >-
@@ -141,6 +189,14 @@ classes:
         description: Event names this procedure may emit
         range: string
         multivalued: true
+      environment:
+        description: Environment entry names this procedure needs injected
+        range: string
+        multivalued: true
+      telemetry:
+        description: Telemetry sink names this procedure may call
+        range: string
+        multivalued: true
 
   PolicyDef:
     description: >-
@@ -164,6 +220,14 @@ classes:
         multivalued: true
       emits:
         description: Command names this policy may dispatch
+        range: string
+        multivalued: true
+      environment:
+        description: Environment entry names this policy needs injected
+        range: string
+        multivalued: true
+      telemetry:
+        description: Telemetry sink names this policy may call
         range: string
         multivalued: true
 
@@ -190,3 +254,11 @@ classes:
       adapter:
         description: The adapter name on the model that this projection uses
         range: string
+      environment:
+        description: Environment entry names this projection needs injected
+        range: string
+        multivalued: true
+      telemetry:
+        description: Telemetry sink names this projection may call
+        range: string
+        multivalued: true

@@ -24,6 +24,8 @@ events:      <map>       # Immutable facts (what happened)
 procedures:  <map>       # Command handlers (do work, emit events)
 policies:    <map>       # Event handlers (react, issue commands)
 projections: <map>       # Read-model builders (event → queryable state)
+environment: <map>       # Injected constants/variables (in place of os env)
+telemetry:   <map>       # Injected observation sinks (callables)
 ```
 
 All sections are optional. The generator skips sections not present.
@@ -231,6 +233,8 @@ Fields:
 - `command` (required): the command this procedure handles
 - `queries` (optional): list of query names this procedure needs access to
 - `emits` (optional): list of event names this procedure may emit
+- `environment` (optional): list of `environment` entry names injected as `context.env.<name>`
+- `telemetry` (optional): list of `telemetry` sink names callable as `context.telemetry.<name>(payload)`
 
 **Gen generates:**
 - `gen_int/python/procedure/<procedure_name>_context.py` — context dataclass with `_emitters` and `_queries` nested dataclasses:
@@ -309,6 +313,8 @@ Fields:
 - `event` (required): the event that triggers this policy
 - `queries` (optional): list of query names this policy consults to decide what to dispatch
 - `emits` (optional): list of command names this policy may dispatch
+- `environment` (optional): list of `environment` entry names injected as `context.env.<name>`
+- `telemetry` (optional): list of `telemetry` sink names callable as `context.telemetry.<name>(payload)`
 
 **Gen generates:**
 - `gen_int/python/policy/<policy_name>_context.py` — context dataclass with emitters and (when declared) queries nested dataclasses (mirrors procedure context):
@@ -391,6 +397,8 @@ Fields:
 - `description` (required): what this projection does
 - `event` (required): the single event that triggers this projection
 - `models` (required): list of schema names from `models` that this projection writes into
+- `environment` (optional): list of `environment` entry names injected as `context.env.<name>`
+- `telemetry` (optional): list of `telemetry` sink names callable as `context.telemetry.<name>(payload)`
 
 **Gen generates:** `gen_int/python/projection/<projection_name>_projection.py` — a context dataclass
 and a Protocol stub, plus `src/projection/<projection_name>.py` (skipped if already exists):
@@ -419,6 +427,42 @@ class recipe_library_projection(Protocol):
 
 The `Any` session type is a placeholder; the implementor binds it to a concrete SQLAlchemy
 `Session` when wiring up the projection.
+
+---
+
+### `environment`
+
+Named injected constants/variables, acquired from the host in place of reading `os.environ`.
+The feat file declares names and descriptions only; each entry's shape is authored in
+`def/environment.yaml` (one LinkML class per entry). A function references entries via its
+`environment:` list, and the value surfaces as `context.env.<name>`.
+
+```yaml
+environment:
+  model: The LLM model configuration injected in place of an os env var.
+```
+
+**Gen generates:** `gen_def/pydantic/environment.py` (compiled from `def/environment.yaml`),
+and — for any function that lists the entry — a `<name>_env` dataclass plus an `env` field on
+that function's context.
+
+### `telemetry`
+
+Named host-injected observation sinks. Each entry is a callable the function invokes with a
+typed payload — the emitters pattern, but for *observation* (streamed tokens, progress, metrics)
+rather than durable facts. A telemetry call is a transport concern and is **never** recorded as
+an event. The payload shape is authored in `def/telemetry.yaml` (one LinkML class per entry).
+A function references entries via its `telemetry:` list, surfacing as
+`context.telemetry.<name>(payload)`.
+
+```yaml
+telemetry:
+  stream_chunk: Sink for live LLM token chunks forwarded to the SSE transport.
+```
+
+**Gen generates:** `gen_def/pydantic/telemetry.py` (compiled from `def/telemetry.yaml`), and —
+for any function that lists the entry — a `<name>_telemetry` dataclass of
+`Callable[[Payload], None]` sinks plus a `telemetry` field on that function's context.
 
 ---
 

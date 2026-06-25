@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
 from dizzy.feat_loader import load_feat, validate_feat
 from dizzy.feat_schema import (
     CommandDef,
@@ -77,6 +75,17 @@ class TestLoadFeat:
         assert proj.model == "recipes"
         assert proj.adapter == "sqla"
 
+    def test_environment_and_telemetry_sections(self):
+        feat = load_feat(FIXTURES_DIR / "agent.feat.yaml")
+        assert _by_name(feat.environment, "model").description.startswith("The LLM model")
+        assert _by_name(feat.telemetry, "stream_chunk")
+        proc = _by_name(feat.procedures, "run_agent_turn")
+        assert proc.environment == ["model"]
+        assert proc.telemetry == ["stream_chunk"]
+        querier = _by_name(feat.queries, "get_conversation")
+        assert querier.environment == ["model"]
+        assert querier.telemetry == ["stream_chunk"]
+
     def test_loads_partial(self):
         feat = load_feat(FIXTURES_DIR / "partial.feat.yaml")
         assert any(c.name == "do_thing" for c in feat.commands)
@@ -101,13 +110,57 @@ class TestValidateFeat:
     def test_valid_partial(self, partial_feat):
         assert validate_feat(partial_feat) == []
 
-    def test_procedure_unknown_command(self):
+    def test_valid_agent(self, agent_feat):
+        assert validate_feat(agent_feat) == []
+
+    def test_procedure_unknown_environment(self):
         feat = FeatureDefinition(
             commands=[CommandDef(name="do_thing", description="does a thing")],
             procedures=[
                 ProcedureDef(
-                    name="my_proc", description="proc", command="unknown_command"
+                    name="my_proc",
+                    description="proc",
+                    command="do_thing",
+                    environment=["missing_env"],
                 )
+            ],
+        )
+        errors = validate_feat(feat)
+        assert any("environment 'missing_env'" in e for e in errors)
+
+    def test_procedure_unknown_telemetry(self):
+        feat = FeatureDefinition(
+            commands=[CommandDef(name="do_thing", description="does a thing")],
+            procedures=[
+                ProcedureDef(
+                    name="my_proc",
+                    description="proc",
+                    command="do_thing",
+                    telemetry=["missing_sink"],
+                )
+            ],
+        )
+        errors = validate_feat(feat)
+        assert any("telemetry 'missing_sink'" in e for e in errors)
+
+    def test_querier_unknown_telemetry(self):
+        feat = FeatureDefinition(
+            queries=[
+                QueryDef(
+                    name="my_query",
+                    description="query",
+                    telemetry=["missing_sink"],
+                )
+            ],
+        )
+        errors = validate_feat(feat)
+        assert any("querier 'my_query': telemetry 'missing_sink'" in e for e in errors)
+
+    def test_procedure_unknown_command(self):
+        feat = FeatureDefinition(
+            commands=[CommandDef(name="do_thing", description="does a thing")],
+            procedures=[
+                ProcedureDef(name="my_proc", description="proc", command="unknown_command")
             ],
         )
         errors = validate_feat(feat)
@@ -148,11 +201,7 @@ class TestValidateFeat:
     def test_policy_unknown_event(self):
         feat = FeatureDefinition(
             events=[EventDef(name="real_event", description="real")],
-            policies=[
-                PolicyDef(
-                    name="my_policy", description="policy", event="unknown_event"
-                )
-            ],
+            policies=[PolicyDef(name="my_policy", description="policy", event="unknown_event")],
         )
         errors = validate_feat(feat)
         assert any("event 'unknown_event'" in e for e in errors)
@@ -192,22 +241,14 @@ class TestValidateFeat:
     def test_projection_unknown_event(self):
         feat = FeatureDefinition(
             events=[EventDef(name="real_event", description="real")],
-            projections=[
-                ProjectionDef(
-                    name="my_proj", description="proj", event="unknown_event"
-                )
-            ],
+            projections=[ProjectionDef(name="my_proj", description="proj", event="unknown_event")],
         )
         errors = validate_feat(feat)
         assert any("event 'unknown_event'" in e for e in errors)
 
     def test_projection_unknown_model(self):
         feat = FeatureDefinition(
-            models=[
-                ModelDef(
-                    name="real_model", description="a real model", adapters=["sqla"]
-                )
-            ],
+            models=[ModelDef(name="real_model", description="a real model", adapters=["sqla"])],
             events=[EventDef(name="some_event", description="event")],
             projections=[
                 ProjectionDef(
@@ -224,11 +265,7 @@ class TestValidateFeat:
 
     def test_query_unknown_model(self):
         feat = FeatureDefinition(
-            models=[
-                ModelDef(
-                    name="real_model", description="a real model", adapters=["sqla"]
-                )
-            ],
+            models=[ModelDef(name="real_model", description="a real model", adapters=["sqla"])],
             queries=[
                 QueryDef(
                     name="my_query",
@@ -243,38 +280,22 @@ class TestValidateFeat:
 
     def test_query_model_without_adapter(self):
         feat = FeatureDefinition(
-            models=[
-                ModelDef(
-                    name="recipes", description="recipes", adapters=["sqla"]
-                )
-            ],
-            queries=[
-                QueryDef(
-                    name="my_query", description="query", model="recipes"
-                )
-            ],
+            models=[ModelDef(name="recipes", description="recipes", adapters=["sqla"])],
+            queries=[QueryDef(name="my_query", description="query", model="recipes")],
         )
         errors = validate_feat(feat)
         assert any("model declared without adapter" in e for e in errors)
 
     def test_query_adapter_without_model(self):
         feat = FeatureDefinition(
-            queries=[
-                QueryDef(
-                    name="my_query", description="query", adapter="sqla"
-                )
-            ],
+            queries=[QueryDef(name="my_query", description="query", adapter="sqla")],
         )
         errors = validate_feat(feat)
         assert any("adapter declared without model" in e for e in errors)
 
     def test_query_adapter_not_in_model(self):
         feat = FeatureDefinition(
-            models=[
-                ModelDef(
-                    name="recipes", description="recipes", adapters=["sqla"]
-                )
-            ],
+            models=[ModelDef(name="recipes", description="recipes", adapters=["sqla"])],
             queries=[
                 QueryDef(
                     name="my_query",
@@ -286,17 +307,12 @@ class TestValidateFeat:
         )
         errors = validate_feat(feat)
         assert any(
-            "adapter 'relative_filesystem' not declared on model 'recipes'" in e
-            for e in errors
+            "adapter 'relative_filesystem' not declared on model 'recipes'" in e for e in errors
         )
 
     def test_projection_model_without_adapter(self):
         feat = FeatureDefinition(
-            models=[
-                ModelDef(
-                    name="recipes", description="recipes", adapters=["sqla"]
-                )
-            ],
+            models=[ModelDef(name="recipes", description="recipes", adapters=["sqla"])],
             events=[EventDef(name="some_event", description="event")],
             projections=[
                 ProjectionDef(
@@ -327,11 +343,7 @@ class TestValidateFeat:
 
     def test_projection_adapter_not_in_model(self):
         feat = FeatureDefinition(
-            models=[
-                ModelDef(
-                    name="recipes", description="recipes", adapters=["sqla"]
-                )
-            ],
+            models=[ModelDef(name="recipes", description="recipes", adapters=["sqla"])],
             events=[EventDef(name="some_event", description="event")],
             projections=[
                 ProjectionDef(
@@ -345,6 +357,5 @@ class TestValidateFeat:
         )
         errors = validate_feat(feat)
         assert any(
-            "adapter 'relative_filesystem' not declared on model 'recipes'" in e
-            for e in errors
+            "adapter 'relative_filesystem' not declared on model 'recipes'" in e for e in errors
         )

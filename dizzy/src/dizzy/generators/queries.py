@@ -3,7 +3,9 @@
 from pathlib import Path
 
 from dizzy.feat_schema import QueryDef
+from dizzy.generators.context_extras import render_context_extras
 from dizzy.generators.paths import gen_int_root
+from dizzy.generators.yaml_util import description_lines
 from dizzy.logger import logger
 
 
@@ -18,7 +20,7 @@ def render_scaffold_query(query: QueryDef) -> str:
     lines = [
         f"id: https://example.org/queries/{query.name}",
         f"name: {query.name}",
-        f"description: {query.description}",
+        *description_lines(query.description, ""),
         "prefixes:",
         "  linkml: https://w3id.org/linkml/",
         "default_range: string",
@@ -60,27 +62,35 @@ def render_gen_query_protocol(query: QueryDef) -> str:
     context_class = f"{query.name}_context"
     protocol_class = f"{query.name}_query"
 
+    extras = render_context_extras(query.name, query.environment, query.telemetry)
+
+    context_body: list[str] = []
     adapter_import = ""
     if query.adapter is not None:
         adapter_cls = _adapter_class_name(query.adapter)
-        adapter_import = (
-            f"from gen_int.python.adapters.{query.adapter} import {adapter_cls}"
-        )
-        context_body = [f"    adapter: {adapter_cls}"]
-    else:
-        context_body = ["    pass"]
+        adapter_import = f"from gen_int.python.adapters.{query.adapter} import {adapter_cls}"
+        context_body.append(f"    adapter: {adapter_cls}")
+    context_body.extend(extras.fields)
+    if not context_body:
+        context_body.append("    pass")
 
     imports = [
         "# AUTO-GENERATED — do not edit",
         "from dataclasses import dataclass",
         "from typing import Protocol",
+    ]
+    if extras.needs_callable:
+        imports.append("from typing import Callable")
+    imports += [
         "",
         f"from gen_def.pydantic.query.{query.name} import {input_class}, {output_class}",
     ]
     if adapter_import:
         imports.append(adapter_import)
+    imports.extend(extras.imports)
 
     lines = imports + [
+        *extras.classes,
         "",
         "",
         "@dataclass",

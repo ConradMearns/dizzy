@@ -16,29 +16,31 @@ def render_element_pyproject_toml(kind: str, name: str) -> str:
     The implementation module lives at ``src/<name>.py`` and is shipped as the
     top-level module ``<name>`` (``[tool.hatch.build]`` strips the ``src`` prefix).
     """
-    return "\n".join([
-        "[project]",
-        f'name = "{kind}-{name}"',
-        'version = "0.1.0"',
-        'requires-python = ">=3.11"',
-        "dependencies = [",
-        '    "gen_def",',
-        '    "gen_int",',
-        "]",
-        "",
-        "[tool.uv.sources]",
-        "gen_def = { workspace = true }",
-        "gen_int = { workspace = true }",
-        "",
-        "[build-system]",
-        'requires = ["hatchling"]',
-        'build-backend = "hatchling.build"',
-        "",
-        "[tool.hatch.build.targets.wheel]",
-        'sources = ["src"]',
-        f'include = ["src/{name}.py"]',
-        "",
-    ])
+    return "\n".join(
+        [
+            "[project]",
+            f'name = "{kind}-{name}"',
+            'version = "0.1.0"',
+            'requires-python = ">=3.11"',
+            "dependencies = [",
+            '    "gen_def",',
+            '    "gen_int",',
+            "]",
+            "",
+            "[tool.uv.sources]",
+            "gen_def = { workspace = true }",
+            "gen_int = { workspace = true }",
+            "",
+            "[build-system]",
+            'requires = ["hatchling"]',
+            'build-backend = "hatchling.build"',
+            "",
+            "[tool.hatch.build.targets.wheel]",
+            'sources = ["src"]',
+            f'include = ["src/{name}.py"]',
+            "",
+        ]
+    )
 
 
 # Type packages emitted by `dizzy gen`; listed first so they resolve as workspace deps.
@@ -50,13 +52,15 @@ def render_workspace_pyproject_toml(members: list[tuple[str, str]]) -> str:
         f'  "{member}",'
         for member in _TYPE_PACKAGE_MEMBERS + [f"{kind}/{name}" for kind, name in members]
     )
-    return "\n".join([
-        "[tool.uv.workspace]",
-        "members = [",
-        member_lines,
-        "]",
-        "",
-    ])
+    return "\n".join(
+        [
+            "[tool.uv.workspace]",
+            "members = [",
+            member_lines,
+            "]",
+            "",
+        ]
+    )
 
 
 def _write_if_absent(path: Path, content: str) -> None:
@@ -88,7 +92,9 @@ def write_query_python_uv(query: QueryDef, output_dir: Path) -> None:
 
 def write_projection_python_uv(proj: ProjectionDef, output_dir: Path) -> None:
     base = output_dir / "lib" / "python-uv" / "projection" / proj.name
-    _write_if_absent(base / "pyproject.toml", render_element_pyproject_toml("projection", proj.name))
+    _write_if_absent(
+        base / "pyproject.toml", render_element_pyproject_toml("projection", proj.name)
+    )
     _write_if_absent(base / "src" / f"{proj.name}.py", render_src_projection_stub(proj))
 
 

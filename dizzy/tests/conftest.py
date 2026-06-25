@@ -3,7 +3,6 @@
 from pathlib import Path
 
 import pytest
-
 from dizzy.feat_loader import load_feat
 from dizzy.feat_schema import FeatureDefinition
 
@@ -25,3 +24,9 @@ def recipe_feat() -> FeatureDefinition:
 def partial_feat() -> FeatureDefinition:
     """Partial feat — commands, queries, procedures only (no models/events/policies/projections)."""
     return load_feat(FIXTURES_DIR / "partial.feat.yaml")
+
+
+@pytest.fixture
+def agent_feat() -> FeatureDefinition:
+    """Agent feat — exercises environment + telemetry across all four function kinds."""
+    return load_feat(FIXTURES_DIR / "agent.feat.yaml")

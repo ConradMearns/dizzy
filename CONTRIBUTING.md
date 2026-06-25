@@ -1,0 +1,80 @@
+# Contributing to DIZZY
+
+Thanks for helping! This project is **trunk-based**: `main` is always
+releasable, and all work lands through short-lived branches and pull requests.
+
+## Development setup
+
+DIZZY uses [`uv`](https://docs.astral.sh/uv/) and [`just`](https://just.systems/).
+
+```sh
+git clone https://github.com/PNNL/dizzy
+cd dizzy
+uv sync            # install deps + dev tools into .venv
+just install       # optional: install the `dizzy` CLI as an editable tool
+dizzy onboard      # read this before touching generators
+```
+
+## The workflow
+
+1. **Branch off `main`** — keep branches short-lived and focused:
+   `git switch -c my-change`.
+2. **Make the change.** Match the surrounding code style.
+3. **Run the gates locally** (see below).
+4. **Open a PR into `main`.** CI runs automatically.
+5. **Squash-merge once green.** Keep `main` linear and releasable.
+
+We track issues with [Seeds](https://github.com/jayminwest/seeds). Run
+`sd prime` at the start of a session and `sd ready` to find unblocked work.
+
+## Quality gates
+
+`just ci` runs everything CI runs, in the same order:
+
+| Command          | Tool   | Blocks merge? |
+| ---------------- | ------ | ------------- |
+| `just test`      | pytest + syrupy snapshots | **Yes** |
+| `just lint`      | ruff (lint) | No — advisory |
+| `just fmt-check` | ruff (format) | No — advisory |
+| `just check`     | `ty` (type check) | No — advisory |
+
+- **Tests are the gate.** A PR must pass `pytest` on Python 3.11–3.13 to merge.
+  In branch protection, mark the `test (py3.x)` checks as required.
+- **Lint / format / type checks are advisory.** They run in the `quality` job
+  and report status, but are *not* required checks, so they won't block a merge
+  while we adopt them across the codebase. Please still fix what you can —
+  `just fmt` auto-formats, and `just lint` shows lint findings.
+- If you intentionally re-snapshot, use `just test-update` and review the diff.
+- Touching generators? Regenerate examples and confirm no drift:
+  `just examples-check`.
+
+## Documentation
+
+- `docs/cli.md` and `docs/authoring.md` are the authoritative docs (symlinked
+  into the package so they ship in the wheel — **edit the `docs/` copies**).
+  When scope changes, change `docs/cli.md` first, then the seeds.
+- The whitepaper/architecture Typst files are maintainer-authored; you may
+  fact-check them, but don't author them.
+
+## Releasing (maintainers)
+
+Versions come from git tags via `hatch-vcs` — there is **no** version number to
+edit in source. To cut a release:
+
+1. **Update the changelog.** In `CHANGELOG.md`, rename the `[Unreleased]`
+   section to the new version with today's date, and start a fresh
+   `[Unreleased]` block above it. Keep entries grouped under
+   Added / Changed / Fixed / Removed.
+2. **Land it on `main`** via PR, as usual.
+3. **Tag and push** from `main`:
+   ```sh
+   git switch main && git pull
+   git tag v0.2.0
+   git push origin v0.2.0
+   ```
+4. The **Release** workflow takes over: it verifies the tag matches the built
+   version, builds the sdist + wheel, and creates a GitHub Release with those
+   artifacts attached.
+
+Tags are `vMAJOR.MINOR.PATCH` following [SemVer](https://semver.org/). To test a
+build without releasing, run `just build` — artifacts land in `dist/`.

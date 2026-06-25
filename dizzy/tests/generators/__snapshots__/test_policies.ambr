@@ -25,6 +25,40 @@
   
   '''
 # ---
+# name: test_render_policy_context_with_env_telemetry_snapshot
+  '''
+  # AUTO-GENERATED — do not edit
+  from dataclasses import dataclass
+  from typing import Callable
+  
+  from gen_def.pydantic.commands import SendMessage
+  from gen_def.pydantic.environment import Model
+  from gen_def.pydantic.telemetry import StreamChunk
+  
+  
+  @dataclass
+  class notify_on_reply_emitters:
+      send_message: Callable[[SendMessage], None]
+  
+  
+  @dataclass
+  class notify_on_reply_env:
+      model: Model
+  
+  
+  @dataclass
+  class notify_on_reply_telemetry:
+      stream_chunk: Callable[[StreamChunk], None]
+  
+  
+  @dataclass
+  class notify_on_reply_context:
+      emit: notify_on_reply_emitters
+      env: notify_on_reply_env
+      telemetry: notify_on_reply_telemetry
+  
+  '''
+# ---
 # name: test_render_policy_protocol_snapshot
   '''
   # AUTO-GENERATED — do not edit

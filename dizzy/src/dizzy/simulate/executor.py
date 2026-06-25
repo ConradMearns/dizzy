@@ -27,14 +27,14 @@ class PolicyResult:
 
 @runtime_checkable
 class ProcedureExecutor(Protocol):
-    def execute(self, component: str, trigger: str | dict, event_store: list) -> ProcedureResult:
-        ...
+    def execute(
+        self, component: str, trigger: str | dict, event_store: list
+    ) -> ProcedureResult: ...
 
 
 @runtime_checkable
 class PolicyExecutor(Protocol):
-    def execute(self, component: str, trigger: str | dict, event_store: list) -> PolicyResult:
-        ...
+    def execute(self, component: str, trigger: str | dict, event_store: list) -> PolicyResult: ...
 
 
 class ExampleProcedureExecutor:

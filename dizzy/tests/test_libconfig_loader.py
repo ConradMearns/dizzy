@@ -4,10 +4,10 @@ import textwrap
 from pathlib import Path
 
 import pytest
-
-from dizzy.feat_schema import FeatureDefinition, ProcedureDef, PolicyDef
+from dizzy.feat_schema import FeatureDefinition
 from dizzy.libconfig_loader import load_libconfig, validate_libconfig
 from dizzy.libconfig_schema import LanguageRuntime
+from pydantic import ValidationError
 
 
 def _write(tmp_path: Path, content: str) -> Path:
@@ -96,10 +96,12 @@ def test_validate_valid_references(tmp_path: Path) -> None:
         """,
     )
     config = load_libconfig(p)
-    feat = FeatureDefinition.model_validate({
-        "procedures": [{"name": "my_proc", "command": "cmd", "description": "d"}],
-        "policies": [{"name": "my_policy", "event": "evt", "description": "d"}],
-    })
+    feat = FeatureDefinition.model_validate(
+        {
+            "procedures": [{"name": "my_proc", "command": "cmd", "description": "d"}],
+            "policies": [{"name": "my_policy", "event": "evt", "description": "d"}],
+        }
+    )
     errors = validate_libconfig(config, feat)
     assert errors == []
 
@@ -113,5 +115,5 @@ def test_load_invalid_runtime(tmp_path: Path) -> None:
             runtimes: [not-a-runtime]
         """,
     )
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         load_libconfig(p)

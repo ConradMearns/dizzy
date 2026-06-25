@@ -1,11 +1,9 @@
 """Tests for the dizzy configuration loader."""
 
-import os
 from pathlib import Path
 
 import pytest
-
-from dizzy.config import DizzyConfig, load_config
+from dizzy.config import load_config
 
 
 def test_defaults_when_no_files(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -41,6 +39,7 @@ def test_higher_precedence_file_wins(tmp_path: Path, monkeypatch: pytest.MonkeyP
 
     # Patch _CONFIG_PATHS to use our temp files in order
     import dizzy.config as cfg_module
+
     original = cfg_module._CONFIG_PATHS
     cfg_module._CONFIG_PATHS = [user_config, project_config]
     try:
