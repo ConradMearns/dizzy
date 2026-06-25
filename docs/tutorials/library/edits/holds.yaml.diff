@@ -1,0 +1,24 @@
+--- a/def/models/holds.yaml
++++ b/def/models/holds.yaml
+@@ -6,4 +6,20 @@ prefixes:
+ default_range: string
+ imports:
+   - linkml:types
+-classes: {}
++classes:
++  Hold:
++    description: A single active hold in the queue
++    attributes:
++      id:
++        range: string
++        required: true
++        identifier: true
++      book_id:
++        range: string
++        required: true
++      patron:
++        range: string
++        required: true
++      placed_at:
++        range: datetime
++        required: true

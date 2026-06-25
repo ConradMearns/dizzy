@@ -1,0 +1,37 @@
+--- a/lib/python-uv/policy/notify_next_on_return/src/notify_next_on_return.py
++++ b/lib/python-uv/policy/notify_next_on_return/src/notify_next_on_return.py
+@@ -1,11 +1,31 @@
+-# Implementation stub — fill in your logic here
+-from gen_int.python.policy.notify_next_on_return_protocol import notify_next_on_return_protocol
++# Implementation — the centerpiece of this example: a policy that QUERIES to
++# decide which COMMAND to dispatch.
++#
++# A policy emits commands only (never events). The query informs *which* command
++# it dispatches and with what arguments — here, who to notify. The downstream
++# command -> procedure -> event chain (notify_next_patron -> send_notification ->
++# patron_notified) is what actually records the fact.
+ from gen_int.python.policy.notify_next_on_return_context import notify_next_on_return_context
+ from gen_def.pydantic.events import BookReturned
++from gen_def.pydantic.commands import NotifyNextPatron
++from gen_def.pydantic.query.get_next_hold import GetNextHoldInput
+ 
+ 
+ def notify_next_on_return(
+     event: BookReturned,
+     context: notify_next_on_return_context,
+ ) -> None:
+-    raise NotImplementedError
++    # Ask the read model who, if anyone, is next in line for this book.
++    result = context.query.get_next_hold(
++        GetNextHoldInput(book_id=event.book_id),
++        # context for the query is wired by the host; see demo.py.
++    )
++
++    # No one waiting -> the policy dispatches nothing. This conditional dispatch
++    # is exactly why policies need queries: the decision lives in read state.
++    if result.patron is None:
++        return
++
++    context.emit.notify_next_patron(
++        NotifyNextPatron(book_id=event.book_id, patron=result.patron)
++    )

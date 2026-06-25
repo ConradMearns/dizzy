@@ -1,0 +1,54 @@
+name: Docs
+
+# Build the mkdocs site on every PR (a strict build is the gate — broken snippets,
+# links, or mkdocstrings references fail it), and deploy to GitHub Pages on push to main.
+#
+# One-time setup: repo Settings → Pages → Build and deployment → Source: GitHub Actions.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build (strict)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # hatch-vcs needs full history + tags; the site imports `dizzy` for
+          # the mkdocstrings code reference.
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Build site
+        env:
+          DISABLE_MKDOCS_2_WARNING: "true"
+        run: uv run --group docs mkdocs build --strict
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: deploy to GitHub Pages
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    # Don't cancel an in-flight deployment; let it finish.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

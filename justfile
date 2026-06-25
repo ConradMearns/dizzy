@@ -30,10 +30,14 @@ fmt-check:
 # Everything CI runs, in the same order. Tests are the gate; the rest are advisory.
 ci: lint fmt-check check test
 
-# Regenerate the example features and fail if anything drifted from what's committed.
+# Regenerate a committed example and fail if any tracked file drifted. The compiled
+# type packages (gen_def/gen_int) are gitignored, so this checks the element packages
+# and authored sources only. (The guestbook/library/agent features are end-to-end
+# checked by tutorials-check.)
 examples-check:
-    uv run dizzy generate libraries examples/guestbook/guestbook.feat.yaml examples/guestbook
-    git diff --exit-code examples/guestbook
+    uv run dizzy generate static examples/recipes/recipes.feat.yaml examples/recipes
+    uv run dizzy generate libraries examples/recipes/recipes.feat.yaml examples/recipes
+    git diff --exit-code examples/recipes
 
 # --- Build ---
 
@@ -47,6 +51,38 @@ whitepaper:
 
 whitepaper-watch:
     typst watch docs/whitepaper.typ
+
+# --- Documentation site (mkdocs) ---
+
+# Serve the Diátaxis docs site locally with live reload.
+docs-serve:
+    uv run --group docs mkdocs serve
+
+# Build the docs site into site/ and fail on any warning.
+docs-build:
+    uv run --group docs mkdocs build --strict
+
+# Run every tutorial under docs/tutorials/ end-to-end in a throwaway sandbox and check
+# that each command + file matches the documented output (via byexample).
+tutorials-check:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    repo="$(pwd)"
+    work="$(mktemp -d)"
+    trap 'rm -rf "$work"' EXIT
+    for doc in "$repo"/docs/tutorials/*.md; do
+        [ "$(basename "$doc")" = "index.md" ] && continue
+        echo "▶ ${doc#$repo/}"
+        ( cd "$work" && rm -rf ./* ./.[!.]* 2>/dev/null || true ) || true
+        # Stage any per-tutorial assets (e.g. edits/*.diff) that the steps apply.
+        assets="${doc%.md}"
+        [ -d "$assets" ] && cp -r "$assets/." "$work/"
+        # LinkML compilation + uv sync are slow; give every step a generous timeout.
+        # Drop VIRTUAL_ENV so a tutorial's own `uv run --project ...` doesn't warn about
+        # a mismatch with this runner's environment.
+        ( cd "$work" && uv run --group docs --project "$repo" \
+            env -u VIRTUAL_ENV byexample -l shell --timeout 300 "$doc" )
+    done
 
 
 install-completions:

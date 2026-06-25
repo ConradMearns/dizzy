@@ -1,0 +1,20 @@
+--- a/def/events.yaml
++++ b/def/events.yaml
+@@ -8,4 +8,16 @@ imports:
+ classes:
+   guestbook_signed:
+     description: A visitor signed the guestbook
+-    attributes: {}
++    attributes:
++      signature_id:
++        range: string
++        required: true
++      visitor_name:
++        range: string
++        required: true
++      message:
++        range: string
++        required: true
++      signed_at:
++        range: datetime
++        required: true

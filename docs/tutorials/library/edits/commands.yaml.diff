@@ -1,0 +1,21 @@
+--- a/def/commands.yaml
++++ b/def/commands.yaml
+@@ -8,10 +8,15 @@ imports:
+ classes:
+   place_hold:
+     description: A patron wants to reserve a checked-out book
+-    attributes: {}
++    attributes:
++      book_id: { range: string, required: true }
++      patron: { range: string, required: true }
+   return_book:
+     description: A patron returns a borrowed book
+-    attributes: {}
++    attributes:
++      book_id: { range: string, required: true }
+   notify_next_patron:
+     description: Tell the next patron in line that their book is ready
+-    attributes: {}
++    attributes:
++      book_id: { range: string, required: true }
++      patron: { range: string, required: true }

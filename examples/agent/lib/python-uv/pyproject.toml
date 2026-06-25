@@ -1,6 +1,0 @@
-[tool.uv.workspace]
-members = [
-  "gen_def",
-  "gen_int",
-  "procedure/run_agent_turn",
-]

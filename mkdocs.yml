@@ -1,0 +1,81 @@
+site_name: DIZZY
+site_description: A methodology and code generator for event-sourced software
+site_url: https://pnnl.github.io/dizzy/
+repo_url: https://github.com/PNNL/dizzy
+repo_name: PNNL/dizzy
+docs_dir: docs
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+  palette:
+    - scheme: default
+      primary: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+plugins:
+  - search
+  - gen-files:
+      scripts:
+        - gen_ref_pages.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [dizzy/src]
+          options:
+            show_root_heading: true
+            show_source: true
+            docstring_style: google
+            members_order: source
+
+nav:
+  - Home: index.md
+  - Tutorials:
+      - tutorials/index.md
+      - Build a guestbook: tutorials/guestbook.md
+      - A policy that consults a query: tutorials/library.md
+      - A streaming agent turn: tutorials/agent.md
+  - How-to guides:
+      - how-to/index.md
+      - Add a validated tutorial: how-to/add-a-validated-tutorial.md
+  - Reference:
+      - Feature-file format: reference/SPECIFICATION.md
+      - Code API: reference/api/
+  - Explanation:
+      - Simulate playbook: explanation/simulate-playbook.md
+      - Whitepaper: explanation/whitepaper.md
+
+# The whitepaper constellation is maintainer-authored Typst/PDF and lives at the docs/
+# root; keep it (and PNF + the grading rig) out of the generated site.
+exclude_docs: |
+  *.typ
+  *.bib
+  *.diff
+  pnf/
+  whitepaper.reqs.md
+  GRADE.md
+  results.md
+  PNF.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.snippets:
+      base_path: [docs]
+      check_paths: true
+  - toc:
+      permalink: true

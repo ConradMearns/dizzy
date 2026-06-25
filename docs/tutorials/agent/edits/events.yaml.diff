@@ -1,0 +1,40 @@
+--- a/def/events.yaml
++++ b/def/events.yaml
+@@ -10,11 +10,35 @@ classes:
+     description: |-
+       A user message was appended to a conversation.
+       Carries session_id, content, and sent_at.
+-    attributes: {}
++    attributes:
++      session_id:
++        description: Shared conversation key this message belongs to.
++        range: string
++        required: true
++      content:
++        description: The user's message text.
++        range: string
++        required: true
++      sent_at:
++        description: When the user message was recorded.
++        range: datetime
++        required: true
+   agent_replied:
+     description: |-
+       The agent completed a reply in a conversation.
+       Carries session_id, content, replied_at, and token/cost telemetry
+       (prompt_tokens, completion_tokens, total_tokens, cost_usd). Telemetry is
+       observed provenance from the model provider, not a derivation.
+-    attributes: {}
++    attributes:
++      session_id:
++        description: Shared conversation key this reply belongs to.
++        range: string
++        required: true
++      content:
++        description: The agent's full reply text.
++        range: string
++        required: true
++      replied_at:
++        description: When the agent reply was recorded.
++        range: datetime
++        required: true

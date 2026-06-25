@@ -148,18 +148,19 @@ installable packages, and every element package depends on them — so a generat
 
 ## See it run
 
-The [`examples/guestbook/`](examples/guestbook/) directory has this feature fully
-generated **and** implemented, with a `demo.py` that wires it together. The generated
-`lib/python-uv/` is a uv workspace, so sync it once and run the demo inside it:
+The **[Build a guestbook tutorial](docs/tutorials/guestbook.md)** takes this feature from
+an empty directory all the way to a running demo — describe it, generate and fill in the
+schemas, implement the stubs, and wire up a `demo.py` that prints the signatures back out:
 
-```bash
-uv sync --project examples/guestbook/lib/python-uv
-uv run --project examples/guestbook/lib/python-uv python examples/guestbook/demo.py
-# Guestbook (newest first):
-#   - Edsger: Goto considered harmful
-#   - Grace: Compiled it
-#   - Ada: Hello from 1843
+```text
+Guestbook (newest first):
+  - Edsger: Goto considered harmful
+  - Grace: Compiled it
+  - Ada: Hello from 1843
 ```
+
+Every command, edit, and output in that tutorial is executed and checked by
+`just tutorials-check`. For more committed examples, see [`examples/`](examples/).
 
 See [`examples/`](examples/) for the full walkthrough.
 
@@ -168,7 +169,7 @@ See [`examples/`](examples/) for the full walkthrough.
 DIZZY ships a reference document tuned for LLM agents (the analog of `sd prime`):
 
 ```bash
-dizzy docs            # CLI manpage + roadmap (canonical: docs/cli.md)
+dizzy docs            # CLI manpage + roadmap (ships in dizzy/src/dizzy/docs/cli.md)
 dizzy docs authoring  # agent guide: components, .feat.yaml shape, authoring surface
 ```
 
@@ -181,12 +182,15 @@ unbuilt command's section is its requirements document.
 
 This is a **uv monorepo**:
 
-- **`dizzy/`** — the core package and generators (`dizzy/src/dizzy/`).
+- **`dizzy/`** — the core package and generators (`dizzy/src/dizzy/`). The CLI's own
+  docs ship here (`dizzy/src/dizzy/docs/`) and print via `dizzy docs` / `dizzy onboard`.
 - **`examples/`** — worked examples.
-- **`docs/`** — specification, whitepaper, and design notes (Typst sources + PDFs).
+- **`docs/`** — the [mkdocs](https://www.mkdocs.org/) documentation site, organized by
+  [Diátaxis](https://diataxis.fr/) (tutorials / how-to / reference / explanation), plus
+  the maintainer whitepaper (Typst source + PDF). Run `just docs-serve` to preview it.
 
 Common commands live in the [`justfile`](justfile) (`just test`, `just check`,
-`just whitepaper`). Configuration is documented via `dizzy config`.
+`just docs-serve`, `just whitepaper`). Configuration is documented via `dizzy config`.
 
 ## Issue tracking
 

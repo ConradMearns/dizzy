@@ -394,8 +394,8 @@ def config() -> None:
 
 
 DOC_PAGES = {
-    "cli": "cli.md",  # manpage + roadmap (canonical: docs/cli.md)
-    "authoring": "authoring.md",  # agent guide to authoring (canonical: docs/authoring.md)
+    "cli": "cli.md",  # manpage + roadmap (canonical: dizzy/src/dizzy/docs/cli.md)
+    "authoring": "authoring.md",  # agent guide (canonical: dizzy/src/dizzy/docs/authoring.md)
 }
 
 

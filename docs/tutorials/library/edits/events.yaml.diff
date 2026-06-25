@@ -1,0 +1,22 @@
+--- a/def/events.yaml
++++ b/def/events.yaml
+@@ -8,10 +8,16 @@ imports:
+ classes:
+   hold_placed:
+     description: A patron's hold was recorded
+-    attributes: {}
++    attributes:
++      book_id: { range: string, required: true }
++      patron: { range: string, required: true }
++      placed_at: { range: datetime, required: true }
+   book_returned:
+     description: A book was returned to the library
+-    attributes: {}
++    attributes:
++      book_id: { range: string, required: true }
+   patron_notified:
+     description: The next patron was told their book is ready
+-    attributes: {}
++    attributes:
++      book_id: { range: string, required: true }
++      patron: { range: string, required: true }

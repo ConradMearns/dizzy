@@ -1,0 +1,19 @@
+--- a/def/queries/list_signatures.yaml
++++ b/def/queries/list_signatures.yaml
+@@ -9,7 +9,14 @@ imports:
+ classes:
+   ListSignaturesInput:
+     description: Input for list_signatures
+-    attributes: {}
++    attributes:
++      limit:
++        range: integer
++        required: false
+   ListSignaturesOutput:
+     description: Output for list_signatures
+-    attributes: {}
++    attributes:
++      signatures:
++        range: string
++        multivalued: true
++        description: 'Signatures rendered as "name: message", newest first'

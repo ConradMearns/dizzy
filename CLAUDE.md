@@ -23,21 +23,22 @@ This is a map, not a reading list — pull in only what your task needs. Ordered
 how often a task needs them:
 
 1. **`README.md`** — what/why, install, minimal feature, the three-stage workflow.
-2. **`docs/cli.md`** — CLI manpage **and roadmap**. The canonical end-state: every
-   command section is the requirements doc for that command. Seeds reference these
-   sections. Printed by `dizzy docs`. *Keep this file authoritative — when scope
-   changes, change it here first, then update seeds.*
-3. **`docs/authoring.md`** — agent guide for writing features: components, `.feat.yaml`
-   shape, what you author after each stage, generated layout, import conventions.
-   Printed by `dizzy docs authoring`.
-4. **`docs/SPECIFICATION.md`** — the `.feat.yaml` format spec.
-5. **`examples/guestbook/`** — a fully generated *and implemented* feature with a
-   runnable demo.
+2. **`dizzy/src/dizzy/docs/cli.md`** — CLI manpage **and roadmap**. The canonical
+   end-state: every command section is the requirements doc for that command. Seeds
+   reference these sections. Ships with the tool; printed by `dizzy docs`. *Keep this
+   file authoritative — when scope changes, change it here first, then update seeds.*
+3. **`dizzy/src/dizzy/docs/authoring.md`** — agent guide for writing features:
+   components, `.feat.yaml` shape, what you author after each stage, generated layout,
+   import conventions. Ships with the tool; printed by `dizzy docs authoring`.
+4. **`docs/reference/SPECIFICATION.md`** — the `.feat.yaml` format spec.
+5. **`docs/tutorials/guestbook.md`** — the minimal feature built end to end, validated
+   by `just tutorials-check`. Further worked features live in `examples/` (their
+   `gen_def`/`gen_int` are gitignored — regenerate with `dizzy generate static`).
 6. **`dizzy/src/dizzy/`** — implementation: `cli.py` (verbs), `feat_schema.py` /
    `libconfig_schema.py` (generated — edit `dizzy/src/dizzy/def/*.yaml` and run
    `just gen-feat-pydantic` / `just gen-libconfig-pydantic` instead), `generators/`.
-7. **`docs/whitepaper.typ`, `docs/architecture.typ`, `docs/PNF.md`** — theory and
-   rationale. Maintainer-authored: AI may review/fact-check these, never author them.
+7. **`docs/whitepaper.typ`, `docs/PNF.md`** — theory and rationale.
+   Maintainer-authored: AI may review/fact-check these, never author them.
 
 ## CLI at a glance
 
@@ -45,12 +46,15 @@ how often a task needs them:
   (legacy aliases: `def`/`gen`/`lib`).
 - `dizzy docs [cli|authoring]` — print documentation; `dizzy config` — config template.
 - Roadmap commands (`lint`, `diff`, `impact`, `simulate`, …) are specified in
-  `docs/cli.md` and tracked as seeds.
+  `dizzy/src/dizzy/docs/cli.md` and tracked as seeds.
 
 ## Conventions & boundaries
 
-- The two doc pages in `docs/` are symlinked into the package
-  (`dizzy/src/dizzy/docs/`) so they ship in the wheel — edit the `docs/` copies.
+- The tool-shipped docs (`cli.md`, `authoring.md`, `onboard.md`) live in the package at
+  `dizzy/src/dizzy/docs/` so they ship in the wheel and are printed by `dizzy docs` /
+  `dizzy onboard` — edit them there. The `docs/` tree is the **mkdocs Diátaxis site**
+  (`just docs-serve` / `just docs-build`); its `reference/api/` pages are generated from
+  the code by `gen_ref_pages.py` (mkdocstrings).
 - Quality gates: `just test` (pytest + syrupy snapshots; `just test-update` to
   re-snapshot intentionally) and `just check` (ty).
 - Gotcha: despite the Seeds section below, `sd prime` does **not** accept
