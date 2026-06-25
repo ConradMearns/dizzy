@@ -14,10 +14,10 @@ dispatches (and with what arguments). The host below binds each query into a
 closure over the read adapter, so the policy calls it with just the query input,
 exactly the way it calls an emitter.
 
-Run inside the workspace environment (from the repo root):
+Run inside the generated workspace environment:
 
-    uv sync --project examples/library/lib/python-uv
-    uv run --project examples/library/lib/python-uv python examples/library/demo.py
+    uv sync --project lib/python-uv
+    uv run --project lib/python-uv python demo.py
 """
 
 from sqlalchemy import create_engine

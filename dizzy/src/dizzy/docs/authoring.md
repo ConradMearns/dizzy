@@ -104,7 +104,8 @@ policies:
 
 Fields: `event` (required), `queries` (optional list of query names), `emits` (optional
 list of command names), `environment` (optional list), `telemetry` (optional list).
-See `examples/library/` for a runnable policy-with-query feature.
+See the "A policy that consults a query" tutorial (`docs/tutorials/library.md`) for a
+runnable policy-with-query feature.
 
 ### Projections
 Read-model builders. Respond to one event and write denormalized state into a model

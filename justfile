@@ -32,11 +32,12 @@ ci: lint fmt-check check test
 
 # Regenerate a committed example and fail if any tracked file drifted. The compiled
 # type packages (gen_def/gen_int) are gitignored, so this checks the element packages
-# and authored sources only. (guestbook's end-to-end check now lives in tutorials-check.)
+# and authored sources only. (The guestbook/library/agent features are end-to-end
+# checked by tutorials-check.)
 examples-check:
-    uv run dizzy generate static examples/library/library.feat.yaml examples/library
-    uv run dizzy generate libraries examples/library/library.feat.yaml examples/library
-    git diff --exit-code examples/library
+    uv run dizzy generate static examples/recipes/recipes.feat.yaml examples/recipes
+    uv run dizzy generate libraries examples/recipes/recipes.feat.yaml examples/recipes
+    git diff --exit-code examples/recipes
 
 # --- Build ---
 

@@ -182,5 +182,5 @@ The tokens streamed live through telemetry; the event log recorded only the two 
 facts. That separation — transport vs. provenance — is the point of giving `run_agent_turn`
 both telemetry sinks *and* events.
 
-For the slimmed source of this example, see
-[`examples/agent`](https://github.com/PNNL/dizzy/tree/main/examples/agent).
+The full source for every step on this page lives in the tutorial's own asset folder
+(`docs/tutorials/agent/` — `example.py`, `demo.py`, and the patches under `edits/`).
