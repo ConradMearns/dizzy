@@ -1,5 +1,6 @@
 site_name: DIZZY
 site_description: A methodology and code generator for event-sourced software
+site_url: https://pnnl.github.io/dizzy/
 repo_url: https://github.com/PNNL/dizzy
 repo_name: PNNL/dizzy
 docs_dir: docs
