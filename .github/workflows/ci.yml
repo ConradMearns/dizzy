@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # The gate: tests must pass before merge. Mark this job (each matrix entry)
+  # as a required status check in branch protection.
+  test:
+    name: test (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # hatch-vcs needs full history + tags to compute the version.
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --python ${{ matrix.python-version }}
+      - run: uv run pytest
+
+  # Advisory: lint / format / type signal. NOT a required check, so it never
+  # blocks a merge while these are being adopted across the codebase.
+  quality:
+    name: quality (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync
+      - name: ruff lint
+        run: uv run ruff check dizzy/src/dizzy dizzy/tests
+      - name: ruff format check
+        run: uv run ruff format --check dizzy/src/dizzy dizzy/tests
+      - name: ty type check
+        run: uv run ty check dizzy/src/dizzy dizzy/tests
