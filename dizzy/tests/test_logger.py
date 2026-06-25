@@ -5,7 +5,6 @@ import logging
 from pathlib import Path
 
 import pytest
-
 from dizzy.logger import logger, setup_logging
 
 
@@ -46,6 +45,7 @@ def test_debug_writes_json_to_file(tmp_path: Path) -> None:
 
     log_file = tmp_path / "dizzy_test.log"
     from dizzy.logger import _JsonFormatter
+
     handler = logging.FileHandler(log_file)
     handler.setLevel(logging.DEBUG)
     handler.setFormatter(_JsonFormatter())

@@ -68,9 +68,7 @@ def render_gen_query_protocol(query: QueryDef) -> str:
     adapter_import = ""
     if query.adapter is not None:
         adapter_cls = _adapter_class_name(query.adapter)
-        adapter_import = (
-            f"from gen_int.python.adapters.{query.adapter} import {adapter_cls}"
-        )
+        adapter_import = f"from gen_int.python.adapters.{query.adapter} import {adapter_cls}"
         context_body.append(f"    adapter: {adapter_cls}")
     context_body.extend(extras.fields)
     if not context_body:

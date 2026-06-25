@@ -1,8 +1,8 @@
 """Snapshot tests for models generator."""
 
+from dizzy.generators.models import render_scaffold_model
 from syrupy.assertion import SnapshotAssertion
 
-from dizzy.generators.models import render_scaffold_model
 from tests.conftest import by_name
 
 

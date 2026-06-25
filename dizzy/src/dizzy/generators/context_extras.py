@@ -49,13 +49,9 @@ def render_context_extras(
     fields: list[str] = []
 
     for entry in environment:
-        imports.append(
-            f"from gen_def.pydantic.environment import {camelcase(entry)}"
-        )
+        imports.append(f"from gen_def.pydantic.environment import {camelcase(entry)}")
     for entry in telemetry:
-        imports.append(
-            f"from gen_def.pydantic.telemetry import {camelcase(entry)}"
-        )
+        imports.append(f"from gen_def.pydantic.telemetry import {camelcase(entry)}")
 
     if environment:
         classes.append("")

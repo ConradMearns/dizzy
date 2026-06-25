@@ -78,9 +78,7 @@ def render_policy_context(policy: PolicyDef) -> str:
 
 def write_policy_context(policy: PolicyDef, output_dir: Path) -> None:
     """Write gen_int/python/policy/<policy.name>_context.py (always overwritten)."""
-    dest = (
-        gen_int_root(output_dir) / "python" / "policy" / f"{policy.name}_context.py"
-    )
+    dest = gen_int_root(output_dir) / "python" / "policy" / f"{policy.name}_context.py"
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_policy_context(policy))
     logger.debug("wrote file", extra={"path": str(dest)})
@@ -119,9 +117,7 @@ def render_policy_protocol(policy: PolicyDef) -> str:
 
 def write_policy_protocol(policy: PolicyDef, output_dir: Path) -> None:
     """Write gen_int/python/policy/<policy.name>_protocol.py (always overwritten)."""
-    dest = (
-        gen_int_root(output_dir) / "python" / "policy" / f"{policy.name}_protocol.py"
-    )
+    dest = gen_int_root(output_dir) / "python" / "policy" / f"{policy.name}_protocol.py"
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_policy_protocol(policy))
     logger.debug("wrote file", extra={"path": str(dest)})

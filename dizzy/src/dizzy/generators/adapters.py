@@ -27,7 +27,7 @@ _ADAPTER_REGISTRY: dict[str, dict[str, str]] = {
 def render_adapter(adapter_name: str) -> str:
     """Render the source for a shared adapter dataclass."""
     if adapter_name not in _ADAPTER_REGISTRY:
-        warnings.warn(f"Unknown adapter '{adapter_name}' — skipping generation")
+        warnings.warn(f"Unknown adapter '{adapter_name}' — skipping generation", stacklevel=2)
         return ""
 
     info = _ADAPTER_REGISTRY[adapter_name]

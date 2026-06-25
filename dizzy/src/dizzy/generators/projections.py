@@ -28,9 +28,7 @@ def render_projection(proj: ProjectionDef) -> str:
     adapter_import = ""
     if proj.adapter is not None:
         adapter_cls = _adapter_class_name(proj.adapter)
-        adapter_import = (
-            f"from gen_int.python.adapters.{proj.adapter} import {adapter_cls}"
-        )
+        adapter_import = f"from gen_int.python.adapters.{proj.adapter} import {adapter_cls}"
         context_body.append(f"    adapter: {adapter_cls}")
     context_body.extend(extras.fields)
     if not context_body:
@@ -76,12 +74,7 @@ def render_projection(proj: ProjectionDef) -> str:
 
 def write_projection(proj: ProjectionDef, output_dir: Path) -> None:
     """Write gen_int/python/projection/<proj.name>_projection.py (always overwritten)."""
-    dest = (
-        gen_int_root(output_dir)
-        / "python"
-        / "projection"
-        / f"{proj.name}_projection.py"
-    )
+    dest = gen_int_root(output_dir) / "python" / "projection" / f"{proj.name}_projection.py"
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_projection(proj))
     logger.debug("wrote file", extra={"path": str(dest)})

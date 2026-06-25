@@ -1,8 +1,7 @@
 """Snapshot tests for adapters generator."""
 
-from syrupy.assertion import SnapshotAssertion
-
 from dizzy.generators.adapters import render_adapter
+from syrupy.assertion import SnapshotAssertion
 
 
 def test_render_sqla_adapter(snapshot: SnapshotAssertion):

@@ -1,42 +1,18 @@
 """Dizzy — feature file generator CLI."""
 
+from collections.abc import Callable
 from pathlib import Path
-from typing import Annotated, Any, Callable
+from typing import Annotated, Any
+
 import typer
 
 from dizzy.config import CONFIG_TEMPLATE, load_config
-from dizzy.logger import logger, setup_logging
-
 from dizzy.feat_loader import load_feat, validate_feat
-from dizzy.generators.commands import write_scaffold_commands
-from dizzy.generators.events import write_scaffold_events
-from dizzy.generators.environment import write_scaffold_environment
-from dizzy.generators.telemetry import write_scaffold_telemetry
-from dizzy.generators.queries import (
-    write_scaffold_query,
-    write_gen_query_protocol,
-)
-from dizzy.generators.models import write_scaffold_model
-from dizzy.generators.procedures import (
-    write_procedure_context,
-    write_procedure_protocol,
-)
-from dizzy.generators.policies import (
-    write_policy_context,
-    write_policy_protocol,
-)
-from dizzy.generators.projections import write_projection
 from dizzy.generators.adapters import write_adapter
-from dizzy.generators.linkml_runner import (
-    run_linkml_pydantic,
-    run_linkml_rust,
-    run_linkml_sqla,
-    run_linkml_typescript,
-)
+from dizzy.generators.commands import write_scaffold_commands
+from dizzy.generators.environment import write_scaffold_environment
+from dizzy.generators.events import write_scaffold_events
 from dizzy.generators.init_emitter import write_init_files
-from dizzy.generators.libconfig import write_libconfig_stub
-from dizzy.generators.paths import gen_def_root
-from dizzy.generators.type_packages import write_type_packages
 from dizzy.generators.lib_python_uv import (
     write_policy_python_uv,
     write_procedure_python_uv,
@@ -58,15 +34,38 @@ from dizzy.generators.lib_typescript_npm import (
     write_query_typescript_npm,
     write_workspace_typescript_npm,
 )
+from dizzy.generators.libconfig import write_libconfig_stub
+from dizzy.generators.linkml_runner import (
+    run_linkml_pydantic,
+    run_linkml_rust,
+    run_linkml_sqla,
+    run_linkml_typescript,
+)
+from dizzy.generators.models import write_scaffold_model
+from dizzy.generators.paths import gen_def_root
+from dizzy.generators.policies import (
+    write_policy_context,
+    write_policy_protocol,
+)
+from dizzy.generators.procedures import (
+    write_procedure_context,
+    write_procedure_protocol,
+)
+from dizzy.generators.projections import write_projection
+from dizzy.generators.queries import (
+    write_gen_query_protocol,
+    write_scaffold_query,
+)
+from dizzy.generators.telemetry import write_scaffold_telemetry
+from dizzy.generators.type_packages import write_type_packages
 from dizzy.libconfig_loader import load_libconfig, validate_libconfig
+from dizzy.logger import logger, setup_logging
 from dizzy.simulate.session import Session
-from dizzy.simulate.sim_executors import SimProcedureExecutor, SimPolicyExecutor
+from dizzy.simulate.sim_executors import SimPolicyExecutor, SimProcedureExecutor
 
 app = typer.Typer()
 
-generate_app = typer.Typer(
-    help="Feature-file → schemas → typed contracts → per-runtime libraries."
-)
+generate_app = typer.Typer(help="Feature-file → schemas → typed contracts → per-runtime libraries.")
 app.add_typer(generate_app, name="generate")
 
 
@@ -303,7 +302,9 @@ def lib(
 
     # Build element dispatch tables per runtime
     runtime_members: dict[str, list[tuple[str, str]]] = {
-        "python-uv": [], "rust-cargo": [], "typescript-npm": []
+        "python-uv": [],
+        "rust-cargo": [],
+        "typescript-npm": [],
     }
 
     _writers: dict[str, dict[str, Callable[..., Any]]] = {
@@ -359,15 +360,25 @@ def lib(
 def simulate(
     feat_file: Annotated[Path, typer.Argument(help="Path to the .feat.yaml file")],
     scenario_file: Annotated[Path, typer.Argument(help="Path to the .scenario.yaml file")],
-    session_path: Annotated[Path, typer.Argument(help="Output session JSONL file")] = Path("session.jsonl"),
-    provider: Annotated[str, typer.Option(help="LLM provider: openrouter | ollama | unsloth")] = "openrouter",
-    model: Annotated[str | None, typer.Option(help="Model override (provider default if omitted)")] = None,
+    session_path: Annotated[Path, typer.Argument(help="Output session JSONL file")] = Path(
+        "session.jsonl"
+    ),
+    provider: Annotated[
+        str, typer.Option(help="LLM provider: openrouter | ollama | unsloth")
+    ] = "openrouter",
+    model: Annotated[
+        str | None, typer.Option(help="Model override (provider default if omitted)")
+    ] = None,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Stream LLM output")] = False,
 ) -> None:
     """LLM-driven execution of a feature-file against a scenario (level 0)."""
     session = Session(session_path).load_features(feat_file)
-    procedure_executor = SimProcedureExecutor(session._feature, provider=provider, model=model, verbose_stream=verbose)
-    policy_executor = SimPolicyExecutor(session._feature, provider=provider, model=model, verbose_stream=verbose)
+    procedure_executor = SimProcedureExecutor(
+        session._feature, provider=provider, model=model, verbose_stream=verbose
+    )
+    policy_executor = SimPolicyExecutor(
+        session._feature, provider=provider, model=model, verbose_stream=verbose
+    )
     session.run_scenario(scenario_file, procedure_executor, policy_executor)
     findings = [e for e in session._session if e["type"] == "finding"]
     if findings:
@@ -384,7 +395,7 @@ def config() -> None:
 
 DOC_PAGES = {
     "cli": "cli.md",  # manpage + roadmap (canonical: docs/cli.md)
-    "authoring": "authoring.md",  # agent guide to .feat.yaml authoring (canonical: docs/authoring.md)
+    "authoring": "authoring.md",  # agent guide to authoring (canonical: docs/authoring.md)
 }
 
 
@@ -434,7 +445,11 @@ app.command("doc", hidden=True, help="Alias of `docs`.")(docs)
 
 def main() -> None:
     config = load_config()
-    setup_logging(log_dir=config.logging.log_dir, show_level=config.logging.show_level, gitignore=config.logging.gitignore)
+    setup_logging(
+        log_dir=config.logging.log_dir,
+        show_level=config.logging.show_level,
+        gitignore=config.logging.gitignore,
+    )
     app()
 
 

@@ -8,7 +8,7 @@ construction time. The feat dict is required so tools can be synthesized per the
 """
 
 from dizzy.simulate import agent
-from dizzy.simulate.executor import ProcedureResult, PolicyResult
+from dizzy.simulate.executor import PolicyResult, ProcedureResult
 
 SYSTEM_PROMPT = (
     "You are playing a SINGLE component in an event-sourced system. You see only "
@@ -27,17 +27,26 @@ def _find_component(feat: dict, name: str, kind: str) -> dict:
     c = section[name]
     trigger_key = "command" if kind == "procedure" else "event"
     return {
-        "name": name, "kind": kind,
+        "name": name,
+        "kind": kind,
         "description": c.get("description", ""),
-        "trigger_kind": trigger_key, "trigger_name": c.get(trigger_key),
-        "queries": c.get("queries", []), "emits": c.get("emits", []),
+        "trigger_kind": trigger_key,
+        "trigger_name": c.get(trigger_key),
+        "queries": c.get("queries", []),
+        "emits": c.get("emits", []),
     }
 
 
 def _synthesize_tools(component: dict, query_defs: dict) -> list[agent.ToolSpec]:
     tools = [
-        agent.ToolSpec(f"query_{q}", "query",
-                       meta={"query": q, "description": (query_defs.get(q, {}).get("description") or "").strip()})
+        agent.ToolSpec(
+            f"query_{q}",
+            "query",
+            meta={
+                "query": q,
+                "description": (query_defs.get(q, {}).get("description") or "").strip(),
+            },
+        )
         for q in component["queries"]
     ]
     out_kind = "emit" if component["kind"] == "procedure" else "dispatch"
@@ -73,10 +82,12 @@ class SimProcedureExecutor:
         comp = _find_component(self._feat, component, "procedure")
         tools = _synthesize_tools(comp, self._feat.get("queries", {}))
         result = agent.run_activation(
-            provider=self._provider, model=self._model,
+            provider=self._provider,
+            model=self._model,
             system_prompt=SYSTEM_PROMPT,
             user_prompt=_build_user_prompt(comp, trigger, tools),
-            tools=tools, event_store=event_store,
+            tools=tools,
+            event_store=event_store,
             verbose_stream=self._verbose_stream,
         )
         events = [
@@ -104,10 +115,12 @@ class SimPolicyExecutor:
         comp = _find_component(self._feat, component, "policy")
         tools = _synthesize_tools(comp, self._feat.get("queries", {}))
         result = agent.run_activation(
-            provider=self._provider, model=self._model,
+            provider=self._provider,
+            model=self._model,
             system_prompt=SYSTEM_PROMPT,
             user_prompt=_build_user_prompt(comp, trigger, tools),
-            tools=tools, event_store=event_store,
+            tools=tools,
+            event_store=event_store,
             verbose_stream=self._verbose_stream,
         )
         commands = [

@@ -7,37 +7,43 @@ from dizzy.logger import logger
 
 
 def render_element_cargo_toml(kind: str, name: str) -> str:
-    return "\n".join([
-        "[package]",
-        f'name = "{kind}-{name}"',
-        'version = "0.1.0"',
-        'edition = "2021"',
-        "",
-        "[lib]",
-        f'name = "{name}"',
-        "",
-    ])
+    return "\n".join(
+        [
+            "[package]",
+            f'name = "{kind}-{name}"',
+            'version = "0.1.0"',
+            'edition = "2021"',
+            "",
+            "[lib]",
+            f'name = "{name}"',
+            "",
+        ]
+    )
 
 
 def render_workspace_cargo_toml(members: list[tuple[str, str]]) -> str:
     member_lines = "\n".join(f'  "{kind}/{name}",' for kind, name in members)
-    return "\n".join([
-        "[workspace]",
-        "members = [",
-        member_lines,
-        "]",
-        "",
-    ])
+    return "\n".join(
+        [
+            "[workspace]",
+            "members = [",
+            member_lines,
+            "]",
+            "",
+        ]
+    )
 
 
 def render_lib_rs_stub(name: str) -> str:
-    return "\n".join([
-        "// Implementation stub — fill in your logic here",
-        f"pub fn {name}() {{",
-        "    todo!()",
-        "}",
-        "",
-    ])
+    return "\n".join(
+        [
+            "// Implementation stub — fill in your logic here",
+            f"pub fn {name}() {{",
+            "    todo!()",
+            "}",
+            "",
+        ]
+    )
 
 
 def _write_if_absent(path: Path, content: str) -> None:

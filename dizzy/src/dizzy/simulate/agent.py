@@ -55,9 +55,11 @@ def _client(provider: str) -> tuple[openai.OpenAI, str | None]:
 # shared types
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class ToolSpec:
     """One synthesized tool. kind ∈ emit | dispatch | query | answer | finding."""
+
     name: str
     kind: str
     meta: dict | None = None
@@ -77,6 +79,7 @@ class ActivationResult:
 # tool schema synthesis
 # ---------------------------------------------------------------------------
 
+
 def _tool_schema(spec: ToolSpec) -> dict:
     if spec.kind in ("emit", "dispatch"):
         verb = "Emit" if spec.kind == "emit" else "Dispatch"
@@ -90,10 +93,20 @@ def _tool_schema(spec: ToolSpec) -> dict:
         params, required = {"answer": {"type": "string"}}, ["answer"]
     else:  # finding
         desc = "Report a gap instead of healing it (missing/ambiguous/unanswerable)."
-        params = {"category": {"type": "string"}, "summary": {"type": "string"}, "detail": {"type": "string"}}
+        params = {
+            "category": {"type": "string"},
+            "summary": {"type": "string"},
+            "detail": {"type": "string"},
+        }
         required = ["category", "summary", "detail"]
-    return {"type": "function", "function": {"name": spec.name, "description": desc,
-            "parameters": {"type": "object", "properties": params, "required": required}}}
+    return {
+        "type": "function",
+        "function": {
+            "name": spec.name,
+            "description": desc,
+            "parameters": {"type": "object", "properties": params, "required": required},
+        },
+    }
 
 
 def _kind_for(tool_name: str, tools: list[ToolSpec]) -> str:
@@ -107,9 +120,13 @@ def _kind_for(tool_name: str, tools: list[ToolSpec]) -> str:
 # single-turn helpers: streaming and non-streaming both return a message dict
 # ---------------------------------------------------------------------------
 
+
 def _plain_turn(client, model, messages, tool_defs, timeout) -> dict:
     resp = client.chat.completions.create(
-        model=model, messages=messages, tools=tool_defs, timeout=timeout,
+        model=model,
+        messages=messages,
+        tools=tool_defs,
+        timeout=timeout,
     )
     return resp.choices[0].message.model_dump(exclude_unset=True)
 
@@ -117,7 +134,11 @@ def _plain_turn(client, model, messages, tool_defs, timeout) -> dict:
 def _stream_turn(client, model, messages, tool_defs, timeout) -> dict:
     """Stream one turn, printing content and tool-call names/args live to stdout."""
     stream = client.chat.completions.create(
-        model=model, messages=messages, tools=tool_defs, timeout=timeout, stream=True,
+        model=model,
+        messages=messages,
+        tools=tool_defs,
+        timeout=timeout,
+        stream=True,
     )
 
     content_buf: list[str] = []
@@ -161,8 +182,11 @@ def _stream_turn(client, model, messages, tool_defs, timeout) -> dict:
         msg["content"] = "".join(content_buf)
     if tc_buf:
         msg["tool_calls"] = [
-            {"id": tc_buf[i]["id"], "type": "function",
-             "function": {"name": tc_buf[i]["name"], "arguments": tc_buf[i]["args"]}}
+            {
+                "id": tc_buf[i]["id"],
+                "type": "function",
+                "function": {"name": tc_buf[i]["name"], "arguments": tc_buf[i]["args"]},
+            }
             for i in sorted(tc_buf)
         ]
     return msg
@@ -223,12 +247,16 @@ def run_activation(
                     description=qmeta.get("description", ""),
                     args=args.get("narrative", ""),
                     event_store=event_store or [],
-                    provider=provider, model=model,
+                    provider=provider,
+                    model=model,
                     verbose_stream=verbose_stream,
                 )
                 all_calls.append({"tool": name, "kind": "query_answer", "args": qresult})
-                content = qresult["answer"] if qresult["outcome"] == "answered" \
+                content = (
+                    qresult["answer"]
+                    if qresult["outcome"] == "answered"
                     else f"UNANSWERABLE — {qresult.get('finding', {}).get('summary', '')}"
+                )
             else:
                 content = f"recorded: {name}"
                 if kind in TERMINAL_KINDS:
@@ -278,10 +306,12 @@ def run_querier(
 ) -> dict:
     tools = [ToolSpec("answer", "answer"), ToolSpec("report_finding", "finding")]
     result = run_activation(
-        provider=provider, model=model,
+        provider=provider,
+        model=model,
         system_prompt=QUERIER_SYSTEM_PROMPT,
         user_prompt=_querier_prompt(query_name, description, args, event_store),
-        tools=tools, verbose_stream=verbose_stream,
+        tools=tools,
+        verbose_stream=verbose_stream,
     )
     answers, findings = result.of_kind("answer"), result.of_kind("finding")
     if answers:

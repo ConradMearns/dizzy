@@ -1,8 +1,7 @@
 """Snapshot tests for events generator."""
 
-from syrupy.assertion import SnapshotAssertion
-
 from dizzy.generators.events import render_scaffold_events
+from syrupy.assertion import SnapshotAssertion
 
 
 def test_render_scaffold_events_snapshot(recipe_feat, snapshot: SnapshotAssertion):

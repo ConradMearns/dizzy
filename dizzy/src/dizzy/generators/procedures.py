@@ -78,12 +78,7 @@ def render_procedure_context(proc: ProcedureDef) -> str:
 
 def write_procedure_context(proc: ProcedureDef, output_dir: Path) -> None:
     """Write gen_int/python/procedure/<proc.name>_context.py (always overwritten)."""
-    dest = (
-        gen_int_root(output_dir)
-        / "python"
-        / "procedure"
-        / f"{proc.name}_context.py"
-    )
+    dest = gen_int_root(output_dir) / "python" / "procedure" / f"{proc.name}_context.py"
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_procedure_context(proc))
     logger.debug("wrote file", extra={"path": str(dest)})
@@ -122,12 +117,7 @@ def render_procedure_protocol(proc: ProcedureDef) -> str:
 
 def write_procedure_protocol(proc: ProcedureDef, output_dir: Path) -> None:
     """Write gen_int/python/procedure/<proc.name>_protocol.py (always overwritten)."""
-    dest = (
-        gen_int_root(output_dir)
-        / "python"
-        / "procedure"
-        / f"{proc.name}_protocol.py"
-    )
+    dest = gen_int_root(output_dir) / "python" / "procedure" / f"{proc.name}_protocol.py"
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(render_procedure_protocol(proc))
     logger.debug("wrote file", extra={"path": str(dest)})

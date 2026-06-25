@@ -1,16 +1,14 @@
 """Tests for the scaffold YAML emission helper and multi-line-description safety."""
 
 import yaml
-
-from dizzy.feat_schema import CommandDef, EventDef, ModelDef, QueryDef
+from dizzy.feat_schema import CommandDef, EnvironmentDef, EventDef, ModelDef, QueryDef, TelemetryDef
 from dizzy.generators.commands import render_scaffold_commands
-from dizzy.generators.events import render_scaffold_events
 from dizzy.generators.environment import render_scaffold_environment
+from dizzy.generators.events import render_scaffold_events
 from dizzy.generators.models import render_scaffold_model
 from dizzy.generators.queries import render_scaffold_query
 from dizzy.generators.telemetry import render_scaffold_telemetry
 from dizzy.generators.yaml_util import description_lines
-from dizzy.feat_schema import EnvironmentDef, TelemetryDef
 
 MULTILINE = "First line of the description.\nSecond line with: a colon.\nThird line."
 

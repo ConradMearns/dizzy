@@ -13,41 +13,45 @@ from dizzy.logger import logger
 
 
 def render_gen_def_pyproject() -> str:
-    return "\n".join([
-        "[project]",
-        'name = "gen_def"',
-        'version = "0.1.0"',
-        'requires-python = ">=3.11"',
-        "dependencies = [",
-        '    "pydantic>=2",',
-        '    "sqlalchemy>=2",',
-        "]",
-        "",
-        "[build-system]",
-        'requires = ["hatchling"]',
-        'build-backend = "hatchling.build"',
-        "",
-    ])
+    return "\n".join(
+        [
+            "[project]",
+            'name = "gen_def"',
+            'version = "0.1.0"',
+            'requires-python = ">=3.11"',
+            "dependencies = [",
+            '    "pydantic>=2",',
+            '    "sqlalchemy>=2",',
+            "]",
+            "",
+            "[build-system]",
+            'requires = ["hatchling"]',
+            'build-backend = "hatchling.build"',
+            "",
+        ]
+    )
 
 
 def render_gen_int_pyproject() -> str:
-    return "\n".join([
-        "[project]",
-        'name = "gen_int"',
-        'version = "0.1.0"',
-        'requires-python = ">=3.11"',
-        "dependencies = [",
-        '    "gen_def",',
-        "]",
-        "",
-        "[tool.uv.sources]",
-        "gen_def = { workspace = true }",
-        "",
-        "[build-system]",
-        'requires = ["hatchling"]',
-        'build-backend = "hatchling.build"',
-        "",
-    ])
+    return "\n".join(
+        [
+            "[project]",
+            'name = "gen_int"',
+            'version = "0.1.0"',
+            'requires-python = ">=3.11"',
+            "dependencies = [",
+            '    "gen_def",',
+            "]",
+            "",
+            "[tool.uv.sources]",
+            "gen_def = { workspace = true }",
+            "",
+            "[build-system]",
+            'requires = ["hatchling"]',
+            'build-backend = "hatchling.build"',
+            "",
+        ]
+    )
 
 
 def write_type_packages(output_dir: Path) -> None:

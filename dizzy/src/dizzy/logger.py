@@ -8,12 +8,32 @@ from pathlib import Path
 
 from rich.logging import RichHandler
 
-_STANDARD_LOG_FIELDS = frozenset({
-    "name", "msg", "args", "created", "filename", "funcName",
-    "levelname", "levelno", "lineno", "module", "msecs", "pathname",
-    "process", "processName", "relativeCreated", "stack_info",
-    "thread", "threadName", "exc_info", "exc_text", "message", "taskName",
-})
+_STANDARD_LOG_FIELDS = frozenset(
+    {
+        "name",
+        "msg",
+        "args",
+        "created",
+        "filename",
+        "funcName",
+        "levelname",
+        "levelno",
+        "lineno",
+        "module",
+        "msecs",
+        "pathname",
+        "process",
+        "processName",
+        "relativeCreated",
+        "stack_info",
+        "thread",
+        "threadName",
+        "exc_info",
+        "exc_text",
+        "message",
+        "taskName",
+    }
+)
 
 
 class _JsonFormatter(logging.Formatter):
@@ -33,7 +53,9 @@ class _JsonFormatter(logging.Formatter):
         return json.dumps(data)
 
 
-def setup_logging(log_dir: Path | None = None, show_level: bool = False, gitignore: bool = True) -> None:
+def setup_logging(
+    log_dir: Path | None = None, show_level: bool = False, gitignore: bool = True
+) -> None:
     """Configure the dizzy logger. Called once from main()."""
     if log_dir is None:
         log_dir = Path.home() / ".local" / "share" / "dizzy" / "logs"
@@ -47,7 +69,9 @@ def setup_logging(log_dir: Path | None = None, show_level: bool = False, gitigno
     root = logging.getLogger("dizzy")
     root.setLevel(logging.DEBUG)
 
-    rich_handler = RichHandler(level=logging.INFO, show_path=False, markup=False, show_time=False, show_level=show_level)
+    rich_handler = RichHandler(
+        level=logging.INFO, show_path=False, markup=False, show_time=False, show_level=show_level
+    )
     root.addHandler(rich_handler)
 
     log_file = log_dir / f"dizzy_{int(time.time())}_{os.getpid()}.log"

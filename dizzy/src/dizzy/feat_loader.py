@@ -4,17 +4,10 @@ from pathlib import Path
 
 import yaml
 
-from dizzy.logger import logger
 from dizzy.feat_schema import (
-    CommandDef,
-    EventDef,
     FeatureDefinition,
-    ModelDef,
-    PolicyDef,
-    ProcedureDef,
-    ProjectionDef,
-    QueryDef,
 )
+from dizzy.logger import logger
 
 
 def _normalize_section(raw: dict, section: str) -> None:
@@ -84,9 +77,7 @@ def validate_feat(feat: FeatureDefinition) -> list[str]:
                 )
         for name in getattr(item, "telemetry", None) or []:
             if name not in telemetry_names:
-                errors.append(
-                    f"{kind} '{item.name}': telemetry '{name}' not declared in telemetry"
-                )
+                errors.append(f"{kind} '{item.name}': telemetry '{name}' not declared in telemetry")
 
     for proc in feat.procedures or []:
         if proc.command not in command_names:
@@ -95,50 +86,34 @@ def validate_feat(feat: FeatureDefinition) -> list[str]:
             )
         for q in proc.queries or []:
             if q not in query_names:
-                errors.append(
-                    f"procedure '{proc.name}': query '{q}' not declared in queries"
-                )
+                errors.append(f"procedure '{proc.name}': query '{q}' not declared in queries")
         for e in proc.emits or []:
             if e not in event_names:
-                errors.append(
-                    f"procedure '{proc.name}': emits '{e}' not declared in events"
-                )
+                errors.append(f"procedure '{proc.name}': emits '{e}' not declared in events")
         _check_extras("procedure", proc)
 
     for policy in feat.policies or []:
         if policy.event not in event_names:
-            errors.append(
-                f"policy '{policy.name}': event '{policy.event}' not declared in events"
-            )
+            errors.append(f"policy '{policy.name}': event '{policy.event}' not declared in events")
         for q in policy.queries or []:
             if q not in query_names:
-                errors.append(
-                    f"policy '{policy.name}': query '{q}' not declared in queries"
-                )
+                errors.append(f"policy '{policy.name}': query '{q}' not declared in queries")
         for e in policy.emits or []:
             if e not in command_names:
-                errors.append(
-                    f"policy '{policy.name}': emits '{e}' not declared in commands"
-                )
+                errors.append(f"policy '{policy.name}': emits '{e}' not declared in commands")
         _check_extras("policy", policy)
 
     for proj in feat.projections or []:
         if proj.event not in event_names:
-            errors.append(
-                f"projection '{proj.name}': event '{proj.event}' not declared in events"
-            )
+            errors.append(f"projection '{proj.name}': event '{proj.event}' not declared in events")
         if proj.model is not None and proj.model not in model_names:
-            errors.append(
-                f"projection '{proj.name}': model '{proj.model}' not declared in models"
-            )
+            errors.append(f"projection '{proj.name}': model '{proj.model}' not declared in models")
         _check_extras("projection", proj)
 
     for query in feat.queries or []:
         _check_extras("querier", query)
         if query.model is not None and query.model not in model_names:
-            errors.append(
-                f"query '{query.name}': model '{query.model}' not declared in models"
-            )
+            errors.append(f"query '{query.name}': model '{query.model}' not declared in models")
         if query.model is not None and query.adapter is None:
             errors.append(f"query '{query.name}': model declared without adapter")
         if query.adapter is not None and query.model is None:
@@ -150,7 +125,8 @@ def validate_feat(feat: FeatureDefinition) -> list[str]:
             and query.adapter not in (models_by_name[query.model].adapters or [])
         ):
             errors.append(
-                f"query '{query.name}': adapter '{query.adapter}' not declared on model '{query.model}'"
+                f"query '{query.name}': adapter '{query.adapter}' "
+                f"not declared on model '{query.model}'"
             )
 
     for proj in feat.projections or []:
@@ -165,7 +141,8 @@ def validate_feat(feat: FeatureDefinition) -> list[str]:
             and proj.adapter not in (models_by_name[proj.model].adapters or [])
         ):
             errors.append(
-                f"projection '{proj.name}': adapter '{proj.adapter}' not declared on model '{proj.model}'"
+                f"projection '{proj.name}': adapter '{proj.adapter}' "
+                f"not declared on model '{proj.model}'"
             )
 
     logger.debug("validated feat", extra={"errors": len(errors)})

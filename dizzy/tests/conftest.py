@@ -3,7 +3,6 @@
 from pathlib import Path
 
 import pytest
-
 from dizzy.feat_loader import load_feat
 from dizzy.feat_schema import FeatureDefinition
 

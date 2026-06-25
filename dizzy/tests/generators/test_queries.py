@@ -1,8 +1,12 @@
 """Snapshot tests for queries generator."""
 
+from dizzy.generators.queries import (
+    render_gen_query_protocol,
+    render_scaffold_query,
+    render_src_query_stub,
+)
 from syrupy.assertion import SnapshotAssertion
 
-from dizzy.generators.queries import render_scaffold_query, render_gen_query_protocol, render_src_query_stub
 from tests.conftest import by_name
 
 

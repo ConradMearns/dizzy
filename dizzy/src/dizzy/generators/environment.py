@@ -31,9 +31,7 @@ def render_scaffold_environment(environment: list[EnvironmentDef]) -> str:
     return "\n".join(lines)
 
 
-def write_scaffold_environment(
-    environment: list[EnvironmentDef], output_dir: Path
-) -> None:
+def write_scaffold_environment(environment: list[EnvironmentDef], output_dir: Path) -> None:
     """Write def/environment.yaml; skip if file already exists."""
     dest = output_dir / "def" / "environment.yaml"
     if dest.exists():

@@ -1,12 +1,12 @@
 """End-to-end def + gen + lib integration tests."""
 
 import logging
+from pathlib import Path
+
 import pytest
 from click.exceptions import Exit as ClickExit
-from pathlib import Path
-from syrupy.assertion import SnapshotAssertion
-
 from dizzy.cli import DOC_PAGES, app, def_cmd, gen, lib
+from syrupy.assertion import SnapshotAssertion
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
@@ -70,7 +70,6 @@ def test_def_does_not_overwrite(tmp_path: Path) -> None:
     def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
 
     commands_path = tmp_path / "def" / "commands.yaml"
-    original_content = commands_path.read_text()
     commands_path.write_text("# custom content\n")
 
     def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
@@ -235,9 +234,7 @@ def test_def_custom_default_runtime(tmp_path: Path) -> None:
     assert "runtimes: [python-uv]" not in content
 
 
-def test_lib_error_missing_libconfig(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_lib_error_missing_libconfig(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     def_cmd(feat_file=FIXTURES_DIR / "recipe.feat.yaml", output_dir=tmp_path)
     (tmp_path / "libconfig.yaml").unlink()
 

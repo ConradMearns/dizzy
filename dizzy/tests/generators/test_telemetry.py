@@ -1,8 +1,7 @@
 """Snapshot tests for telemetry generator."""
 
-from syrupy.assertion import SnapshotAssertion
-
 from dizzy.generators.telemetry import render_scaffold_telemetry
+from syrupy.assertion import SnapshotAssertion
 
 
 def test_render_scaffold_telemetry_snapshot(agent_feat, snapshot: SnapshotAssertion):
