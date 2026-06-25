@@ -1,0 +1,14 @@
+--- a/def/commands.yaml
++++ b/def/commands.yaml
+@@ -8,4 +8,10 @@
+ classes:
+   sign_guestbook:
+     description: A visitor wants to leave a signature
+-    attributes: {}
++    attributes:
++      visitor_name:
++        range: string
++        required: true
++      message:
++        range: string
++        required: true

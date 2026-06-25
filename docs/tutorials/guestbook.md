@@ -22,11 +22,21 @@ A visitor **signs** the guestbook (a *command*). A *procedure* validates it and 
 
 ## Before you start
 
-You need DIZZY installed and an empty working directory:
+You need DIZZY installed:
 
 ```shell
 $ dizzy --help | head -n 1
-$ ls
+```
+
+Work in a fresh directory. The file edits in Step 3 ship as patches under `edits/` so
+you can apply them directly — grab that folder from the
+[tutorial source](https://github.com/PNNL/dizzy/tree/main/docs/tutorials/guestbook), or
+just make the highlighted changes by hand as you go:
+
+```shell
+$ ls -1 edits
+commands.yaml.diff
+events.yaml.diff
 ```
 
 ## Step 1 — Describe the feature
@@ -116,64 +126,52 @@ classes:
     attributes: {}
 ```
 
-## Step 3 — Fill in the schema (writing into generated files)
+## Step 3 — Fill in the schema (patching generated files)
 
 This is the heart of the workflow: the generator scaffolds *structure*, and you author
-the *field-level detail*. A `sign_guestbook` command needs a visitor name and a message.
-Fill in `def/commands.yaml`:
+the *field-level detail*. The files **don't start empty** — the scaffold gave each class
+everything except the fields, leaving `attributes: {}` for you. A `sign_guestbook`
+command needs a visitor name and a message, so edit `def/commands.yaml`:
+
+```diff
+--8<-- "tutorials/guestbook/edits/commands.yaml.diff"
+```
+
+Each change in this tutorial ships as a patch under `edits/`, so you can apply it
+directly (or just make the highlighted edit by hand):
 
 ```shell
-$ cat > def/commands.yaml <<'YAML'
-> id: https://example.org/commands
-> name: commands
-> prefixes:
->   linkml: https://w3id.org/linkml/
-> default_range: string
-> imports:
->   - linkml:types
-> classes:
->   sign_guestbook:
->     description: A visitor wants to leave a signature
->     attributes:
->       visitor_name:
->         range: string
->         required: true
->       message:
->         range: string
->         required: true
-> YAML
+$ git apply edits/commands.yaml.diff
+$ cat def/commands.yaml
+id: https://example.org/commands
+name: commands
+prefixes:
+  linkml: https://w3id.org/linkml/
+default_range: string
+imports:
+  - linkml:types
+classes:
+  sign_guestbook:
+    description: A visitor wants to leave a signature
+    attributes:
+      visitor_name:
+        range: string
+        required: true
+      message:
+        range: string
+        required: true
 ```
 
 Do the same for the event. An event is an **immutable fact**, so it must carry
 everything needed to replay it — its own id and a timestamp, not just the user-supplied
 fields:
 
+```diff
+--8<-- "tutorials/guestbook/edits/events.yaml.diff"
+```
+
 ```shell
-$ cat > def/events.yaml <<'YAML'
-> id: https://example.org/events
-> name: events
-> prefixes:
->   linkml: https://w3id.org/linkml/
-> default_range: string
-> imports:
->   - linkml:types
-> classes:
->   guestbook_signed:
->     description: A visitor signed the guestbook
->     attributes:
->       signature_id:
->         range: string
->         required: true
->       visitor_name:
->         range: string
->         required: true
->       message:
->         range: string
->         required: true
->       signed_at:
->         range: datetime
->         required: true
-> YAML
+$ git apply edits/events.yaml.diff
 ```
 
 Re-running `dizzy generate definitions` now is safe — it **never clobbers** files you've

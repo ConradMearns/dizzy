@@ -59,6 +59,7 @@ nav:
 exclude_docs: |
   *.typ
   *.bib
+  *.diff
   pnf/
   whitepaper.reqs.md
   GRADE.md
@@ -69,5 +70,8 @@ markdown_extensions:
   - admonition
   - pymdownx.details
   - pymdownx.superfences
+  - pymdownx.snippets:
+      base_path: [docs]
+      check_paths: true
   - toc:
       permalink: true

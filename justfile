@@ -69,8 +69,11 @@ tutorials-check:
     for doc in "$repo"/docs/tutorials/*.md; do
         [ "$(basename "$doc")" = "index.md" ] && continue
         echo "▶ ${doc#$repo/}"
-        ( cd "$work" && rm -rf ./* ./.[!.]* 2>/dev/null || true
-          cd "$work" && uv run --group docs --project "$repo" byexample -l shell "$doc" )
+        ( cd "$work" && rm -rf ./* ./.[!.]* 2>/dev/null || true ) || true
+        # Stage any per-tutorial assets (e.g. edits/*.diff) that the steps apply.
+        assets="${doc%.md}"
+        [ -d "$assets" ] && cp -r "$assets/." "$work/"
+        ( cd "$work" && uv run --group docs --project "$repo" byexample -l shell "$doc" )
     done
 
 
