@@ -43,6 +43,8 @@ plugins:
 
 nav:
   - Home: index.md
+  - Seed Issues: seeds-graph/graph.html
+  # - Seed Issues Index: seeds-graph/index.md
   - Tutorials:
       - tutorials/index.md
       - Build a guestbook: tutorials/guestbook.md
