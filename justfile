@@ -53,14 +53,18 @@ whitepaper-watch:
     typst watch docs/whitepaper.typ
 
 # --- Documentation site (mkdocs) ---
+# Regenerate the interactive Seeds dependency graph (docs/seeds-dag.html) from `sd`.
+seeds-dag:
+    uv run --group docs docs/seeds-graph/gen-seeds-dag.py
 
 # Serve the Diátaxis docs site locally with live reload.
-docs-serve:
+docs-serve: seeds-dag
     uv run --group docs mkdocs serve
 
 # Build the docs site into site/ and fail on any warning.
-docs-build:
+docs-build: seeds-dag
     uv run --group docs mkdocs build --strict
+
 
 # Run every tutorial under docs/tutorials/ end-to-end in a throwaway sandbox and check
 # that each command + file matches the documented output (via byexample).
